@@ -7,15 +7,49 @@
 
 ## 1. 필요한 도구
 
-| 도구 | 버전 | 확인 명령 |
-| --- | --- | --- |
-| Node.js | **24** (LTS) | `node -v` |
-| npm | Node에 포함 | `npm -v` |
-| Git | 최신 | `git --version` |
-| Docker Desktop | 최신, **실행 중**이어야 함 | `docker info` |
-| VS Code | 권장 | |
+### 필수
 
-Supabase CLI는 프로젝트 개발 의존성으로 설치되므로 따로 설치하지 않습니다. 항상 `npx supabase ...`로 실행합니다.
+| 도구 | 용도 | Windows | Mac |
+| --- | --- | --- | --- |
+| Git | 버전 관리 | `winget install Git.Git` | `brew install git` |
+| Node.js **24** | 앱 실행 | 아래 참고 | `brew install node@24` |
+| Docker Desktop | 로컬 DB | `winget install Docker.DockerDesktop` | `brew install --cask docker` |
+| VS Code | 코드 편집 | `winget install Microsoft.VisualStudioCode` | `brew install --cask visual-studio-code` |
+
+- **Node는 반드시 24 버전**입니다. 최신 LTS가 24보다 높을 수 있으니 https://nodejs.org/en/download 에서 **v24**를 골라 설치합니다.
+- **Docker Desktop**은 Windows에서 WSL2가 필요합니다. 설치 중 WSL2 안내가 나오면 따르고 재부팅합니다. 설치 후 Docker Desktop을 실행해 상태가 Running인지 확인합니다.
+- Supabase CLI는 프로젝트 개발 의존성으로 설치되므로 따로 설치하지 않습니다. 항상 `npx supabase ...`로 실행합니다.
+
+### 권장
+
+| 도구 | 용도 | Windows | Mac |
+| --- | --- | --- | --- |
+| Fork | Git GUI (브랜치·커밋·충돌 해결을 화면으로) | `winget install Fork.Fork` | `brew install --cask fork` |
+| Starship | 터미널 프롬프트 (브랜치·Node 버전 표시) | `winget install Starship.Starship` | `brew install starship` |
+| JetBrainsMono Nerd Font | Starship 아이콘 표시용 글꼴 | `winget install DEVCOM.JetBrainsMonoNerdFont` | `brew install --cask font-jetbrains-mono-nerd-font` |
+
+**Starship 켜기 (설치 후 한 번)**
+
+- Windows (PowerShell)
+  1. `notepad $PROFILE` 실행 (파일이 없으면 만들겠냐고 물으면 '예')
+  2. 맨 아래에 `Invoke-Expression (&starship init powershell)` 추가 후 저장
+  3. Windows Terminal → 설정 → 프로필 → 기본값 → 모양 → 글꼴을 `JetBrainsMono Nerd Font`로 변경
+  4. 터미널 다시 열기
+- Mac (zsh): `~/.zshrc` 맨 아래에 `eval "$(starship init zsh)"` 추가, 터미널 글꼴을 Nerd Font로 변경
+
+**VS Code 확장** (Extensions에서 검색)
+
+- ESLint: 코드 규칙 오류를 바로 표시
+- Tailwind CSS IntelliSense: Tailwind 클래스 자동완성
+- Korean Language Pack: 한국어 메뉴 (선택)
+
+### 설치 확인
+
+```bash
+git --version   # 버전이 나오면 OK
+node -v         # v24로 시작해야 함
+docker info     # 오류 없이 정보가 나와야 함 (Docker Desktop 실행 중)
+```
 
 ## 2. 처음 한 번 설정
 
