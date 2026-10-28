@@ -1,0 +1,52 @@
+# PR과 main push마다 앱 검사와 DB 권한 테스트를 돌린다.
+# 브랜치 보호에서 "app"과 "db" 두 검사를 필수로 지정한다.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: app
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # 빌드에만 쓰는 가짜 값. 실제 키는 Vercel 환경변수에 둔다.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # next build는 lint를 돌리지 않으므로 따로 실행한다.
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  db:
+    name: db
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # 새 DB에 Migration과 seed.sql을 처음부터 적용한다.
+      - run: npx supabase db start
+      - run: npx supabase test db

@@ -1,0 +1,26 @@
+# 보안 경계 파일은 리드 또는 서버·DB 담당의 승인이 필요하다.
+# 브랜치 보호에서 "Require review from Code Owners"를 켜야 강제된다.
+#
+# 주의: 한 줄에 여러 명을 적으면 그중 한 명만 승인해도 통과한다.
+# "RLS·Migration·워크플로는 한지석 + 서버·DB 담당 1명" 규칙은
+# 자동으로 강제되지 않으므로, 이런 PR은 한지석이 마지막에 승인하고 Merge한다(README 7절).
+#
+# 화면 코드는 CODEOWNERS 없이 브랜치 보호의 "승인 1명" 규칙으로 리뷰한다.
+# (다른 팀 화면 담당끼리 리뷰: 강주원 joowon0130 ↔ 정재헌 jaehjung0102)
+
+# DB 구조·RLS·DB 테스트
+/supabase/migrations/   @hkg109 @elee7coder @goms1107
+/supabase/tests/        @hkg109 @elee7coder @goms1107
+/supabase/config.toml   @hkg109
+/supabase/seed.sql      @hkg109 @elee7coder @goms1107
+
+# 로그인·세션·권한 경계
+/src/proxy.ts           @hkg109
+/src/lib/supabase/      @hkg109 @elee7coder @goms1107
+/src/lib/auth/          @hkg109
+/src/app/auth/          @hkg109
+
+# CI·저장소 규칙
+/.github/               @hkg109
+/package.json           @hkg109
+/package-lock.json      @hkg109
