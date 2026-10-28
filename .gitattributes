@@ -1,0 +1,12 @@
+# 운영체제와 상관없이 저장소의 줄바꿈을 LF로 통일한다.
+* text=auto eol=lf
+
+# 바이너리 파일은 변환하지 않는다.
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.woff binary
+*.woff2 binary
