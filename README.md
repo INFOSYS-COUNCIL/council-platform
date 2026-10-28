@@ -88,11 +88,14 @@ Supabase Studio(로컬 DB 관리 화면): http://127.0.0.1:54323
 npx supabase db reset --local   # DB를 지우고 Migration + seed.sql을 처음부터 다시 적용
 npx supabase test db            # supabase/tests/의 pgTAP 테스트 실행
 npx supabase migration new <이름> # 새 Migration 파일 만들기
+npm run db:types                # DB 구조가 바뀌면 TypeScript 타입 다시 생성
 ```
 
 - **`db reset`은 반드시 `--local`로만 실행합니다.** 공유 dev/prod DB에서는 절대 초기화하지 않습니다.
 - DB 구조는 Studio 화면에서 직접 바꾸지 말고 **Migration 파일로만** 바꿉니다.
 - `supabase/seed.sql`에는 **가짜 데이터만** 넣습니다.
+- **새 테이블은 권한을 직접 GRANT해야 API에서 보입니다.** 원격 프로젝트는 "새 테이블 자동 노출"을 꺼 두었고, 로컬도 같게 맞췄습니다. Migration에 `grant select ... to authenticated`와 RLS 정책을 함께 적습니다. (예: `supabase/migrations/*_membership_auth.sql`)
+- 권한 판정 함수는 `private` 스키마에 둡니다 (`private.is_member(term_id)`, `private.is_executive(term_id)` 등).
 
 | 폴더 | 내용 |
 | --- | --- |
@@ -107,24 +110,52 @@ PR을 올리기 전에 아래가 모두 통과해야 합니다. CI에서도 같�
 ```bash
 npm run lint        # 코드 규칙 (next build는 lint를 돌리지 않으므로 따로 실행)
 npm run typecheck   # TypeScript 타입 검사
+npm test            # Vitest 단위 테스트 (src/**/*.test.ts)
 npm run build       # 배포 빌드
 npx supabase test db
 ```
+
+CI(`.github/workflows/ci.yml`)는 `app`(lint → typecheck → test → build)과 `db`(새 DB에 Migration 적용 → pgTAP) 두 작업을 돌립니다.
 
 ## 6. 폴더 구조
 
 ```text
 src/
   app/                 화면 (폴더 = 주소)
+    login/             로그인 화면
+    auth/callback/     Google 로그인 후 세션 교환 + 소속 활성화
+    auth/signout/      로그아웃 (POST)
+    me/                내 계정·소속 확인
   lib/supabase/
     client.ts          브라우저(Client Component)용 Supabase 클라이언트
     server.ts          서버(Server Component·Action)용 Supabase 클라이언트
     proxy.ts           요청마다 로그인 토큰을 갱신하는 함수
+    database.types.ts  DB 타입 (npm run db:types로 생성, 직접 수정 금지)
+  lib/auth/            학교 이메일 판정, 로그인 후 이동 경로 검사
   proxy.ts             Next.js Proxy (예전 이름: middleware)
 supabase/              로컬 DB 설정, Migration, Seed, 테스트
 ```
 
 서버에서 "누가 로그인했는가"를 판단할 때는 `supabase.auth.getClaims()` 또는 `getUser()`를 씁니다. `getSession()`의 결과만으로 권한을 판단하지 않습니다. 실제 권한은 DB의 RLS가 강제합니다.
+
+### 로그인 흐름
+
+```text
+/login → Google (학교 계정 선택)
+  → Supabase Auth Hook: Google·이메일 인증·@hanyang.ac.kr·hd 검사, 아니면 가입 거부
+  → auth.users 생성 → 트리거가 profiles 생성 (같은 조건 재검사)
+  → /auth/callback: 세션 교환 → activate_membership()
+      ├─ 승인 명단에 있음 → memberships 생성 (회장단/국장/국원)
+      └─ 없음 → 일반 학생
+  → /me (내 계정·소속 확인, 로그아웃)
+```
+
+- Cache Components가 켜져 있어서, 로그인 정보(쿠키)를 읽는 컴포넌트는 `<Suspense>` 안에 둡니다. (`src/app/me/page.tsx` 참고)
+- 로컬에서 실제 Google 로그인을 해 보려면 개인 Google OAuth 클라이언트가 필요합니다. 없어도 DB 권한은 pgTAP 테스트로 확인할 수 있습니다.
+  1. Google Cloud Console에서 OAuth 클라이언트(웹)를 만들고 Redirect URI에 `http://127.0.0.1:54321/auth/v1/callback` 추가
+  2. `supabase/.env` 파일(커밋 금지)에 `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=...` 입력
+  3. `npx supabase stop` → `npx supabase start`
+  4. 로컬 DB에는 승인 명단이 비어 있으므로, 회장단 화면이 생기기 전까지는 아래 "첫 회장단 등록" SQL을 Studio에서 실행해 자기 계정을 등록합니다.
 
 ## 7. 브랜치와 PR 규칙
 
@@ -141,6 +172,8 @@ supabase/              로컬 DB 설정, Migration, Seed, 테스트
 | 서버·DB 함수 | 다른 팀 서버·DB 담당 (이은규 ↔ 조수빈) |
 | RLS·Migration·워크플로 | 한지석 필수 + 서버·DB 담당 1명 |
 
+`.github/CODEOWNERS`가 DB·로그인·CI 파일에 리뷰어를 자동 지정합니다. 단, 여러 명이 적힌 경로는 그중 한 명만 승인해도 통과하므로, "한지석 필수" 규칙은 한지석이 마지막 승인 후 Merge하는 것으로 지킵니다.
+
 막히면 30분 넘게 혼자 붙잡지 말고 Issue 댓글이나 단톡에 질문합니다.
 
 ## 8. 배포와 DB 변경
@@ -152,6 +185,37 @@ supabase/              로컬 DB 설정, Migration, Seed, 테스트
   1. PR에 Migration이 있으면 `council-dev`에 먼저 적용해 Preview에서 확인
   2. Merge 직전, 리드가 `council-prod`에 Migration 적용 (`npx supabase db push`, 프로젝트 link 필요)
   3. 적용 확인 후 Merge → Production 자동 배포
+
+### Supabase 대시보드 설정 (dev·prod 각각, 리드)
+
+Migration 외에 대시보드에서 직접 켜야 하는 설정입니다.
+
+1. Authentication → Sign In / Providers
+   - **Google** 켜고 Client ID·Secret 입력 (Google Cloud Console의 Redirect URI: `https://<프로젝트ref>.supabase.co/auth/v1/callback`)
+   - Email 등 Google 외 Provider는 모두 끔
+2. Authentication → URL Configuration
+   - Site URL: 배포 주소
+   - Redirect URLs: `http://localhost:3000/auth/callback`, 배포 주소의 `/auth/callback`, Preview 주소 패턴
+3. Authentication → Hooks → **Before User Created** → Postgres 함수 `public.hook_before_user_created` 연결
+4. 학교 계정과 외부 Gmail로 한 번씩 로그인해 보고, 외부 Gmail이 거부되고 `auth.users`에 행이 생기지 않는지 확인
+
+### 첫 회장단 등록 (기수마다 한 번, 비상 절차)
+
+회장단이 아무도 없을 때만 씁니다. 그 뒤의 구성원 등록은 회장단 화면에서 합니다. 실제 이메일은 실행할 때만 입력하고 저장소·단톡에 남기지 않습니다.
+
+대시보드 SQL Editor에서:
+
+```sql
+-- 1) 기수가 없으면 만든다 (ACTIVE는 하나만 가능)
+insert into public.terms (name, status, starts_on, ends_on)
+values ('2027 제N대 학생회', 'ACTIVE', '2027-03-01', '2028-02-28')
+returning id;
+
+-- 2) 그 기수의 첫 회장단 승인 행을 만든다
+select private.bootstrap_first_executive('<위에서 나온 기수 id>', '<회장 학교 이메일>');
+```
+
+해당 사용자가 로그아웃 후 다시 로그인하면 회장단 Membership이 생깁니다. `/me`에서 "회장단"으로 보이는지 확인합니다.
 
 ## 9. 절대 하지 말 것
 

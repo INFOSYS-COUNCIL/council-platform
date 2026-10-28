@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // supabase gen types로 생성되는 파일
+    "src/lib/supabase/database.types.ts",
   ]),
 ]);
 
