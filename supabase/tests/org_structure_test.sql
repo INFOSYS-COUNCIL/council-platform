@@ -17,9 +17,14 @@ select throws_ok(
   'ACTIVE 기수를 두 개 만들 수 없다'
 );
 
--- 거부: 로그인하지 않은 사용자(anon)는 부서를 읽지 못한다
+-- 거부: 로그인하지 않은 사용자(anon)는 부서 테이블 권한 자체가 없다
 set local role anon;
-select is_empty($$ select * from public.departments $$, 'anon은 부서를 볼 수 없다');
+select throws_ok(
+  $$ select * from public.departments $$,
+  '42501',
+  null,
+  'anon은 부서를 볼 수 없다'
+);
 
 -- 거부: 로그인 사용자도 기수를 직접 만들 수 없다
 set local role authenticated;
