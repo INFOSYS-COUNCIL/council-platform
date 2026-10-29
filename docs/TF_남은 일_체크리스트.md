@@ -37,14 +37,15 @@
 - [ ] Google 테스트 사용자 등록 완료 여부 확인, 필요한 테스트 계정 등록
 - [ ] 학교 계정 통과·외부 Gmail 거부·hd 값 확인, 거부 계정의 auth.users 생성 여부 확인
 - [ ] 첫 회장단 등록→재로그인→/me의 소속 확인
-- [ ] main 보호: PR 필수, app·db 필수, 승인 1명, Code Owner 승인, 대화 해결, force push 금지
-- [ ] Squash만 허용·Merge 후 브랜치 자동 삭제 설정 상태 확인·적용
+- [x] main 보호: PR 필수, app·db 필수, 승인 1명, Code Owner 승인, 대화 해결, force push 금지 (10/29, 리드 PR은 관리자 우회. 가이드 3.1절)
+- [x] Squash만 허용·Merge 후 브랜치 자동 삭제 설정 상태 확인·적용 (10/29)
+- [x] Vercel Preview 로그인 요구 해제 (10/29, 팀원 리뷰어가 Preview 확인 가능)
 - [ ] keep-alive Secrets 4개 등록·dev/prod 수동 실행 확인
 - [ ] 개인정보처리방침 초안 Issue 작성
-- [ ] 협업 문서·AI 규칙·템플릿·CODEOWNERS와 README --linked 변경을 PR로 main에 반영
-- [ ] 초기 Issue 4개 본문을 정리안대로 GitHub에서 갱신 (범위는 확정, 원격 수정은 리드)
-- [ ] 주차별 Milestone 준비
-- [x] 기획서 보관: v0.7에 킥오프 결정·일정·화면 명세를 반영한 v0.8을 `docs/학생회_운영플랫폼_기획서.md`로 저장 (커밋 전)
+- [x] 협업 문서·AI 규칙·템플릿·CODEOWNERS와 README --linked 변경을 PR로 main에 반영 (PR #6, 10/29)
+- [x] 초기 Issue 4개 본문을 정리안대로 GitHub에서 갱신 (10/29, 마감 11/3·#2 제목 수정)
+- [x] 주차별 Milestone 준비 (`1주차 (11/5)`, #1~#4 연결)
+- [x] 기획서 보관: v0.7에 킥오프 결정·일정·화면 명세를 반영한 v0.8을 `docs/학생회_운영플랫폼_기획서.md`로 저장 (PR #6)
 - [ ] 기획서 부록 C.1 미정 항목 19개를 확정 시한(첫 시한 11/5)까지 회장단과 확정
 - [ ] hyuhjs 사이트 세션에서 가이드 기반 강의 재구성
 
@@ -54,7 +55,7 @@ keep-alive Secrets 이름: SUPABASE_DEV_URL, SUPABASE_DEV_PUBLISHABLE_KEY, SUPAB
 
 - 기존 미커밋 협업 파일을 보존하고 원격을 fetch한 뒤 origin/main(34a22ba) 기준 chore/collab-guides 브랜치로 옮겼다. 이미 Merge된 feat/auth-foundation에는 새 작업을 쌓지 않는다.
 - 4140bf7은 main에 포함되지 않았음을 확인했다. 그 커밋의 README --linked 변경만 새 브랜치의 미커밋 변경에 반영했다.
-- AGENTS.md·CLAUDE.md·Issue/PR 템플릿·CODEOWNERS·docs는 로컬 준비 상태다. 파일 생성은 브랜치 보호·GitHub Secrets·Auth Hook 설정 완료를 뜻하지 않는다.
+- AGENTS.md·CLAUDE.md·Issue/PR 템플릿·CODEOWNERS·docs는 PR #6(10/29)으로 main에 반영했다. 브랜치 보호도 같은 날 켰다. GitHub Secrets·Auth Hook 설정은 아직 남아 있다.
 - 킥오프 PPT는 저장소 밖 작업 폴더의 `TF_킥오프_진행방식.pptx` 하나로 정리했다. v2(GitHub 캡처, 네 Issue 동시 시작, PR 마감 11/3 23:59)에 v3의 일정 수정(12월 말 MVP, 공동편집 검증 3~4주차, 11/5 병합 결과 시연, 주차별 필수 강의)을 합쳤다. v2·v3·이전 기획서 v0.7은 휴지통으로 옮겼다.
 
 ## 유지할 결정
