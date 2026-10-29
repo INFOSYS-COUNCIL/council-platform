@@ -38,12 +38,19 @@ jobs:
             echo "${{ matrix.env }}: secret이 없어 건너뜁니다."
             exit 0
           fi
-          # ACTIVE 기수 조회. 로그인하지 않은 요청이라 권한 오류가 나도 DB에는 요청이 도달한다.
-          status=$(curl -s -o /dev/null -w '%{http_code}' \
+          # 기수 조회. 로그인하지 않은 요청이라 DB가 권한 오류(42501)를 돌려주는 것이 정상이다.
+          # 키가 틀리면 같은 401이어도 DB에 닿지 않으므로("Invalid API key") 실패로 처리한다.
+          body=$(curl -s -w '\n%{http_code}' \
             "$SUPABASE_URL/rest/v1/terms?select=id&limit=1" \
             -H "apikey: $SUPABASE_KEY")
+          status=$(echo "$body" | tail -n 1)
           echo "${{ matrix.env }}: HTTP $status"
           case "$status" in
-            2*|401|403) exit 0 ;;
-            *) exit 1 ;;
+            2*) exit 0 ;;
           esac
+          if echo "$body" | grep -q '"code":"42501"'; then
+            echo "${{ matrix.env }}: DB 권한 오류 응답 (정상, DB까지 요청이 닿음)"
+            exit 0
+          fi
+          echo "${{ matrix.env }}: DB에 닿지 않았습니다. URL·Publishable key secret을 확인하세요."
+          exit 1
