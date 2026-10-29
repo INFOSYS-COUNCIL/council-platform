@@ -115,8 +115,9 @@ select throws_ok(
 );
 
 select is_empty(
-  $$ select * from public.approved_council_accounts $$,
-  'MEMBER인 A는 승인 명단을 볼 수 없다'
+  $$ select * from public.approved_council_accounts
+     where activated_user_id is distinct from 'aaaaaaaa-0000-0000-0000-00000000000a' $$,
+  'MEMBER인 A는 자기 승인 행 말고는 승인 명단을 볼 수 없다'
 );
 
 -- ---------------------------------------------------------------------
