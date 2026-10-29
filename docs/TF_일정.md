@@ -50,9 +50,9 @@ A팀은 강주원·이은규, B팀은 정재헌·조수빈이다. **모두 화�
 리드:
 
 - 기획서 v0.8을 `docs/학생회_운영플랫폼_기획서.md`로 보관한다(실제 학생 정보·비밀 값 없음 확인). 부록 C.1 미정 항목의 확정 일정을 회장단과 공유한다.
-- 협업 가이드와 README·AGENTS.md·CLAUDE.md·Issue/PR 템플릿·CODEOWNERS를 일치시킨다. 이번 수정으로 로컬 파일은 준비했으며 PR·병합은 별도 단계다.
-- PR #5 Merge·CI 이름을 확인하고 main 보호를 설정한다: PR 필수, app·db 필수, 승인 1명, Code Owner 승인, 대화 해결, force push 금지.
-- Squash만 허용·Merge 후 브랜치 자동 삭제 상태를 확인하고 필요한 설정을 적용한다. 팀 Write 권한·라벨 9개·Issue #1~#4 배정은 완료되어 있으며 주차별 Milestone을 준비한다.
+- 협업 가이드와 README·AGENTS.md·CLAUDE.md·Issue/PR 템플릿·CODEOWNERS를 일치시킨다. → 완료 (PR #6, 10/29)
+- main 보호를 설정한다: PR 필수, app·db 필수, 승인 1명, Code Owner 승인, 대화 해결, force push 금지. → 완료 (10/29). 리드 PR은 관리자 우회(가이드 3.1절)
+- Squash만 허용·Merge 후 브랜치 자동 삭제, 주차별 Milestone. → 완료 (10/29, `1주차 (11/5)`에 #1~#4 연결). Vercel Preview 로그인 요구도 해제했다.
 - hyuhjs 사이트 세션에서 강의를 재구성할 때 사용자 요약과 가이드 원문을 함께 전달한다. GitHub 강의는 6장을 바탕으로 한다.
 - 개인정보처리방침 초안 Issue를 준비해 검토 담당·게시 위치·Google 앱 게시 준비와 연결한다.
 
@@ -166,5 +166,7 @@ A팀은 강주원·이은규, B팀은 정재헌·조수빈이다. **모두 화�
 ## 6. 보호 설정 전에 확인할 사항
 
 가이드대로 CODEOWNERS는 `* @hkg109`로 맞췄다. 유일한 Code Owner가 작성한 PR에 Code Owner 승인을 필수로 요구하면 리드 본인 PR의 승인·병합 절차를 별도로 확인해야 한다. GitHub는 PR 작성자의 자기 승인을 허용하지 않는다. 1주차 보호 설정 검증에 이 경우를 포함하고 필요한 운영 정책은 리드가 결정한다. 임의로 다른 Code Owner를 추가하지 않는다.
+
+**10/29 결정:** Code Owner 승인 필수는 유지하고, 리드 본인 PR만 1단계 리뷰어 Approve와 CI 통과를 확인한 뒤 관리자 우회로 Merge한다(가이드 3.1절). Code Owner는 추가하지 않았다.
 
 근거: [GitHub PR 승인 문서](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/approving-a-pull-request-with-required-reviews), [GitHub CODEOWNERS 문서](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).

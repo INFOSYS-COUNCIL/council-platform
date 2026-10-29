@@ -196,6 +196,14 @@ Fork 앱을 쓰면 같은 일을 버튼으로 한다. Fork에서는 왼쪽 브�
 
 리드의 승인 없이는 Merge되지 않는다 (CODEOWNERS + 브랜치 보호, 6.11절).
 
+**리드 본인 PR (10/29 결정):** GitHub는 작성자 본인의 승인을 허용하지 않아 리드 PR은 Code Owner 승인을 받을 수 없다. 그래서 리드 PR은 다음 순서로 합친다.
+
+1. 1단계 리뷰어(이은규 또는 조수빈)가 체크리스트와 Preview로 확인하고 PR에 **Approve**를 남긴다.
+2. CI(`app`·`db`)가 초록색인지 확인한다.
+3. 리드가 Merge 화면에서 **"Merge without waiting for requirements to be met"**(관리자 우회)를 체크하고 Squash merge한다.
+
+관리자 우회는 **리드 본인 PR에만** 쓴다. 팀원 PR은 반드시 리드 승인을 받아 합친다.
+
 ### 3.2 누가 누구를 리뷰하나
 
 | 변경 | 1단계 리뷰어 |
@@ -599,6 +607,11 @@ git push                   # 첫 push는 git push -u origin <브랜치>
 - 검사(`app`, `db`)가 초록색이어야 Merge 가능
 - 리뷰 승인이 있어야 Merge 가능
 - 해결되지 않은 리뷰 댓글이 있으면 Merge 불가
+- 최신 `main`을 반영한 상태로 검사가 다시 통과해야 Merge 가능 (Update branch 버튼)
+- force push · 브랜치 삭제 금지
+- 관리자(리드)는 우회할 수 있지만 리드 본인 PR에만 쓴다 (3.1절)
+
+**Preview:** PR마다 Vercel 봇이 댓글로 Preview 주소를 단다. Preview는 로그인 없이 누구나 열 수 있다(10/29 보호 해제). dev DB와 가짜 데이터를 쓰므로 실제 학생 정보를 넣지 않는다.
 
 **CODEOWNERS:** `.github/CODEOWNERS` 파일에 "이 폴더는 이 사람이 승인해야 한다"를 적어 둔다. 우리는 **모든 파일에 리드 승인**이 필요하도록 설정한다. 그래서 1단계 리뷰를 받아도 리드 승인 전에는 Merge되지 않는다.
 
@@ -723,9 +736,10 @@ Closes #
 |---|---|---|
 | `developers` 팀 Write 권한 | 저장소 Settings → Collaborators and teams | 완료 |
 | 라벨 9개 | Issues → Labels | 완료 |
-| Squash merge만 허용, Merge 후 브랜치 자동 삭제 | Settings → General → Pull Requests | 예정 |
-| `main` 브랜치 보호 (PR 필수, `app`·`db` 검사 필수, 승인 1명, Code Owner 승인, 대화 해결, force push 금지) | Settings → Branches (또는 Rules) | 미설정 · PR #5 Merge 완료로 적용 가능 |
-| CODEOWNERS에 `* @hkg109` 추가 | `.github/CODEOWNERS` | 로컬 준비 · main 반영 대기 |
-| Issue · PR 템플릿 | `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` | 로컬 준비 · main 반영 대기 |
-| AI 규칙 파일 | `AGENTS.md`, `CLAUDE.md` | 로컬 준비 · main 반영 대기 |
-| 주차별 Milestone | Issues → Milestones | 예정 |
+| Squash merge만 허용, Update branch 버튼 표시, Merge 후 브랜치 자동 삭제 | Settings → General → Pull Requests | 완료 (10/29) |
+| `main` 브랜치 보호 (PR 필수, 승인 1명, Code Owner 승인, `app`·`db` 검사 필수, 최신 main 반영, 대화 해결, force push·삭제 금지, 관리자 우회 허용) | Settings → Branches | 완료 (10/29). 리드 PR 처리는 3.1절 |
+| CODEOWNERS에 `* @hkg109` 추가 | `.github/CODEOWNERS` | 완료 (PR #6) |
+| Issue · PR 템플릿 | `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` | 완료 (PR #6) |
+| AI 규칙 파일 | `AGENTS.md`, `CLAUDE.md` | 완료 (PR #6) |
+| 주차별 Milestone | Issues → Milestones | `1주차 (11/5)` 생성, #1~#4 연결 (10/29). 이후 주차는 매주 수요일 밤 생성 |
+| Vercel Preview 공개 (Deployment Protection의 Vercel Authentication 끄기) | Vercel 프로젝트 Settings → Deployment Protection | 완료 (10/29). 팀 소유 계정으로만 바꿀 수 있음 |
