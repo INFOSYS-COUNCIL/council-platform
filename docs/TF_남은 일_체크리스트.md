@@ -1,6 +1,6 @@
 # 학생회 플랫폼 TF 진행 현황 · 2026-10-29
 
-작업 방식의 기준은 [협업 가이드](TF_작업방식_GitHub_가이드.md), 앞으로의 일정은 [주차별 계획](TF_주차별_진행계획_20261029.md)이다. 이 문서는 사용자가 전달한 10/28~10/29 진행 상태를 보관한다. 실제 수행·재검증 없이 완료 항목을 늘리지 않는다.
+작업 방식의 기준은 [협업 가이드](TF_작업방식_기준.md), 기능 기준은 [기획서 v0.8](학생회_운영플랫폼_기획서.md), 앞으로의 일정은 [주차별 계획](TF_일정.md)이다. 이 문서는 사용자가 전달한 10/28~10/29 진행 상태를 보관한다. 실제 수행·재검증 없이 완료 항목을 늘리지 않는다.
 
 ## 완료된 기반
 
@@ -29,7 +29,7 @@
 | [#3](https://github.com/INFOSYS-COUNCIL/council-platform/issues/3) | 이은규 | Seed 조회·positions 거부 테스트 | 조수빈 |
 | [#4](https://github.com/INFOSYS-COUNCIL/council-platform/issues/4) | 조수빈 | terms 거부 테스트 | 이은규 |
 
-10/29 범위 확정: #1은 `src/app/page.tsx`, #2는 `src/app/login/**`, #3은 새 `positions_test.sql`, #4는 새 `terms_test.sql`만 다루므로 네 Issue가 동시에 시작한다. `layout.tsx`의 `lang="ko"`·사이트 제목은 리드가 이 협업 PR에서 처리했다. Issue 본문은 [초기 Issue 정리안](TF_초기_Issue_정리안.md)대로 리드가 GitHub에서 갱신한다.
+10/29 범위 확정: #1은 `src/app/page.tsx`, #2는 `src/app/login/**`, #3은 새 `positions_test.sql`, #4는 새 `terms_test.sql`만 다루므로 네 Issue가 동시에 시작한다. `layout.tsx`의 `lang="ko"`·사이트 제목은 리드가 이 협업 PR에서 처리했다. Issue 본문은 [초기 Issue 정리안](GitHub_Issue_초기_정리안.md)대로 리드가 GitHub에서 갱신한다.
 
 ## 남은 일
 
@@ -44,7 +44,8 @@
 - [ ] 협업 문서·AI 규칙·템플릿·CODEOWNERS와 README --linked 변경을 PR로 main에 반영
 - [ ] 초기 Issue 4개 본문을 정리안대로 GitHub에서 갱신 (범위는 확정, 원격 수정은 리드)
 - [ ] 주차별 Milestone 준비
-- [ ] 기획서 v0.7·기존 진행계획 복구·보관
+- [x] 기획서 보관: v0.7에 킥오프 결정·일정·화면 명세를 반영한 v0.8을 `docs/학생회_운영플랫폼_기획서.md`로 저장 (커밋 전)
+- [ ] 기획서 부록 C.1 미정 항목 19개를 확정 시한(첫 시한 11/5)까지 회장단과 확정
 - [ ] hyuhjs 사이트 세션에서 가이드 기반 강의 재구성
 
 keep-alive Secrets 이름: SUPABASE_DEV_URL, SUPABASE_DEV_PUBLISHABLE_KEY, SUPABASE_PROD_URL, SUPABASE_PROD_PUBLISHABLE_KEY. 값은 저장소·Issue·PR·AI 입력에 남기지 않는다.
@@ -54,7 +55,7 @@ keep-alive Secrets 이름: SUPABASE_DEV_URL, SUPABASE_DEV_PUBLISHABLE_KEY, SUPAB
 - 기존 미커밋 협업 파일을 보존하고 원격을 fetch한 뒤 origin/main(34a22ba) 기준 chore/collab-guides 브랜치로 옮겼다. 이미 Merge된 feat/auth-foundation에는 새 작업을 쌓지 않는다.
 - 4140bf7은 main에 포함되지 않았음을 확인했다. 그 커밋의 README --linked 변경만 새 브랜치의 미커밋 변경에 반영했다.
 - AGENTS.md·CLAUDE.md·Issue/PR 템플릿·CODEOWNERS·docs는 로컬 준비 상태다. 파일 생성은 브랜치 보호·GitHub Secrets·Auth Hook 설정 완료를 뜻하지 않는다.
-- 킥오프 PPT는 저장소 밖 작업 폴더에 v2(GitHub 캡처 포함, 네 Issue 동시 시작·PR 마감 11/3 반영)와 v3(별도 수정본) 두 개가 있다. 발표에 쓸 파일은 리드가 하나로 정한다.
+- 킥오프 PPT는 저장소 밖 작업 폴더의 `TF_킥오프_진행방식.pptx` 하나로 정리했다. v2(GitHub 캡처, 네 Issue 동시 시작, PR 마감 11/3 23:59)에 v3의 일정 수정(12월 말 MVP, 공동편집 검증 3~4주차, 11/5 병합 결과 시연, 주차별 필수 강의)을 합쳤다. v2·v3·이전 기획서 v0.7은 휴지통으로 옮겼다.
 
 ## 유지할 결정
 

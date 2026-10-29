@@ -1,10 +1,10 @@
 # 학생회 운영 플랫폼 (council-platform)
 
-정보시스템학과 학생회 운영 플랫폼입니다. **작업 방식·역할·협업 규칙의 기준은 [TF 작업 방식 · GitHub 협업 가이드](docs/TF_작업방식_GitHub_가이드.md)**입니다. 이 README는 설치·실행 안내이며, 협업 규칙이 다르면 가이드를 따릅니다.
+정보시스템학과 학생회 운영 플랫폼입니다. **작업 방식·역할·협업 규칙의 기준은 [TF 작업 방식 · GitHub 협업 가이드](docs/TF_작업방식_기준.md)**입니다. 이 README는 설치·실행 안내이며, 협업 규칙이 다르면 가이드를 따릅니다.
 
-- 일정: [10월 29일 시작 주차별 진행계획](docs/TF_주차별_진행계획_20261029.md)
-- 완료·미완료 현황과 초기 Issue: [10월 29일 진행 현황](docs/TF_진행현황_20261029.md). 협업 파일은 로컬 준비 상태와 main 반영 상태를 구분합니다.
-- 기능 요구사항·권한 표·데이터 구조: 기획서 v0.7. 현재 저장소에 없으므로 복구·보관 후 기능별 Issue에 필요한 내용을 옮깁니다.
+- 일정: [10월 29일 시작 주차별 진행계획](docs/TF_일정.md)
+- 완료·미완료 현황과 초기 Issue: [10월 29일 진행 현황](docs/TF_남은%20일_체크리스트.md). 협업 파일은 로컬 준비 상태와 main 반영 상태를 구분합니다.
+- 기능 요구사항·권한 표·데이터 구조·화면 주소: [기획서 v0.8](docs/학생회_운영플랫폼_기획서.md). 기능별 Issue에는 필요한 절만 옮깁니다.
 
 - 스택: Next.js 16 (App Router, TypeScript, Tailwind) · Supabase (Auth, Postgres + RLS) · Vercel
 - **이 저장소는 공개 저장소입니다.** 비밀 키와 실제 학생 정보(이름, 이메일, 학번, UID)는 절대 커밋하지 않습니다.
@@ -126,16 +126,25 @@ CI(`.github/workflows/ci.yml`)는 `app`(lint → typecheck → test → build)�
 ```text
 src/
   app/                 화면 (폴더 = 주소)
+    (member)/          구성원 전용 화면. 괄호 폴더는 주소에 나타나지 않음 (공통 메뉴 layout.tsx)
+      dashboard/       대시보드 (/dashboard)
     login/             로그인 화면
-    auth/callback/     Google 로그인 후 세션 교환 + 소속 활성화
+    auth/callback/     Google 로그인 후 세션 교환 + 소속 활성화 + 첫 화면 결정
     auth/signout/      로그아웃 (POST)
     me/                내 계정·소속 확인
+    error.tsx          예상하지 못한 오류 화면
+    not-found.tsx      없는 화면·권한 없음 화면
+  components/ui/       여러 화면에서 쓰는 부품 (버튼, 알림, 빈 목록, 화면 제목)
   lib/supabase/
     client.ts          브라우저(Client Component)용 Supabase 클라이언트
     server.ts          서버(Server Component·Action)용 Supabase 클라이언트
     proxy.ts           요청마다 로그인 토큰을 갱신하는 함수
     database.types.ts  DB 타입 (npm run db:types로 생성, 직접 수정 금지)
-  lib/auth/            학교 이메일 판정, 로그인 후 이동 경로 검사
+  lib/auth/
+    session.ts         로그인·소속 확인 (requireUser, requireMember). 모든 page·Server Action에서 사용
+    home.ts            로그인 뒤 첫 화면 (구성원 /dashboard, 학생 /me)
+    email.ts           학교 이메일 판정
+    redirect.ts        로그인 후 돌아갈 경로 검사
   proxy.ts             Next.js Proxy (예전 이름: middleware)
 supabase/              로컬 DB 설정, Migration, Seed, 테스트
 ```
@@ -151,7 +160,7 @@ supabase/              로컬 DB 설정, Migration, Seed, 테스트
   → /auth/callback: 세션 교환 → activate_membership()
       ├─ 승인 명단에 있음 → memberships 생성 (회장단/국장/국원)
       └─ 없음 → 일반 학생
-  → /me (내 계정·소속 확인, 로그아웃)
+  → 돌아갈 주소(next)가 있으면 그곳, 없으면 구성원은 /dashboard, 일반 학생은 /me
 ```
 
 - Cache Components가 켜져 있어서, 로그인 정보(쿠키)를 읽는 컴포넌트는 `<Suspense>` 안에 둡니다. (`src/app/me/page.tsx` 참고)
@@ -181,7 +190,7 @@ A팀은 강주원·이은규, B팀은 정재헌·조수빈이며, 같은 짝끼�
 
 리드는 다음 주 기능의 DB·RLS·서버 함수·타입·공용 부품·화면 경로를 한 주 먼저 준비합니다. 팀원은 Issue에 허용된 파일만 수정합니다. `supabase/**`, 패키지 파일, layout·내비게이션, `globals.css`, `src/lib/supabase/**`, DB 타입, `src/components/ui/**`는 리드가 관리합니다. 공용 파일 변경과 패키지 추가는 Issue 댓글로 요청합니다.
 
-초기 실습 Issue 4개는 서로 다른 파일을 다루므로 동시에 시작합니다. #1은 `src/app/page.tsx`, #2는 `src/app/login/**`만 수정하고, `layout.tsx`의 언어 설정·사이트 제목은 리드가 처리합니다. 예외로 #3은 새 `supabase/tests/positions_test.sql`, #4는 새 `supabase/tests/terms_test.sql`만 추가할 수 있습니다. Migration·RLS·기존 공용 테스트 수정까지 허용하는 뜻은 아닙니다. [초기 Issue 정리안](docs/TF_초기_Issue_정리안.md)을 참고합니다.
+초기 실습 Issue 4개는 서로 다른 파일을 다루므로 동시에 시작합니다. #1은 `src/app/page.tsx`, #2는 `src/app/login/**`만 수정하고, `layout.tsx`의 언어 설정·사이트 제목은 리드가 처리합니다. 예외로 #3은 새 `supabase/tests/positions_test.sql`, #4는 새 `supabase/tests/terms_test.sql`만 추가할 수 있습니다. Migration·RLS·기존 공용 테스트 수정까지 허용하는 뜻은 아닙니다. [초기 Issue 정리안](docs/GitHub_Issue_초기_정리안.md)을 참고합니다.
 
 PR은 가이드 3.3절의 8개 항목(완료 기준·화면 상태·권한·보안·범위·정리·접근성·설명)을 확인합니다. 화면 상태 4가지는 로딩·빈 목록·오류·권한 없음입니다.
 
