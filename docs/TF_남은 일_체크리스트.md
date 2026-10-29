@@ -1,0 +1,67 @@
+# 학생회 플랫폼 TF 진행 현황 · 2026-10-29
+
+작업 방식의 기준은 [협업 가이드](TF_작업방식_기준.md), 기능 기준은 [기획서 v0.8](학생회_운영플랫폼_기획서.md), 앞으로의 일정은 [주차별 계획](TF_일정.md)이다. 이 문서는 사용자가 전달한 10/28~10/29 진행 상태를 보관한다. 실제 수행·재검증 없이 완료 항목을 늘리지 않는다.
+
+## 완료된 기반
+
+| 영역 | 10/29 상태 |
+|---|---|
+| 계정 관리 | 공용 계정 비밀번호는 회장·부회장만 관리. GitHub 공용 계정 gaon2027, 리드 hkg109 |
+| GitHub | INFOSYS-COUNCIL / council-platform, Public. 기본 Read, developers 팀 Write. 라벨 9개 정리 완료 |
+| PR #5 | 로그인·권한 기반이 main에 Merge 완료. 로컬에서 origin/main의 Merge 커밋 34a22ba 확인 |
+| CI·Preview | app(lint·typecheck·test·build), db(pgTAP). PR #5에서 CI 4/4·Vercel Preview 확인 보고 |
+| Supabase | council-dev·council-prod 모두 서울, Migration 3개 적용 완료 보고. Data API 켬, 새 테이블 자동 노출 끔, 자동 RLS 켬 |
+| 로컬 | Docker Supabase·환경변수 연결, CLI 로그인·dev link 완료 보고 |
+| Vercel | council-platform 배포. Production은 prod, Preview는 dev. Supabase 추가 연동은 사용하지 않음 |
+| Google OAuth | 프로젝트·External 테스트 동의 화면·웹 OAuth 클라이언트 준비. dev/prod 콜백 URI 등록 보고. 노출됐던 비밀 값 교체·기존 값 삭제 보고 |
+| 코드 | Next.js 16·Supabase SSR·Node 24·LF. 테이블 6개, RLS, Auth Hook, 소속 활성화·첫 회장단 등록 함수 |
+| 화면 | /login, /auth/callback, /auth/signout, /me |
+| 테스트 | pgTAP 37개·Vitest 17개 통과 보고. 이 문서 갱신 과정에서 재실행한 결과는 아님 |
+
+운영 주소: [학생회 플랫폼](https://council-platform-blue.vercel.app).
+
+## 이미 배정한 첫 Issue
+
+| Issue | 담당 | 작업 | 1단계 리뷰 |
+|---|---|---|---|
+| [#1](https://github.com/INFOSYS-COUNCIL/council-platform/issues/1) | 강주원 | 첫 화면 문구·페이지 정보 한국어화 | 정재헌 |
+| [#2](https://github.com/INFOSYS-COUNCIL/council-platform/issues/2) | 정재헌 | 로그인 화면 접근성 점검·개선 | 강주원 |
+| [#3](https://github.com/INFOSYS-COUNCIL/council-platform/issues/3) | 이은규 | Seed 조회·positions 거부 테스트 | 조수빈 |
+| [#4](https://github.com/INFOSYS-COUNCIL/council-platform/issues/4) | 조수빈 | terms 거부 테스트 | 이은규 |
+
+10/29 범위 확정: #1은 `src/app/page.tsx`, #2는 `src/app/login/**`, #3은 새 `positions_test.sql`, #4는 새 `terms_test.sql`만 다루므로 네 Issue가 동시에 시작한다. `layout.tsx`의 `lang="ko"`·사이트 제목은 리드가 이 협업 PR에서 처리했다. Issue 본문은 [초기 Issue 정리안](GitHub_Issue_초기_정리안.md)대로 리드가 GitHub에서 갱신한다.
+
+## 남은 일
+
+- [ ] dev·prod Google Provider 연결, Google 외 Provider 끄기, Site/Redirect URL 확인, Before User Created Auth Hook 연결
+- [ ] Google 테스트 사용자 등록 완료 여부 확인, 필요한 테스트 계정 등록
+- [ ] 학교 계정 통과·외부 Gmail 거부·hd 값 확인, 거부 계정의 auth.users 생성 여부 확인
+- [ ] 첫 회장단 등록→재로그인→/me의 소속 확인
+- [ ] main 보호: PR 필수, app·db 필수, 승인 1명, Code Owner 승인, 대화 해결, force push 금지
+- [ ] Squash만 허용·Merge 후 브랜치 자동 삭제 설정 상태 확인·적용
+- [ ] keep-alive Secrets 4개 등록·dev/prod 수동 실행 확인
+- [ ] 개인정보처리방침 초안 Issue 작성
+- [ ] 협업 문서·AI 규칙·템플릿·CODEOWNERS와 README --linked 변경을 PR로 main에 반영
+- [ ] 초기 Issue 4개 본문을 정리안대로 GitHub에서 갱신 (범위는 확정, 원격 수정은 리드)
+- [ ] 주차별 Milestone 준비
+- [x] 기획서 보관: v0.7에 킥오프 결정·일정·화면 명세를 반영한 v0.8을 `docs/학생회_운영플랫폼_기획서.md`로 저장 (커밋 전)
+- [ ] 기획서 부록 C.1 미정 항목 19개를 확정 시한(첫 시한 11/5)까지 회장단과 확정
+- [ ] hyuhjs 사이트 세션에서 가이드 기반 강의 재구성
+
+keep-alive Secrets 이름: SUPABASE_DEV_URL, SUPABASE_DEV_PUBLISHABLE_KEY, SUPABASE_PROD_URL, SUPABASE_PROD_PUBLISHABLE_KEY. 값은 저장소·Issue·PR·AI 입력에 남기지 않는다.
+
+## 이번 로컬 정리
+
+- 기존 미커밋 협업 파일을 보존하고 원격을 fetch한 뒤 origin/main(34a22ba) 기준 chore/collab-guides 브랜치로 옮겼다. 이미 Merge된 feat/auth-foundation에는 새 작업을 쌓지 않는다.
+- 4140bf7은 main에 포함되지 않았음을 확인했다. 그 커밋의 README --linked 변경만 새 브랜치의 미커밋 변경에 반영했다.
+- AGENTS.md·CLAUDE.md·Issue/PR 템플릿·CODEOWNERS·docs는 로컬 준비 상태다. 파일 생성은 브랜치 보호·GitHub Secrets·Auth Hook 설정 완료를 뜻하지 않는다.
+- 킥오프 PPT는 저장소 밖 작업 폴더의 `TF_킥오프_진행방식.pptx` 하나로 정리했다. v2(GitHub 캡처, 네 Issue 동시 시작, PR 마감 11/3 23:59)에 v3의 일정 수정(12월 말 MVP, 공동편집 검증 3~4주차, 11/5 병합 결과 시연, 주차별 필수 강의)을 합쳤다. v2·v3·이전 기획서 v0.7은 휴지통으로 옮겼다.
+
+## 유지할 결정
+
+- 12월 말 MVP, 2027-01-07 1차 공개에 공동편집 포함, 01-21 안정화 공개.
+- 건의는 마감 정책, 업로드 파일당 10MB, 공용 계정 비밀번호는 두 사람만 관리.
+- 리드는 기반·팀원은 기능, 목 모임→화 23:59 PR→수 리뷰·Merge, AI→다른 팀원→리드의 3단계 리뷰.
+- 정기 모임: 목요일 17:00, 인카 또는 과방. 연말 모임 방식은 별도 공지.
+
+개인 이메일·비밀 값은 이 공개 저장소의 현황 문서에 복사하지 않는다. 프로젝트의 비밀 값과 계정 관리는 별도 보관 절차를 따른다.
