@@ -10,4 +10,4 @@
 - 실제 권한은 DB RLS로 강제한다. 키·비밀번호·service_role·실제 학생 정보·건의 원문을 입력하거나 기록하지 않는다. 테스트 삭제나 RLS 우회로 문제를 덮지 않는다.
 - 로딩·빈 목록·오류·권한 없음, 권한 없는 직접 접근, 키보드 조작, 375px 화면 폭을 확인한다.
 - PR 전 `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`를 확인한다. DB 변경은 `npx supabase test db`도 확인한다. 실행하지 못한 검사는 명시한다.
-- 화요일 23:59 PR, 수요일 상호 리뷰·리드 최종 리뷰·순차 Squash Merge를 따른다. 상세 형식은 저장소 Issue·PR 템플릿을 사용한다.
+- 화요일 20:00 PR, 수요일 상호 리뷰·리드 최종 리뷰·순차 Squash Merge를 따른다. 상세 형식은 저장소 Issue·PR 템플릿을 사용한다.
