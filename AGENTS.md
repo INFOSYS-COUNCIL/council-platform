@@ -28,7 +28,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - AI 작업은 계획 → 구현 → 확인 → 설명 → AI 리뷰 순서다. 사용자가 계획만 요청하거나 구현 전 확인을 요구하면 그 경계를 따른다. 작성자가 변경 이유를 설명할 수 있게 설명한다.
 - PR 전 검사: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`. DB 변경은 `npx supabase test db`도 실행한다. CI `app`·`db`가 모두 통과해야 한다. 실행하지 못한 검사는 명시한다.
 - 커밋·PR 제목: `<종류>(<영역>): <무엇을 했는지, 한국어> (#이슈번호)`. PR 첫 줄: `Closes #이슈번호`. 저장소 PR 템플릿을 채운다.
-- 목요일 배정 → 화요일 23:59 PR → 수요일 상호 리뷰·수정·리드 최종 리뷰·순차 Merge다. 작성자가 먼저 AI 리뷰를 반영한다. 리뷰어는 다른 팀의 같은 역할 담당자다.
+- 목요일 배정 → 화요일 20:00 PR → 수요일 상호 리뷰·수정·리드 최종 리뷰·순차 Merge다. 작성자가 먼저 AI 리뷰를 반영한다. 리뷰어는 다른 팀의 같은 역할 담당자다.
 - Merge는 리드가 Squash로 진행한다. 하나를 Merge한 뒤 남은 PR은 최신 `main`을 반영하고 CI를 다시 확인한다.
 - 30분 넘게 막히면 시도·오류·기대 결과를 Issue 댓글에 남기고 `blocked`로 공유한다.
 
