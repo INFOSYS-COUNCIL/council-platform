@@ -1,14 +1,14 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
-import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import type { MemberRole } from "./roles";
 
 // 페이지와 Server Action에서 로그인·소속을 확인하는 공용 함수.
 // 화면 접근을 정리하는 용도이며, 실제 데이터 권한은 DB의 RLS가 검사한다.
 // 쿠키를 읽으므로 이 함수를 부르는 컴포넌트는 <Suspense> 안에 둔다.
 
-export type MemberRole = Database["public"]["Enums"]["member_role"];
+export type { MemberRole };
 
 export type ActiveMembership = {
   id: string;
