@@ -1,5 +1,7 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
+import { ADMIN_ROLES } from "@/lib/admin/routes";
+import { getActiveMembership } from "@/lib/auth/session";
 
 // 학생회 구성원 화면의 공통 틀(메뉴). 공용 파일이므로 리드가 관리한다.
 // 로그인·권한 확인은 여기서 하지 않는다. 레이아웃은 같은 그룹 안에서 이동할 때
@@ -30,14 +32,12 @@ export default function MemberLayout({ children }: { children: ReactNode }) {
           <ul className="flex flex-wrap gap-4 text-sm">
             {NAV_ITEMS.map((item) => (
               <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                >
-                  {item.label}
-                </Link>
+                <NavLink href={item.href}>{item.label}</NavLink>
               </li>
             ))}
+            <Suspense fallback={null}>
+              <AdminNavItem />
+            </Suspense>
           </ul>
         </nav>
       </header>
@@ -45,5 +45,29 @@ export default function MemberLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
     </div>
+  );
+}
+
+function NavLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+    >
+      {children}
+    </Link>
+  );
+}
+
+// 관리 화면이 있는 Role(회장단·국장)에게만 "관리" 메뉴를 보여 준다.
+// 표시용이며, 접근 확인은 각 관리 page의 requireMember()가 한다.
+async function AdminNavItem() {
+  const membership = await getActiveMembership();
+  if (!membership || !ADMIN_ROLES.includes(membership.role)) return null;
+
+  return (
+    <li>
+      <NavLink href="/admin">관리</NavLink>
+    </li>
   );
 }
