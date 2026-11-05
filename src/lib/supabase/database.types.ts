@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "approved_council_accounts": {
                   Row: {
-                    "activated_at": string | null,"activated_user_id": string | null,"created_at": string,"department_id": string | null,"email": string,"id": string,"is_active": boolean,"position_id": string | null,"registered_by": string | null,"role": Database["public"]['Enums']["member_role"],"term_id": string
+                    "activated_at": string | null,"activated_user_id": string | null,"created_at": string,"department_id": string | null,"email": string,"id": string,"is_active": boolean,"position_id": string | null,"registered_by": string | null,"role": Database["public"]['Enums']["member_role"],"student_no": string | null,"term_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "activated_at"?: string | null,"activated_user_id"?: string | null,"created_at"?: string,"department_id"?: string | null,"email": string,"id"?: string,"is_active"?: boolean,"position_id"?: string | null,"registered_by"?: string | null,"role": Database["public"]['Enums']["member_role"],"term_id": string
+                    "activated_at"?: string | null,"activated_user_id"?: string | null,"created_at"?: string,"department_id"?: string | null,"email": string,"id"?: string,"is_active"?: boolean,"position_id"?: string | null,"registered_by"?: string | null,"role": Database["public"]['Enums']["member_role"],"student_no"?: string | null,"term_id": string
                   }
                   Update: {
-                    "activated_at"?: string | null,"activated_user_id"?: string | null,"created_at"?: string,"department_id"?: string | null,"email"?: string,"id"?: string,"is_active"?: boolean,"position_id"?: string | null,"registered_by"?: string | null,"role"?: Database["public"]['Enums']["member_role"],"term_id"?: string
+                    "activated_at"?: string | null,"activated_user_id"?: string | null,"created_at"?: string,"department_id"?: string | null,"email"?: string,"id"?: string,"is_active"?: boolean,"position_id"?: string | null,"registered_by"?: string | null,"role"?: Database["public"]['Enums']["member_role"],"student_no"?: string | null,"term_id"?: string
                   }
                   Relationships: [
                     {
@@ -135,14 +135,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"display_name": string | null,"email": string,"id": string,"student_no": string | null,"updated_at": string
+                    "created_at": string,"display_name": string | null,"email": string,"id": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"display_name"?: string | null,"email": string,"id": string,"student_no"?: string | null,"updated_at"?: string
+                    "created_at"?: string,"display_name"?: string | null,"email": string,"id": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"display_name"?: string | null,"email"?: string,"id"?: string,"student_no"?: string | null,"updated_at"?: string
+                    "created_at"?: string,"display_name"?: string | null,"email"?: string,"id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -186,9 +186,205 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"cancel_approved_account":
+{ Args: { "p_account_id": string }; Returns: {
+              "activated_at": string | null,
+"activated_user_id": string | null,
+"created_at": string,
+"department_id": string | null,
+"email": string,
+"id": string,
+"is_active": boolean,
+"position_id": string | null,
+"registered_by": string | null,
+"role": Database["public"]['Enums']["member_role"],
+"student_no": string | null,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "approved_council_accounts"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"change_member_role":
+{ Args: { "p_department_id": string,"p_membership_id": string,"p_position_id"?: string,"p_role": Database["public"]['Enums']["member_role"] }; Returns: {
+              "approved_account_id": string | null,
+"department_id": string | null,
+"id": string,
+"is_active": boolean,
+"joined_at": string,
+"left_at": string | null,
+"position_id": string | null,
+"role": Database["public"]['Enums']["member_role"],
+"term_id": string,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "memberships"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"create_department":
+{ Args: { "p_name": string,"p_sort_order"?: number,"p_term_id": string }; Returns: {
+              "created_at": string,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "departments"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"create_position":
+{ Args: { "p_name": string,"p_sort_order"?: number,"p_term_id": string }; Returns: {
+              "created_at": string,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "positions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"end_membership":
+{ Args: { "p_membership_id": string }; Returns: {
+              "approved_account_id": string | null,
+"department_id": string | null,
+"id": string,
+"is_active": boolean,
+"joined_at": string,
+"left_at": string | null,
+"position_id": string | null,
+"role": Database["public"]['Enums']["member_role"],
+"term_id": string,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "memberships"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "hook_before_user_created":
 { Args: { "event": Json }; Returns: Json
-                           }
+                           },
+"register_approved_accounts":
+{ Args: { "p_rows": Json,"p_term_id": string }; Returns: {
+              "account_id": string,"email": string,"error": string,"row_no": number
+            }[]
+                           },
+"set_approved_student_no":
+{ Args: { "p_account_id": string,"p_student_no": string }; Returns: {
+              "activated_at": string | null,
+"activated_user_id": string | null,
+"created_at": string,
+"department_id": string | null,
+"email": string,
+"id": string,
+"is_active": boolean,
+"position_id": string | null,
+"registered_by": string | null,
+"role": Database["public"]['Enums']["member_role"],
+"student_no": string | null,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "approved_council_accounts"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_department_active":
+{ Args: { "p_active": boolean,"p_department_id": string }; Returns: {
+              "created_at": string,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "departments"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_position_active":
+{ Args: { "p_active": boolean,"p_position_id": string }; Returns: {
+              "created_at": string,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "positions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_approved_account":
+{ Args: { "p_account_id": string,"p_department_id": string,"p_position_id"?: string,"p_role": Database["public"]['Enums']["member_role"] }; Returns: {
+              "activated_at": string | null,
+"activated_user_id": string | null,
+"created_at": string,
+"department_id": string | null,
+"email": string,
+"id": string,
+"is_active": boolean,
+"position_id": string | null,
+"registered_by": string | null,
+"role": Database["public"]['Enums']["member_role"],
+"student_no": string | null,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "approved_council_accounts"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_department":
+{ Args: { "p_department_id": string,"p_name": string,"p_sort_order": number }; Returns: {
+              "created_at": string,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "departments"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_position":
+{ Args: { "p_name": string,"p_position_id": string,"p_sort_order": number }; Returns: {
+              "created_at": string,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"term_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "positions"
+        isOneToOne: true
+        isSetofReturn: false
+      } }
           }
           Enums: {
             "member_role": "MEMBER"|"DIRECTOR"|"EXECUTIVE","term_status": "DRAFT"|"ACTIVE"|"CLOSED"
