@@ -50,3 +50,7 @@ jobs:
       # 새 DB에 Migration과 seed.sql을 처음부터 적용한다.
       - run: npx supabase db start
       - run: npx supabase test db
+      # 커밋된 DB 타입이 Migration과 같은지 확인한다. 다르면 npm run db:types를 실행해 커밋한다.
+      - run: |
+          npx supabase gen types typescript --local --schema public > /tmp/database.types.ts
+          diff -u src/lib/supabase/database.types.ts /tmp/database.types.ts
