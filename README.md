@@ -175,7 +175,7 @@ supabase/              로컬 DB 설정, Migration, Seed, 테스트
 1. **Issue 하나 = 브랜치 하나 = PR 하나.** 리드가 Issue에 목표·담당·수정 가능한 파일·준비된 기반·완료 기준·읽을 강의를 적습니다.
 2. `main`에서 브랜치를 만든다: `feat/이슈번호-짧은설명`, `fix/...`, `docs/...`
    - 예: `feat/12-task-list`
-3. 목요일에 Issue를 받고 **화요일 23:59까지 PR**, 수요일에 상호 리뷰·수정·최종 리뷰·순차 Merge를 합니다.
+3. 목요일에 Issue를 받고 **화요일 20:00까지 PR**, 수요일에 상호 리뷰·수정·최종 리뷰·순차 Merge를 합니다.
 4. 커밋·PR 제목은 `<종류>(<영역>): <무엇을 했는지, 한국어> (#이슈번호)`, PR 본문 첫 줄은 `Closes #이슈번호`로 씁니다. 작성자가 AI 리뷰를 먼저 반영하고 PR 템플릿을 채웁니다.
 5. `app`·`db` CI, 승인 1명, Code Owner 승인, 대화 해결 후 **리드가 Squash and merge**합니다. `main` 직접 push·force push는 금지합니다. 브랜치 보호·Squash만 허용·Merge 후 브랜치 자동 삭제는 GitHub에서 별도로 설정해야 합니다.
 6. 하나를 Merge한 뒤 남은 PR은 **Update branch**로 최신 `main`을 반영하고 CI가 다시 통과한 뒤 순서대로 Merge합니다. 오래 유지하는 브랜치는 `main` 하나입니다.
