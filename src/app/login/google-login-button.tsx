@@ -35,10 +35,14 @@ export function GoogleLoginButton() {
         type="button"
         onClick={handleClick}
         disabled={pending}
-        className="w-full rounded-md bg-zinc-900 px-4 py-3 font-medium text-white hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+        aria-busy={pending}
+        className="w-full rounded-md bg-zinc-900 px-4 py-3 font-medium text-white hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 dark:focus-visible:outline-blue-400"
       >
         {pending ? "Google로 이동하는 중…" : "학교 Google 계정으로 로그인"}
       </button>
+      <p role="status" className="sr-only">
+        {pending ? "Google로 이동하는 중…" : ""}
+      </p>
       {failed && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-300">
           로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.
