@@ -367,7 +367,7 @@ isOneToOne: false
         isSetofReturn: false
       } },
 "change_member_role":
-{ Args: { "p_department_id": string,"p_membership_id": string,"p_position_id"?: string,"p_role": Database["public"]['Enums']["member_role"] }; Returns: {
+{ Args: { "p_department_id"?: string,"p_membership_id": string,"p_position_id"?: string,"p_role": Database["public"]['Enums']["member_role"] }; Returns: {
               "approved_account_id": string | null,
 "department_id": string | null,
 "id": string,
@@ -637,7 +637,7 @@ isOneToOne: false
         isSetofReturn: false
       } },
 "update_approved_account":
-{ Args: { "p_account_id": string,"p_department_id": string,"p_position_id"?: string,"p_role": Database["public"]['Enums']["member_role"] }; Returns: {
+{ Args: { "p_account_id": string,"p_department_id"?: string,"p_position_id"?: string,"p_role": Database["public"]['Enums']["member_role"] }; Returns: {
               "activated_at": string | null,
 "activated_user_id": string | null,
 "created_at": string,
