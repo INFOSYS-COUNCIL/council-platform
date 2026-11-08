@@ -1,5 +1,6 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { MemberRole } from "./roles";
@@ -22,6 +23,8 @@ type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
 // 한 요청 안에서 여러 번 불러도 JWT 검증은 한 번만 한다.
 export const getCurrentUserId = cache(async (): Promise<string | null> => {
+  // getClaims()는 토큰 만료를 현재 시각으로 확인한다. 미리 렌더링하지 않고 요청 때 실행하게 한다.
+  await connection();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   return data?.claims.sub ?? null;
