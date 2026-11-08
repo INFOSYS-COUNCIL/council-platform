@@ -11,6 +11,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
+import { Pagination, PillLink } from "@/components/ui/pagination";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
 import { getTermOrgOptions } from "@/lib/org/options";
@@ -117,18 +118,9 @@ async function TasksContent({
 
       <nav aria-label="업무 분류" className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-800">
         {tabs.map((t) => (
-          <Link
-            key={t}
-            href={taskListHref(params, { tab: t })}
-            aria-current={params.tab === t ? "page" : undefined}
-            className={`rounded-full px-3 py-1 text-sm ${FOCUS_RING} ${
-              params.tab === t
-                ? "bg-coral-100 font-semibold text-coral-900 dark:bg-coral-900 dark:text-coral-100"
-                : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            }`}
-          >
+          <PillLink key={t} href={taskListHref(params, { tab: t })} current={params.tab === t}>
             {TASK_TABS[t]}
-          </Link>
+          </PillLink>
         ))}
       </nav>
 
@@ -184,23 +176,7 @@ async function TasksContent({
         </ul>
       )}
 
-      {totalPages > 1 && (
-        <nav aria-label="쪽 이동" className="flex items-center justify-center gap-4 text-sm">
-          {params.page > 1 && (
-            <Link href={taskListHref(params, { page: params.page - 1 })} className={`underline ${FOCUS_RING}`}>
-              이전
-            </Link>
-          )}
-          <span>
-            {params.page} / {totalPages}
-          </span>
-          {params.page < totalPages && (
-            <Link href={taskListHref(params, { page: params.page + 1 })} className={`underline ${FOCUS_RING}`}>
-              다음
-            </Link>
-          )}
-        </nav>
-      )}
+      <Pagination page={params.page} totalPages={totalPages} hrefFor={(page) => taskListHref(params, { page })} />
     </div>
   );
 }

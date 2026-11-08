@@ -34,3 +34,27 @@ export function isOverdue(
 ): boolean {
   return !done && !!dueDate && dueDate < today;
 }
+
+// <input type="datetime-local">의 "YYYY-MM-DDTHH:mm"(한국 시간) ↔ DB timestamptz
+const LOCAL_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+export function seoulLocalToIso(value: string): string | null {
+  return LOCAL_DATETIME.test(value) ? `${value}:00+09:00` : null;
+}
+
+export function isoToSeoulLocal(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(new Date(iso));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value;
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}
+
+// "11월 12일 (목) 18:00"
+export function formatDateTime(iso: string | null | undefined, today: string = todayInSeoul()): string {
+  if (!iso) return "";
+  const local = isoToSeoulLocal(iso);
+  return `${formatDate(local.slice(0, 10), today)} ${local.slice(11)}`;
+}

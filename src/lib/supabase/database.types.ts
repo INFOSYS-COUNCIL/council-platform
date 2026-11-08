@@ -95,6 +95,108 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"event_access_rules": {
+                  Row: {
+                    "created_at": string,"department_id": string | null,"event_id": string,"granted_by": string,"id": string,"role_group": Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"term_id": string,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"department_id"?: string | null,"event_id": string,"granted_by": string,"id"?: string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"term_id": string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"department_id"?: string | null,"event_id"?: string,"granted_by"?: string,"id"?: string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type"?: Database["public"]['Enums']["acl_subject_type"],"term_id"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_access_department_same_term"
+      columns: ["term_id","department_id"]
+isOneToOne: false
+      referencedRelation: "departments"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "event_access_event_same_term"
+      columns: ["term_id","event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "event_access_rules_granted_by_fkey"
+      columns: ["granted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_access_rules_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"event_resources": {
+                  Row: {
+                    "created_at": string,"description": string,"event_id": string,"external_url": string | null,"id": string,"resource_type": Database["public"]['Enums']["event_resource_type"],"size_bytes": number | null,"storage_path": string | null,"term_id": string,"title": string,"uploaded_by": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"description"?: string,"event_id": string,"external_url"?: string | null,"id"?: string,"resource_type": Database["public"]['Enums']["event_resource_type"],"size_bytes"?: number | null,"storage_path"?: string | null,"term_id": string,"title": string,"uploaded_by": string
+                  }
+                  Update: {
+                    "created_at"?: string,"description"?: string,"event_id"?: string,"external_url"?: string | null,"id"?: string,"resource_type"?: Database["public"]['Enums']["event_resource_type"],"size_bytes"?: number | null,"storage_path"?: string | null,"term_id"?: string,"title"?: string,"uploaded_by"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_resources_event_same_term"
+      columns: ["term_id","event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "event_resources_uploaded_by_fkey"
+      columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"events": {
+                  Row: {
+                    "created_at": string,"created_by": string,"description": string,"ends_at": string | null,"id": string,"manager_id": string,"name": string,"owner_department_id": string,"starts_at": string | null,"status": Database["public"]['Enums']["event_status"],"term_id": string,"updated_at": string,"visibility_mode": Database["public"]['Enums']["event_visibility"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"description"?: string,"ends_at"?: string | null,"id"?: string,"manager_id": string,"name": string,"owner_department_id": string,"starts_at"?: string | null,"status"?: Database["public"]['Enums']["event_status"],"term_id": string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["event_visibility"]
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"description"?: string,"ends_at"?: string | null,"id"?: string,"manager_id"?: string,"name"?: string,"owner_department_id"?: string,"starts_at"?: string | null,"status"?: Database["public"]['Enums']["event_status"],"term_id"?: string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["event_visibility"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "events_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "events_department_same_term"
+      columns: ["term_id","owner_department_id"]
+isOneToOne: false
+      referencedRelation: "departments"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "events_manager_id_fkey"
+      columns: ["manager_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "events_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"memberships": {
                   Row: {
                     "approved_account_id": string | null,"department_id": string | null,"id": string,"is_active": boolean,"joined_at": string,"left_at": string | null,"position_id": string | null,"role": Database["public"]['Enums']["member_role"],"term_id": string,"user_id": string
@@ -172,6 +274,90 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"suggestion_authors": {
+                  Row: {
+                    "author_user_id": string,"request_id": string,"suggestion_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_user_id": string,"request_id": string,"suggestion_id": string
+                  }
+                  Update: {
+                    "author_user_id"?: string,"request_id"?: string,"suggestion_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "suggestion_authors_author_user_id_fkey"
+      columns: ["author_user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "suggestion_authors_suggestion_id_fkey"
+      columns: ["suggestion_id"]
+isOneToOne: true
+      referencedRelation: "suggestions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"suggestion_messages": {
+                  Row: {
+                    "body": string,"created_at": string,"id": string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"writer_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"id"?: string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"writer_id": string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"id"?: string,"message_type"?: Database["public"]['Enums']["suggestion_message_type"],"suggestion_id"?: string,"writer_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "suggestion_messages_suggestion_id_fkey"
+      columns: ["suggestion_id"]
+isOneToOne: false
+      referencedRelation: "suggestions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "suggestion_messages_writer_id_fkey"
+      columns: ["writer_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"suggestions": {
+                  Row: {
+                    "assigned_department_id": string | null,"assigned_user_id": string | null,"content": string,"created_at": string,"id": string,"resolved_at": string | null,"status": Database["public"]['Enums']["suggestion_status"],"term_id": string,"title": string,"updated_at": string,"withdrawn_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assigned_department_id"?: string | null,"assigned_user_id"?: string | null,"content": string,"created_at"?: string,"id"?: string,"resolved_at"?: string | null,"status"?: Database["public"]['Enums']["suggestion_status"],"term_id": string,"title": string,"updated_at"?: string,"withdrawn_at"?: string | null
+                  }
+                  Update: {
+                    "assigned_department_id"?: string | null,"assigned_user_id"?: string | null,"content"?: string,"created_at"?: string,"id"?: string,"resolved_at"?: string | null,"status"?: Database["public"]['Enums']["suggestion_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"withdrawn_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "suggestions_assigned_user_id_fkey"
+      columns: ["assigned_user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "suggestions_department_same_term"
+      columns: ["term_id","assigned_department_id"]
+isOneToOne: false
+      referencedRelation: "departments"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "suggestions_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"task_access_rules": {
                   Row: {
@@ -300,6 +486,59 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"add_event_access_rule":
+{ Args: { "p_department_id"?: string,"p_event_id": string,"p_role_group"?: Database["public"]['Enums']["acl_role_group"],"p_subject_type": Database["public"]['Enums']["acl_subject_type"],"p_user_id"?: string }; Returns: {
+              "created_at": string,
+"department_id": string | null,
+"event_id": string,
+"granted_by": string,
+"id": string,
+"role_group": Database["public"]['Enums']["acl_role_group"] | null,
+"subject_type": Database["public"]['Enums']["acl_subject_type"],
+"term_id": string,
+"user_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "event_access_rules"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"add_event_link":
+{ Args: { "p_description"?: string,"p_event_id": string,"p_title": string,"p_url": string }; Returns: {
+              "created_at": string,
+"description": string,
+"event_id": string,
+"external_url": string | null,
+"id": string,
+"resource_type": Database["public"]['Enums']["event_resource_type"],
+"size_bytes": number | null,
+"storage_path": string | null,
+"term_id": string,
+"title": string,
+"uploaded_by": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "event_resources"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"add_suggestion_message":
+{ Args: { "p_body": string,"p_suggestion_id": string,"p_type": Database["public"]['Enums']["suggestion_message_type"] }; Returns: {
+              "body": string,
+"created_at": string,
+"id": string,
+"message_type": Database["public"]['Enums']["suggestion_message_type"],
+"suggestion_id": string,
+"writer_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "suggestion_messages"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "add_task_access_rule":
 { Args: { "p_department_id"?: string,"p_role_group"?: Database["public"]['Enums']["acl_role_group"],"p_subject_type": Database["public"]['Enums']["acl_subject_type"],"p_task_id": string,"p_user_id"?: string }; Returns: {
               "created_at": string,
@@ -345,6 +584,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"assign_suggestion":
+{ Args: { "p_department_id": string,"p_suggestion_id": string,"p_user_id": string }; Returns: undefined
+                           },
 "cancel_approved_account":
 { Args: { "p_account_id": string }; Returns: {
               "activated_at": string | null,
@@ -363,6 +605,28 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "approved_council_accounts"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"change_event_status":
+{ Args: { "p_event_id": string,"p_status": Database["public"]['Enums']["event_status"] }; Returns: {
+              "created_at": string,
+"created_by": string,
+"description": string,
+"ends_at": string | null,
+"id": string,
+"manager_id": string,
+"name": string,
+"owner_department_id": string,
+"starts_at": string | null,
+"status": Database["public"]['Enums']["event_status"],
+"term_id": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["event_visibility"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "events"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -385,6 +649,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"change_suggestion_status":
+{ Args: { "p_status": Database["public"]['Enums']["suggestion_status"],"p_suggestion_id": string }; Returns: undefined
+                           },
 "change_task_status":
 { Args: { "p_status": Database["public"]['Enums']["task_status"],"p_task_id": string }; Returns: {
               "archived_at": string | null,
@@ -424,6 +691,28 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "departments"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"create_event":
+{ Args: { "p_description"?: string,"p_ends_at"?: string,"p_name": string,"p_owner_department_id": string,"p_starts_at"?: string,"p_term_id": string,"p_visibility_mode"?: Database["public"]['Enums']["event_visibility"] }; Returns: {
+              "created_at": string,
+"created_by": string,
+"description": string,
+"ends_at": string | null,
+"id": string,
+"manager_id": string,
+"name": string,
+"owner_department_id": string,
+"starts_at": string | null,
+"status": Database["public"]['Enums']["event_status"],
+"term_id": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["event_visibility"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "events"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -469,6 +758,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"delete_event_resource":
+{ Args: { "p_resource_id": string }; Returns: string
+                           },
 "end_membership":
 { Args: { "p_membership_id": string,"p_transfer_to"?: string }; Returns: {
               "approved_account_id": string | null,
@@ -500,6 +792,29 @@ isOneToOne: false
 { Args: { "p_rows": Json,"p_term_id": string }; Returns: {
               "account_id": string,"email": string,"error": string,"row_no": number
             }[]
+                           },
+"register_event_upload":
+{ Args: { "p_description"?: string,"p_event_id": string,"p_storage_path": string,"p_title": string }; Returns: {
+              "created_at": string,
+"description": string,
+"event_id": string,
+"external_url": string | null,
+"id": string,
+"resource_type": Database["public"]['Enums']["event_resource_type"],
+"size_bytes": number | null,
+"storage_path": string | null,
+"term_id": string,
+"title": string,
+"uploaded_by": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "event_resources"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"remove_event_access_rule":
+{ Args: { "p_rule_id": string }; Returns: undefined
                            },
 "remove_task_access_rule":
 { Args: { "p_rule_id": string }; Returns: undefined
@@ -564,6 +879,28 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "departments"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_event_visibility":
+{ Args: { "p_event_id": string,"p_mode": Database["public"]['Enums']["event_visibility"] }; Returns: {
+              "created_at": string,
+"created_by": string,
+"description": string,
+"ends_at": string | null,
+"id": string,
+"manager_id": string,
+"name": string,
+"owner_department_id": string,
+"starts_at": string | null,
+"status": Database["public"]['Enums']["event_status"],
+"term_id": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["event_visibility"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "events"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -636,6 +973,14 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"submit_suggestion":
+{ Args: { "p_content": string,"p_request_id": string,"p_title": string }; Returns: string
+                           },
+"suggestion_author_identity":
+{ Args: { "p_suggestion_id": string }; Returns: {
+              "display_name": string,"email": string
+            }[]
+                           },
 "update_approved_account":
 { Args: { "p_account_id": string,"p_department_id"?: string,"p_position_id"?: string,"p_role": Database["public"]['Enums']["member_role"] }; Returns: {
               "activated_at": string | null,
@@ -669,6 +1014,28 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "departments"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_event":
+{ Args: { "p_description": string,"p_ends_at": string,"p_event_id": string,"p_manager_id": string,"p_name": string,"p_starts_at": string }; Returns: {
+              "created_at": string,
+"created_by": string,
+"description": string,
+"ends_at": string | null,
+"id": string,
+"manager_id": string,
+"name": string,
+"owner_department_id": string,
+"starts_at": string | null,
+"status": Database["public"]['Enums']["event_status"],
+"term_id": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["event_visibility"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "events"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -740,10 +1107,13 @@ isOneToOne: false
         to: "tasks"
         isOneToOne: true
         isSetofReturn: false
-      } }
+      } },
+"withdraw_suggestion":
+{ Args: { "p_suggestion_id": string }; Returns: undefined
+                           }
           }
           Enums: {
-            "acl_role_group": "ALL_COUNCIL"|"DIRECTORS"|"EXECUTIVES","acl_subject_type": "DEPARTMENT"|"USER"|"ROLE_GROUP","member_role": "MEMBER"|"DIRECTOR"|"EXECUTIVE","task_priority": "LOW"|"NORMAL"|"HIGH","task_status": "TODO"|"IN_PROGRESS"|"REVIEW"|"DONE","term_status": "DRAFT"|"ACTIVE"|"CLOSED","visibility_mode": "DEFAULT"|"RESTRICTED"
+            "acl_role_group": "ALL_COUNCIL"|"DIRECTORS"|"EXECUTIVES","acl_subject_type": "DEPARTMENT"|"USER"|"ROLE_GROUP","event_resource_type": "UPLOAD"|"EXTERNAL_LINK","event_status": "PLANNING"|"ACTIVE"|"COMPLETED"|"ARCHIVED","event_visibility": "ALL_COUNCIL"|"RESTRICTED","member_role": "MEMBER"|"DIRECTOR"|"EXECUTIVE","suggestion_message_type": "AUTHOR_VISIBLE"|"INTERNAL","suggestion_status": "RECEIVED"|"IN_REVIEW"|"RESOLVED"|"CLOSED","task_priority": "LOW"|"NORMAL"|"HIGH","task_status": "TODO"|"IN_PROGRESS"|"REVIEW"|"DONE","term_status": "DRAFT"|"ACTIVE"|"CLOSED","visibility_mode": "DEFAULT"|"RESTRICTED"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -859,7 +1229,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "acl_role_group": ["ALL_COUNCIL", "DIRECTORS", "EXECUTIVES"],"acl_subject_type": ["DEPARTMENT", "USER", "ROLE_GROUP"],"member_role": ["MEMBER", "DIRECTOR", "EXECUTIVE"],"task_priority": ["LOW", "NORMAL", "HIGH"],"task_status": ["TODO", "IN_PROGRESS", "REVIEW", "DONE"],"term_status": ["DRAFT", "ACTIVE", "CLOSED"],"visibility_mode": ["DEFAULT", "RESTRICTED"]
+            "acl_role_group": ["ALL_COUNCIL", "DIRECTORS", "EXECUTIVES"],"acl_subject_type": ["DEPARTMENT", "USER", "ROLE_GROUP"],"event_resource_type": ["UPLOAD", "EXTERNAL_LINK"],"event_status": ["PLANNING", "ACTIVE", "COMPLETED", "ARCHIVED"],"event_visibility": ["ALL_COUNCIL", "RESTRICTED"],"member_role": ["MEMBER", "DIRECTOR", "EXECUTIVE"],"suggestion_message_type": ["AUTHOR_VISIBLE", "INTERNAL"],"suggestion_status": ["RECEIVED", "IN_REVIEW", "RESOLVED", "CLOSED"],"task_priority": ["LOW", "NORMAL", "HIGH"],"task_status": ["TODO", "IN_PROGRESS", "REVIEW", "DONE"],"term_status": ["DRAFT", "ACTIVE", "CLOSED"],"visibility_mode": ["DEFAULT", "RESTRICTED"]
           }
         }
 } as const

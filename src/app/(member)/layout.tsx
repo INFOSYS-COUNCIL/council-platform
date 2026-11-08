@@ -7,10 +7,14 @@ import { getActiveMembership } from "@/lib/auth/session";
 // 로그인·권한 확인은 여기서 하지 않는다. 레이아웃은 같은 그룹 안에서 이동할 때
 // 다시 실행되지 않으므로, 각 page에서 requireMember()를 부른다.
 // 새 기능 화면이 생기면 리드가 NAV_ITEMS에 추가한다(아직 없는 주소는 넣지 않는다).
+// memberOnly: 학생회 구성원에게만 보인다. 일반 학생은 건의와 내 계정만 쓴다.
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "대시보드" },
-  { href: "/tasks", label: "업무" },
-  { href: "/me", label: "내 계정" },
+  { href: "/dashboard", label: "대시보드", memberOnly: true },
+  { href: "/tasks", label: "업무", memberOnly: true },
+  { href: "/events", label: "행사", memberOnly: true },
+  { href: "/council/suggestions", label: "건의 처리", memberOnly: true },
+  { href: "/suggestions", label: "내 건의", memberOnly: false },
+  { href: "/me", label: "내 계정", memberOnly: false },
 ] as const;
 
 export default function MemberLayout({ children }: { children: ReactNode }) {
@@ -27,17 +31,12 @@ export default function MemberLayout({ children }: { children: ReactNode }) {
           aria-label="주 메뉴"
           className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3"
         >
-          <Link href="/dashboard" className="font-bold">
+          <Link href="/dashboard" className="font-bold text-coral-800 dark:text-coral-300">
             학생회 운영 플랫폼
           </Link>
           <ul className="flex flex-wrap gap-4 text-sm">
-            {NAV_ITEMS.map((item) => (
-              <li key={item.href}>
-                <NavLink href={item.href}>{item.label}</NavLink>
-              </li>
-            ))}
             <Suspense fallback={null}>
-              <AdminNavItem />
+              <NavItems />
             </Suspense>
           </ul>
         </nav>
@@ -60,15 +59,23 @@ function NavLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-// 관리 화면이 있는 Role(회장단·국장)에게만 "관리" 메뉴를 보여 준다.
-// 표시용이며, 접근 확인은 각 관리 page의 requireMember()가 한다.
-async function AdminNavItem() {
+// 메뉴는 표시용이며, 접근 확인은 각 page의 requireMember()·requireUser()가 한다.
+// 관리 메뉴는 관리 화면이 있는 Role(회장단·국장)에게만 보인다.
+async function NavItems() {
   const membership = await getActiveMembership();
-  if (!membership || !ADMIN_ROLES.includes(membership.role)) return null;
-
+  const items = NAV_ITEMS.filter((item) => membership || !item.memberOnly);
   return (
-    <li>
-      <NavLink href="/admin">관리</NavLink>
-    </li>
+    <>
+      {items.map((item) => (
+        <li key={item.href}>
+          <NavLink href={item.href}>{item.label}</NavLink>
+        </li>
+      ))}
+      {membership && ADMIN_ROLES.includes(membership.role) && (
+        <li>
+          <NavLink href="/admin">관리</NavLink>
+        </li>
+      )}
+    </>
   );
 }
