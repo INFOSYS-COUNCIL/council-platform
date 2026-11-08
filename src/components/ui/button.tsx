@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from "react";
 
 const VARIANTS = {
   primary:
-    "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300",
+    "bg-coral-700 text-white hover:bg-coral-800 dark:bg-coral-400 dark:text-zinc-950 dark:hover:bg-coral-300",
   secondary:
     "border border-zinc-300 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800",
 } as const;
