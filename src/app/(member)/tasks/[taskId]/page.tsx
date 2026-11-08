@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
 import {
@@ -11,12 +11,14 @@ import {
   TaskPriorityBadge,
   TaskStatusBadge,
 } from "@/components/ui/badge";
+import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextareaField, TextField } from "@/components/ui/form-field";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
 import {
-  departmentSelectOptions,
+  aclRuleLabel,
+  aclSubjectOptions,
   getTermOrgOptions,
   memberSelectOptions,
 } from "@/lib/org/options";
@@ -28,7 +30,6 @@ import {
   TASK_STATUS_LABELS,
   TASK_STATUS_ORDER,
   VISIBILITY_LABELS,
-  type AclRoleGroup,
 } from "@/lib/tasks/labels";
 import {
   addTaskAccessRule,
@@ -67,7 +68,7 @@ const ACTIVITY_LABELS: Record<string, string> = {
 // 볼 수 없는 업무는 RLS가 행을 돌려주지 않으므로 "찾을 수 없음"으로 보인다(부록 C.2).
 export default function TaskDetailPage(props: PageProps<"/tasks/[taskId]">) {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-md bg-zinc-100 dark:bg-zinc-900" />}>
+    <Suspense fallback={<Skeleton />}>
       <TaskDetail params={props.params} />
     </Suspense>
   );
@@ -125,8 +126,6 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
   const activeIds = new Set(org.members.map((m) => m.userId));
   const memberOptions = memberSelectOptions(org.members);
   const managerOptions = memberSelectOptions(org.members.filter((m) => m.role !== "MEMBER"));
-  const deptName = new Map(org.departments.map((d) => [d.id, d.name]));
-  const memberName = new Map(org.members.map((m) => [m.userId, m.name]));
   const hidden = <input type="hidden" name="task_id" value={task.id} />;
 
   return (
@@ -152,7 +151,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         <Alert tone="info">보관된 업무입니다. 복원하기 전에는 내용을 바꿀 수 없습니다.</Alert>
       )}
 
-      <dl className="grid gap-4 rounded-md border border-zinc-200 bg-white p-4 sm:grid-cols-2 dark:border-zinc-800 dark:bg-zinc-900">
+      <InfoList>
         <Info label="담당 국">{task.department?.name}</Info>
         <Info label="담당자">
           {nameOf(task.assignee)}{" "}
@@ -166,7 +165,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         <Info label="완료일">
           {task.completed_at ? new Date(task.completed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}
         </Info>
-      </dl>
+      </InfoList>
 
       {!archived && (canManage || isAssignee) && (
         <Section title="상태">
@@ -221,11 +220,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
           <ul className="space-y-2">
             {rulesResult.data.map((rule) => (
               <li key={rule.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800">
-                <span>
-                  {rule.subject_type === "DEPARTMENT" && `부서 · ${deptName.get(rule.department_id ?? "") ?? "비활성 부서"}`}
-                  {rule.subject_type === "USER" && `구성원 · ${memberName.get(rule.user_id ?? "") ?? "(비활성)"}`}
-                  {rule.subject_type === "ROLE_GROUP" && `그룹 · ${ACL_ROLE_GROUP_LABELS[rule.role_group as AclRoleGroup]}`}
-                </span>
+                <span>{aclRuleLabel(rule, org, ACL_ROLE_GROUP_LABELS)}</span>
                 {!archived && canManage && (
                   <ActionForm action={removeTaskAccessRule} submitLabel="빼기" variant="secondary" className="flex items-center gap-2">
                     {hidden}
@@ -247,11 +242,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
                 label="열람 대상"
                 name="subject"
                 placeholder="선택하세요"
-                options={[
-                  ...(Object.keys(ACL_ROLE_GROUP_LABELS) as AclRoleGroup[]).map((g) => ({ value: `ROLE_GROUP:${g}`, label: `그룹 · ${ACL_ROLE_GROUP_LABELS[g]}` })),
-                  ...departmentSelectOptions(org.departments).map((d) => ({ value: `DEPARTMENT:${d.value}`, label: `부서 · ${d.label}` })),
-                  ...memberOptions.map((m) => ({ value: `USER:${m.value}`, label: `구성원 · ${m.label}` })),
-                ]}
+                options={aclSubjectOptions(org, ACL_ROLE_GROUP_LABELS)}
               />
             </ActionForm>
             <ActionForm
@@ -322,23 +313,5 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         )}
       </Section>
     </div>
-  );
-}
-
-function Info({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <dt className="text-sm text-zinc-600 dark:text-zinc-400">{label}</dt>
-      <dd className="font-medium">{children}</dd>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      {children}
-    </section>
   );
 }

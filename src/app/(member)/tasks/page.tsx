@@ -9,6 +9,7 @@ import {
   TaskStatusBadge,
 } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
@@ -31,8 +32,6 @@ export const metadata: Metadata = {
   title: "업무 | 학생회 운영 플랫폼",
 };
 
-const LINK_FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
 
 export default function TasksPage(props: PageProps<"/tasks">) {
   return (
@@ -111,9 +110,7 @@ async function TasksContent({
         title="업무"
         actions={
           canCreate && (
-            <Link href="/tasks/new" className={`rounded-md bg-coral-700 px-4 py-2 font-medium text-white hover:bg-coral-800 dark:bg-coral-400 dark:text-zinc-950 ${LINK_FOCUS}`}>
-              업무 만들기
-            </Link>
+            <LinkButton href="/tasks/new">업무 만들기</LinkButton>
           )
         }
       />
@@ -124,7 +121,7 @@ async function TasksContent({
             key={t}
             href={taskListHref(params, { tab: t })}
             aria-current={params.tab === t ? "page" : undefined}
-            className={`rounded-full px-3 py-1 text-sm ${LINK_FOCUS} ${
+            className={`rounded-full px-3 py-1 text-sm ${FOCUS_RING} ${
               params.tab === t
                 ? "bg-coral-100 font-semibold text-coral-900 dark:bg-coral-900 dark:text-coral-100"
                 : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -149,7 +146,7 @@ async function TasksContent({
           title="아직 업무가 없습니다."
           action={
             canCreate && params.tab !== "archived" ? (
-              <Link href="/tasks/new" className={`inline-block underline ${LINK_FOCUS}`}>
+              <Link href="/tasks/new" className={`inline-block underline ${FOCUS_RING}`}>
                 업무 만들기
               </Link>
             ) : undefined
@@ -165,7 +162,7 @@ async function TasksContent({
               <li key={task.id}>
                 <Link
                   href={`/tasks/${task.id}`}
-                  className={`flex flex-col gap-2 p-4 hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-zinc-800 ${LINK_FOCUS}`}
+                  className={`flex flex-col gap-2 p-4 hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-zinc-800 ${FOCUS_RING}`}
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-medium">{task.title}</span>
@@ -190,7 +187,7 @@ async function TasksContent({
       {totalPages > 1 && (
         <nav aria-label="쪽 이동" className="flex items-center justify-center gap-4 text-sm">
           {params.page > 1 && (
-            <Link href={taskListHref(params, { page: params.page - 1 })} className={`underline ${LINK_FOCUS}`}>
+            <Link href={taskListHref(params, { page: params.page - 1 })} className={`underline ${FOCUS_RING}`}>
               이전
             </Link>
           )}
@@ -198,7 +195,7 @@ async function TasksContent({
             {params.page} / {totalPages}
           </span>
           {params.page < totalPages && (
-            <Link href={taskListHref(params, { page: params.page + 1 })} className={`underline ${LINK_FOCUS}`}>
+            <Link href={taskListHref(params, { page: params.page + 1 })} className={`underline ${FOCUS_RING}`}>
               다음
             </Link>
           )}
@@ -217,7 +214,7 @@ function StatusFilter({ params }: { params: TaskListParams }) {
           key={s ?? "all"}
           href={taskListHref(params, { status: s })}
           aria-current={params.status === s ? "true" : undefined}
-          className={`rounded-md border px-2.5 py-1 ${LINK_FOCUS} ${
+          className={`rounded-md border px-2.5 py-1 ${FOCUS_RING} ${
             params.status === s
               ? "border-coral-700 text-coral-800 dark:border-coral-400 dark:text-coral-300"
               : "border-zinc-300 dark:border-zinc-700"

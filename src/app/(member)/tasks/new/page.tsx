@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/detail";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireMember } from "@/lib/auth/session";
 import {
@@ -18,7 +19,7 @@ export default function NewTaskPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="업무 만들기" />
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-md bg-zinc-100 dark:bg-zinc-900" />}>
+      <Suspense fallback={<Skeleton />}>
         <NewTaskContent />
       </Suspense>
     </div>

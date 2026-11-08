@@ -90,3 +90,31 @@ export function departmentSelectOptions(
 ): SelectOption[] {
   return departments.map((d) => ({ value: d.id, label: d.name }));
 }
+
+// 열람 대상(ACL) 선택 목록. 값은 "그룹:<값>", "부서:<id>", "구성원:<id>" 꼴이며
+// 업무·행사의 addAccessRule 액션이 같은 형식으로 읽는다(기획서 1.6절).
+export function aclSubjectOptions(
+  org: TermOrgOptions,
+  roleGroupLabels: Record<string, string>,
+): SelectOption[] {
+  return [
+    ...Object.entries(roleGroupLabels).map(([g, label]) => ({ value: `ROLE_GROUP:${g}`, label: `그룹 · ${label}` })),
+    ...org.departments.map((d) => ({ value: `DEPARTMENT:${d.id}`, label: `부서 · ${d.name}` })),
+    ...memberSelectOptions(org.members).map((m) => ({ value: `USER:${m.value}`, label: `구성원 · ${m.label}` })),
+  ];
+}
+
+// 저장된 열람 대상 한 줄을 화면 문구로 바꾼다
+export function aclRuleLabel(
+  rule: { subject_type: string; department_id: string | null; user_id: string | null; role_group: string | null },
+  org: TermOrgOptions,
+  roleGroupLabels: Record<string, string>,
+): string {
+  if (rule.subject_type === "DEPARTMENT") {
+    return `부서 · ${org.departments.find((d) => d.id === rule.department_id)?.name ?? "비활성 부서"}`;
+  }
+  if (rule.subject_type === "USER") {
+    return `구성원 · ${org.members.find((m) => m.userId === rule.user_id)?.name ?? "(비활성)"}`;
+  }
+  return `그룹 · ${roleGroupLabels[rule.role_group ?? ""] ?? rule.role_group}`;
+}
