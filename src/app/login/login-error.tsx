@@ -1,3 +1,4 @@
+import { Alert } from "@/components/ui/alert";
 const MESSAGES: Record<string, string> = {
   access_denied:
     "학교 Google 계정으로만 로그인할 수 있습니다. 다른 계정을 선택해 주세요.",
@@ -16,11 +17,8 @@ export async function LoginError({
   const message = MESSAGES[error] ?? MESSAGES.exchange_failed;
 
   return (
-    <p
-      role="alert"
-      className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
-    >
+    <Alert>
       {message}
-    </p>
+    </Alert>
   );
 }
