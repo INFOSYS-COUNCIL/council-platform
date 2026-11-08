@@ -75,6 +75,20 @@ isOneToOne: false
       referencedColumns: ["term_id","id"]
     }
                   ]
+                },"dashboard_links": {
+                  Row: {
+                    "created_at": string,"description": string,"icon_key": string | null,"id": string,"is_active": boolean,"name": string,"sort_order": number,"url": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"description"?: string,"icon_key"?: string | null,"id"?: string,"is_active"?: boolean,"name": string,"sort_order"?: number,"url": string
+                  }
+                  Update: {
+                    "created_at"?: string,"description"?: string,"icon_key"?: string | null,"id"?: string,"is_active"?: boolean,"name"?: string,"sort_order"?: number,"url"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"departments": {
                   Row: {
                     "created_at": string,"id": string,"is_active": boolean,"name": string,"sort_order": number,"term_id": string
@@ -274,6 +288,38 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"schedules": {
+                  Row: {
+                    "created_at": string,"created_by": string,"description": string,"end_date": string | null,"ends_at": string | null,"event_id": string | null,"id": string,"is_all_day": boolean,"location": string,"start_date": string | null,"starts_at": string | null,"term_id": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"description"?: string,"end_date"?: string | null,"ends_at"?: string | null,"event_id"?: string | null,"id"?: string,"is_all_day": boolean,"location"?: string,"start_date"?: string | null,"starts_at"?: string | null,"term_id": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"description"?: string,"end_date"?: string | null,"ends_at"?: string | null,"event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"location"?: string,"start_date"?: string | null,"starts_at"?: string | null,"term_id"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "schedules_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "schedules_event_same_term"
+      columns: ["term_id","event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "schedules_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"suggestion_authors": {
                   Row: {
@@ -679,6 +725,23 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"create_dashboard_link":
+{ Args: { "p_description"?: string,"p_name": string,"p_sort_order"?: number,"p_url": string }; Returns: {
+              "created_at": string,
+"description": string,
+"icon_key": string | null,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"url": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "dashboard_links"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "create_department":
 { Args: { "p_name": string,"p_sort_order"?: number,"p_term_id": string }; Returns: {
               "created_at": string,
@@ -731,6 +794,29 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"create_schedule":
+{ Args: { "p_description"?: string,"p_end_date": string,"p_ends_at": string,"p_event_id": string,"p_is_all_day": boolean,"p_location"?: string,"p_start_date": string,"p_starts_at": string,"p_term_id": string,"p_title": string }; Returns: {
+              "created_at": string,
+"created_by": string,
+"description": string,
+"end_date": string | null,
+"ends_at": string | null,
+"event_id": string | null,
+"id": string,
+"is_all_day": boolean,
+"location": string,
+"start_date": string | null,
+"starts_at": string | null,
+"term_id": string,
+"title": string,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "schedules"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "create_task":
 { Args: { "p_assignee_id"?: string,"p_department_id": string,"p_description"?: string,"p_due_date"?: string,"p_priority"?: Database["public"]['Enums']["task_priority"],"p_start_date"?: string,"p_term_id": string,"p_title": string,"p_visibility_mode"?: Database["public"]['Enums']["visibility_mode"] }; Returns: {
               "archived_at": string | null,
@@ -758,8 +844,14 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"delete_dashboard_link":
+{ Args: { "p_link_id": string }; Returns: undefined
+                           },
 "delete_event_resource":
 { Args: { "p_resource_id": string }; Returns: string
+                           },
+"delete_schedule":
+{ Args: { "p_schedule_id": string }; Returns: undefined
                            },
 "end_membership":
 { Args: { "p_membership_id": string,"p_transfer_to"?: string }; Returns: {
@@ -867,6 +959,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"set_dashboard_link_active":
+{ Args: { "p_active": boolean,"p_link_id": string }; Returns: undefined
+                           },
 "set_department_active":
 { Args: { "p_active": boolean,"p_department_id": string }; Returns: {
               "created_at": string,
