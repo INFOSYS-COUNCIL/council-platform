@@ -1,6 +1,5 @@
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/badge";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextareaField, TextField } from "@/components/ui/form-field";
+import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
@@ -143,9 +143,9 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         }
       />
       <p>
-        <Link href="/tasks" className="text-sm underline">
+        <SecondaryLinkButton href="/tasks">
           ← 업무 목록
-        </Link>
+        </SecondaryLinkButton>
       </p>
 
       {archived && (
@@ -275,15 +275,20 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
       )}
 
       {canManage && (
-        <Section title={archived ? "복원" : "보관"}>
+        <Section title={archived ? "보관함에서 꺼내기" : "보관함으로 옮기기"}>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {archived
+              ? "다시 목록에 보이고 수정할 수 있게 됩니다."
+              : "끝났거나 더 이상 쓰지 않는 업무를 목록에서 빼 둡니다. 지워지지 않고 보관함에서 다시 꺼낼 수 있습니다."}
+          </p>
           {archived ? (
-            <ActionForm action={restoreTask} submitLabel="업무 복원" variant="secondary">
+            <ActionForm action={restoreTask} submitLabel="보관함에서 꺼내기" variant="secondary">
               {hidden}
             </ActionForm>
           ) : (
             <ActionForm
               action={archiveTask}
-              submitLabel="업무 보관"
+              submitLabel="보관함으로 옮기기"
               variant="secondary"
               confirmMessage="업무를 보관하면 목록에서 빠지고 수정할 수 없습니다. 보관할까요?"
             >

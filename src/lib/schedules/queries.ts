@@ -12,7 +12,7 @@ export async function fetchSchedules(termId: string, first: string, last: string
   const supabase = await createClient();
   return supabase
     .from("schedules")
-    .select("id, title, location, event_id, created_by, is_all_day, start_date, end_date, starts_at, ends_at, event:events(name)")
+    .select("id, title, location, color, event_id, created_by, is_all_day, start_date, end_date, starts_at, ends_at, event:events(name)")
     .eq("term_id", termId)
     .or(
       `and(is_all_day.eq.true,start_date.lte.${last},end_date.gte.${first}),` +

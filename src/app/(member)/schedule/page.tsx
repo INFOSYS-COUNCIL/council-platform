@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, todayInSeoul } from "@/lib/dates";
 import { fetchSchedules } from "@/lib/schedules/queries";
+import { scheduleColor } from "@/lib/schedules/colors";
 import { addMonths, groupByDay, monthGrid } from "@/lib/schedules/week";
 import { NewScheduleForm, ScheduleItem } from "./schedule-parts";
 
@@ -101,7 +102,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
                     {/* 넓은 화면: 제목 두 개까지, 좁은 화면: 점 */}
                     <span className="hidden min-w-0 space-y-0.5 sm:block">
                       {items.slice(0, 2).map((s) => (
-                        <span key={s.id} className="block truncate rounded bg-coral-100 px-1 text-[11px] leading-4 text-coral-900 dark:bg-coral-900/50 dark:text-coral-200">
+                        <span key={s.id} className={`block truncate rounded px-1 text-[11px] leading-4 ${scheduleColor(s.color).chip}`}>
                           {s.title}
                         </span>
                       ))}
@@ -110,7 +111,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
                     {items.length > 0 && (
                       <span className="flex gap-0.5 px-1 sm:hidden" aria-hidden="true">
                         {items.slice(0, 3).map((s) => (
-                          <span key={s.id} className="size-1.5 rounded-full bg-coral-600" />
+                          <span key={s.id} className={`size-1.5 rounded-full ${scheduleColor(s.color).dot}`} />
                         ))}
                       </span>
                     )}

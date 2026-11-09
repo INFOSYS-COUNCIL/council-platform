@@ -5,14 +5,15 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Section, Skeleton } from "@/components/ui/detail";
 import { TextField } from "@/components/ui/form-field";
+import { ManageMenu } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { ADMIN_ROUTES } from "@/lib/admin/routes";
 import { requireMember } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { createLink, deleteLink, toggleLink } from "./actions";
+import { createLink, deleteLink, toggleLink, updateLink } from "./actions";
 
 export const metadata: Metadata = {
-  title: "바로가기",
+  title: "대시보드 바로가기",
 };
 
 const ROUTE = ADMIN_ROUTES.links;
@@ -21,7 +22,7 @@ const ROUTE = ADMIN_ROUTES.links;
 export default function LinksPage() {
   return (
     <div className="space-y-6">
-      <PageHeader title="바로가기" description="대시보드에 보이는 외부 서비스 링크입니다. 기수가 바뀌어도 유지됩니다." />
+      <PageHeader title="대시보드 바로가기" description="대시보드에 보이는 외부 서비스 링크입니다. 기수가 바뀌어도 유지됩니다." />
       <Suspense fallback={<Skeleton className="h-64" />}>
         <LinksContent />
       </Suspense>
@@ -54,21 +55,53 @@ async function LinksContent() {
                   {link.sort_order} · {link.url}
                 </span>
               </span>
-              <span className="flex gap-2">
-                <ActionForm action={toggleLink} submitLabel={link.is_active ? "숨기기" : "보이기"} variant="secondary">
-                  <input type="hidden" name="link_id" value={link.id} />
-                  <input type="hidden" name="active" value={String(!link.is_active)} />
-                </ActionForm>
-                <ActionForm action={deleteLink} submitLabel="지우기" variant="secondary" confirmMessage={`"${link.name}" 바로가기를 지울까요?`}>
-                  <input type="hidden" name="link_id" value={link.id} />
-                </ActionForm>
-              </span>
+              <ManageMenu
+                title="바로가기 관리"
+                subtitle={link.name}
+                items={[
+                  {
+                    key: "edit",
+                    label: "수정",
+                    content: (
+                      <ActionForm action={updateLink} submitLabel="수정 저장">
+                        <input type="hidden" name="link_id" value={link.id} />
+                        <TextField id={`name-${link.id}`} label="이름" name="name" required maxLength={50} defaultValue={link.name} />
+                        <TextField id={`url-${link.id}`} label="주소" name="url" type="url" required pattern="https://.+" defaultValue={link.url} />
+                        <TextField id={`desc-${link.id}`} label="설명" name="description" maxLength={200} defaultValue={link.description} />
+                        <TextField id={`order-${link.id}`} label="순서" name="sort_order" type="number" defaultValue={String(link.sort_order)} hint="작은 숫자가 앞에 옵니다." />
+                      </ActionForm>
+                    ),
+                  },
+                  {
+                    key: "toggle",
+                    label: link.is_active ? "대시보드에서 숨기기" : "대시보드에 다시 보이기",
+                    content: (
+                      <ActionForm action={toggleLink} submitLabel={link.is_active ? "숨기기" : "보이기"}>
+                        <p className="text-sm">{link.is_active ? "대시보드에서 숨깁니다. 언제든 다시 보이게 할 수 있습니다." : "대시보드에 다시 보이게 합니다."}</p>
+                        <input type="hidden" name="link_id" value={link.id} />
+                        <input type="hidden" name="active" value={String(!link.is_active)} />
+                      </ActionForm>
+                    ),
+                  },
+                  {
+                    key: "delete",
+                    label: "삭제",
+                    danger: true,
+                    content: (
+                      <ActionForm action={deleteLink} submitLabel="삭제">
+                        <p className="text-sm">이 바로가기를 완전히 지웁니다. 되돌릴 수 없습니다.</p>
+                        <input type="hidden" name="link_id" value={link.id} />
+                      </ActionForm>
+                    ),
+                  },
+                ]}
+              />
             </li>
           ))}
         </ul>
       )}
 
-      <Section title="바로가기 추가">
+      <Section title="새 바로가기 추가">
         <ActionForm action={createLink} submitLabel="추가">
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField label="이름" name="name" required maxLength={50} placeholder="학생회 Instagram" />

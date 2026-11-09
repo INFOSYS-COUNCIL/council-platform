@@ -52,3 +52,20 @@ export async function deleteLink(_prev: ActionState, formData: FormData): Promis
   const supabase = await createClient();
   return run(() => supabase.rpc("delete_dashboard_link", { p_link_id: text(formData, "link_id") }), "바로가기를 지웠습니다.");
 }
+
+export async function updateLink(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireMember(ROUTE.href, ROUTE.roles);
+  const url = text(formData, "url");
+  if (!/^https:\/\/\S+$/.test(url)) return actionFailure("https:// 로 시작하는 주소를 입력해 주세요.");
+  const supabase = await createClient();
+  return run(
+    () => supabase.rpc("update_dashboard_link", {
+      p_link_id: text(formData, "link_id"),
+      p_name: text(formData, "name"),
+      p_url: url,
+      p_description: text(formData, "description"),
+      p_sort_order: Number(text(formData, "sort_order")) || 0,
+    }),
+    "바로가기를 고쳤습니다.",
+  );
+}

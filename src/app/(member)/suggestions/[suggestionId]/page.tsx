@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Section, Skeleton } from "@/components/ui/detail";
-import { FOCUS_RING } from "@/components/ui/link-button";
+import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -57,9 +56,9 @@ async function SuggestionDetail({ params }: { params: Promise<{ suggestionId: st
         actions={<Badge tone={s.status === "RESOLVED" ? "strong" : "neutral"}>{SUGGESTION_STATUS_LABELS[s.status]}</Badge>}
       />
       <p>
-        <Link href="/suggestions" className={`text-sm underline ${FOCUS_RING}`}>
+        <SecondaryLinkButton href="/suggestions">
           ← 내 건의
-        </Link>
+        </SecondaryLinkButton>
       </p>
       {s.withdrawn_at && <Alert tone="info">철회한 건의입니다.</Alert>}
 

@@ -13,3 +13,13 @@ export function LinkButton({ className = "", ...props }: ComponentProps<typeof L
     />
   );
 }
+
+// 테두리 버튼처럼 보이는 링크(돌아가기·보조 이동). 주된 동작은 LinkButton을 쓴다.
+export function SecondaryLinkButton({ className = "", ...props }: ComponentProps<typeof Link>) {
+  return (
+    <Link
+      className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 ${FOCUS_RING} ${className}`}
+      {...props}
+    />
+  );
+}

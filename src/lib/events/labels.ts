@@ -10,14 +10,14 @@ export const EVENT_STATUS_ORDER: readonly EventStatus[] = ["PLANNING", "ACTIVE",
 export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
   PLANNING: "준비 중",
   ACTIVE: "진행 중",
-  COMPLETED: "지난 행사",
-  ARCHIVED: "보관",
+  COMPLETED: "끝난 행사",
+  ARCHIVED: "보관됨",
 };
 
 export const EVENT_VISIBILITY_LABELS: Record<EventVisibility, { label: string; description: string }> = {
   ALL_COUNCIL: { label: "학생회 전체", description: "이번 기수 학생회 구성원 모두가 볼 수 있습니다." },
   RESTRICTED: {
-    label: "제한 공개",
+    label: "지정한 사람만",
     description: "회장단, 담당 국, 만든 사람·관리자, 추가한 열람 대상만 볼 수 있습니다.",
   },
 };

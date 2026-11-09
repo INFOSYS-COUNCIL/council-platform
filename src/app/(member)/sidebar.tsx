@@ -87,6 +87,18 @@ export function Sidebar({
         if (e.key === "Escape" && open) setOpenedAt(null);
       }}
     >
+      {/* 접기 버튼: 사이드바 오른쪽 테두리 밖, 맨 위에 걸쳐 둔다(넓은 화면만) */}
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        aria-expanded={!collapsed}
+        aria-controls="member-nav"
+        aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
+        title={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
+        className={`absolute top-5 -right-3.5 z-10 hidden size-7 place-items-center rounded-full border border-zinc-300 bg-surface text-zinc-600 shadow-sm hover:text-zinc-950 md:grid dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-50 ${FOCUS}`}
+      >
+        <Icon name={collapsed ? "expand" : "collapse"} />
+      </button>
       <div className="flex h-14 items-center justify-between gap-2 px-4 md:h-auto md:px-3 md:pt-4 md:pb-2">
         <Link
           href="/dashboard"
@@ -146,19 +158,6 @@ export function Sidebar({
               <NavLink item={item} current={isCurrent(pathname, item.href)} collapsed={collapsed} />
             </li>
           ))}
-          <li className="hidden md:block">
-            <button
-              type="button"
-              onClick={toggleCollapsed}
-              aria-expanded={!collapsed}
-              aria-controls="member-nav"
-              aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
-              title={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
-              className={`grid size-8 place-items-center rounded-md text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-50 ${FOCUS}`}
-            >
-              <Icon name={collapsed ? "expand" : "collapse"} />
-            </button>
-          </li>
         </ul>
       </nav>
     </aside>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
@@ -7,7 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextareaField } from "@/components/ui/form-field";
-import { FOCUS_RING } from "@/components/ui/link-button";
+import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireMember } from "@/lib/auth/session";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
@@ -65,9 +64,9 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
     <div className="space-y-8">
       <PageHeader title={s.title} actions={<Badge tone="neutral">{SUGGESTION_STATUS_LABELS[s.status]}</Badge>} />
       <p>
-        <Link href="/council/suggestions" className={`text-sm underline ${FOCUS_RING}`}>
+        <SecondaryLinkButton href="/council/suggestions">
           ← 건의 처리 목록
-        </Link>
+        </SecondaryLinkButton>
       </p>
       {closed && <Alert tone="info">작성자가 철회한 건의입니다.</Alert>}
 

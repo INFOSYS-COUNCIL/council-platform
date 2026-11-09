@@ -31,8 +31,8 @@ const NAV_GROUPS = [
   {
     label: "건의",
     items: [
-      { href: "/council/suggestions", label: "건의 처리", icon: "inbox", memberOnly: true },
-      { href: "/suggestions", label: "내 건의", icon: "chat", memberOnly: false },
+      { href: "/council/suggestions", label: "받은 건의 처리", icon: "inbox", memberOnly: true },
+      { href: "/suggestions", label: "내가 쓴 건의", icon: "chat", memberOnly: false },
     ],
   },
 ] as const satisfies readonly { label: string; items: readonly NavItem[] }[];
@@ -49,6 +49,14 @@ export default function MemberLayout({ children }: { children: ReactNode }) {
       <Suspense fallback={<SidebarFallback />}>
         <MemberSidebar />
       </Suspense>
+      {/* 넓은 화면의 오른쪽 빈자리를 채우는 장식(노을 원). 읽히지 않고 눌리지 않는다 */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-y-0 right-0 -z-10 hidden w-[30vw] overflow-hidden xl:block">
+        <div className="absolute -top-24 -right-24 size-96 rounded-full bg-gradient-to-br from-coral-400/35 to-orange-300/20 blur-2xl dark:from-coral-700/20 dark:to-orange-700/10" />
+        <div className="absolute top-1/3 -right-40 size-[28rem] rounded-full border-[3rem] border-coral-200/40 dark:border-coral-900/20" />
+        <div className="absolute -right-16 bottom-10 size-72 rounded-full bg-gradient-to-tr from-amber-200/40 to-coral-300/30 blur-xl dark:from-amber-900/15 dark:to-coral-800/15" />
+        <div className="absolute right-24 bottom-1/3 h-10 w-56 rounded-full bg-white/60 dark:bg-zinc-800/30" />
+        <div className="absolute top-40 right-40 h-6 w-40 rounded-full bg-white/50 dark:bg-zinc-800/25" />
+      </div>
       <main id="main" className="min-w-0 flex-1">
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8 sm:py-8">{children}</div>
       </main>

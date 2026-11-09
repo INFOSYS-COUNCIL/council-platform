@@ -38,7 +38,7 @@ export function NewMeetingForm({
       <TextField label="제목" name="title" required maxLength={100} error={errors.title} />
       <div className="grid gap-5 sm:grid-cols-2">
         <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={defaultMeetingAt} hint="한국 시간" error={errors.meeting_at} />
-        <SelectField label="Template" name="template_id" options={templates} placeholder="빈 문서" error={errors.template_id} />
+        <SelectField label="템플릿" name="template_id" options={templates} placeholder="빈 문서로 시작" error={errors.template_id} />
       </div>
       <SelectField
         label="행사"

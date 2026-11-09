@@ -13,7 +13,7 @@ import { readApprovedAccounts, readOrganisation } from "./queries";
 import { SingleForm } from "./single-form";
 
 export const metadata: Metadata = {
-  title: "승인 명단",
+  title: "가입 승인 명단",
 };
 
 const ROUTE = ADMIN_ROUTES.approvedAccounts;
@@ -22,7 +22,7 @@ const columns = ["이메일", "학번", "부서", "역할", "직책", "상태", 
 export default function ApprovedAccountsPage() {
   return (
     <div className="min-w-0 space-y-6">
-      <PageHeader title="승인 명단" />
+      <PageHeader title="가입 승인 명단" description="학생회로 받아 줄 사람을 미리 등록합니다. 등록된 사람이 학교 Google 계정으로 로그인하면 활동 중인 구성원이 됩니다." />
       <Suspense fallback={<p role="status">불러오는 중…</p>}>
         <ApprovedAccountsContent />
       </Suspense>

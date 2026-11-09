@@ -9,7 +9,7 @@ import {
   TaskStatusBadge,
 } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
+import { FOCUS_RING, LinkButton, SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination, PillLink } from "@/components/ui/pagination";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
@@ -129,18 +129,16 @@ async function TasksContent({
       {error ? (
         <Alert>
           불러오지 못했습니다.{" "}
-          <Link href={taskListHref(params, {})} className="underline">
+          <SecondaryLinkButton href={taskListHref(params, {})} className="ml-2">
             다시 시도
-          </Link>
+          </SecondaryLinkButton>
         </Alert>
       ) : tasks.length === 0 ? (
         <EmptyState
           title="아직 업무가 없습니다."
           action={
             canCreate && params.tab !== "archived" ? (
-              <Link href="/tasks/new" className={`inline-block underline ${FOCUS_RING}`}>
-                업무 만들기
-              </Link>
+              <LinkButton href="/tasks/new">+ 업무 만들기</LinkButton>
             ) : undefined
           }
         />

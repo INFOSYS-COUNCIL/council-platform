@@ -11,7 +11,7 @@ import { applyAwarenessUpdate, Awareness, encodeAwarenessUpdate, removeAwareness
 import * as Y from "yjs";
 import { Alert } from "@/components/ui/alert";
 import { rpcErrorMessage } from "@/lib/actions/result";
-import { blocksFilePaste, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
+import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
 import { fromBytea, MEETING_FRAGMENT, toBytea } from "@/lib/meetings/labels";
 import { meetingSchema } from "@/lib/meetings/schema";
 import { createClient } from "@/lib/supabase/client";
@@ -64,13 +64,14 @@ export function CollabEditor({
           provider: { awareness },
         }),
       ],
-      // D-7: 파일·이미지 붙여넣기는 받지 않는다
+      // D-7: 파일·이미지 붙여넣기는 받지 않는다.
+      // 마크다운 글(# 제목, - 목록, **굵게**, 표 등)을 붙여 넣으면 형식이 그대로 살아 있는 블록이 된다.
       pasteHandler: ({ event, defaultPasteHandler }) => {
         if (blocksFilePaste(event)) {
           setNotice("회의록에는 파일·이미지를 넣을 수 없습니다. 행사 자료에 올리고 링크를 붙여 주세요.");
           return true;
         }
-        return defaultPasteHandler();
+        return defaultPasteHandler(MARKDOWN_PASTE);
       },
     },
     [],

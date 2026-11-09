@@ -477,14 +477,14 @@ isOneToOne: false
                   ]
                 },"schedules": {
                   Row: {
-                    "created_at": string,"created_by": string,"description": string,"end_date": string | null,"ends_at": string | null,"event_id": string | null,"id": string,"is_all_day": boolean,"location": string,"start_date": string | null,"starts_at": string | null,"term_id": string,"title": string,"updated_at": string
+                    "color": string,"created_at": string,"created_by": string,"description": string,"end_date": string | null,"ends_at": string | null,"event_id": string | null,"id": string,"is_all_day": boolean,"location": string,"start_date": string | null,"starts_at": string | null,"term_id": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by": string,"description"?: string,"end_date"?: string | null,"ends_at"?: string | null,"event_id"?: string | null,"id"?: string,"is_all_day": boolean,"location"?: string,"start_date"?: string | null,"starts_at"?: string | null,"term_id": string,"title": string,"updated_at"?: string
+                    "color"?: string,"created_at"?: string,"created_by": string,"description"?: string,"end_date"?: string | null,"ends_at"?: string | null,"event_id"?: string | null,"id"?: string,"is_all_day": boolean,"location"?: string,"start_date"?: string | null,"starts_at"?: string | null,"term_id": string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string,"description"?: string,"end_date"?: string | null,"ends_at"?: string | null,"event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"location"?: string,"start_date"?: string | null,"starts_at"?: string | null,"term_id"?: string,"title"?: string,"updated_at"?: string
+                    "color"?: string,"created_at"?: string,"created_by"?: string,"description"?: string,"end_date"?: string | null,"ends_at"?: string | null,"event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"location"?: string,"start_date"?: string | null,"starts_at"?: string | null,"term_id"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1084,8 +1084,9 @@ isOneToOne: false
         isSetofReturn: false
       } },
 "create_schedule":
-{ Args: { "p_description"?: string,"p_end_date": string,"p_ends_at": string,"p_event_id": string,"p_is_all_day": boolean,"p_location"?: string,"p_start_date": string,"p_starts_at": string,"p_term_id": string,"p_title": string }; Returns: {
-              "created_at": string,
+{ Args: { "p_color"?: string,"p_description"?: string,"p_end_date": string,"p_ends_at": string,"p_event_id": string,"p_is_all_day": boolean,"p_location"?: string,"p_start_date": string,"p_starts_at": string,"p_term_id": string,"p_title": string }; Returns: {
+              "color": string,
+"created_at": string,
 "created_by": string,
 "description": string,
 "end_date": string | null,
@@ -1141,6 +1142,12 @@ isOneToOne: false
                            },
 "delete_event_resource":
 { Args: { "p_resource_id": string }; Returns: string
+                           },
+"delete_meeting":
+{ Args: { "p_meeting_id": string }; Returns: undefined
+                           },
+"delete_meeting_template":
+{ Args: { "p_template_id": string }; Returns: undefined
                            },
 "delete_schedule":
 { Args: { "p_schedule_id": string }; Returns: undefined
@@ -1444,6 +1451,23 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "approved_council_accounts"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_dashboard_link":
+{ Args: { "p_description"?: string,"p_link_id": string,"p_name": string,"p_sort_order"?: number,"p_url": string }; Returns: {
+              "created_at": string,
+"description": string,
+"icon_key": string | null,
+"id": string,
+"is_active": boolean,
+"name": string,
+"sort_order": number,
+"url": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "dashboard_links"
         isOneToOne: true
         isSetofReturn: false
       } },

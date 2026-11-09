@@ -4,20 +4,27 @@ import type { Database } from "@/lib/supabase/database.types";
 export type MeetingStatus = Database["public"]["Enums"]["meeting_status"];
 
 export const MEETING_STATUS_ORDER: readonly MeetingStatus[] = ["DRAFT", "CONFIRMED", "ARCHIVED"];
+// 화면 이름: 상태가 무엇을 뜻하는지 바로 알 수 있게 쓴다
 export const MEETING_STATUS_LABELS: Record<MeetingStatus, string> = {
-  DRAFT: "작성 중",
-  CONFIRMED: "확정",
-  ARCHIVED: "보관",
+  DRAFT: "편집 중",
+  CONFIRMED: "최종본",
+  ARCHIVED: "보관됨",
+};
+
+export const MEETING_STATUS_HELP: Record<MeetingStatus, string> = {
+  DRAFT: "편집자들이 본문을 함께 고칠 수 있습니다.",
+  CONFIRMED: "내용이 최종 확정되어 잠겼습니다. 아무도 본문을 고칠 수 없습니다.",
+  ARCHIVED: "목록에서 숨겨진 지난 회의록입니다. 읽기만 할 수 있습니다.",
 };
 
 // 열람 범위 Preset (기획서 6.3절). 하나만 고르며 DB에는 범용 ACL로 저장한다.
 export const MEETING_SCOPES = ["ALL_COUNCIL", "DEPARTMENTS", "DIRECTORS", "EXECUTIVES"] as const;
 export type MeetingScope = (typeof MEETING_SCOPES)[number];
 export const MEETING_SCOPE_LABELS: Record<MeetingScope, { label: string; description: string }> = {
-  ALL_COUNCIL: { label: "전체", description: "이번 기수 학생회 구성원(국원 이상) 모두" },
-  DEPARTMENTS: { label: "특정 국", description: "선택한 국의 구성원(국장 포함)" },
-  DIRECTORS: { label: "국장단", description: "모든 국장과 회장단" },
-  EXECUTIVES: { label: "회장단", description: "회장단만" },
+  ALL_COUNCIL: { label: "학생회 전체", description: "이번 기수 학생회 구성원(국원 이상) 모두" },
+  DEPARTMENTS: { label: "선택한 국만", description: "선택한 국의 구성원(국장 포함)" },
+  DIRECTORS: { label: "국장 이상", description: "모든 국장과 회장단" },
+  EXECUTIVES: { label: "회장단만", description: "회장단만" },
 };
 
 // 회의록을 만들 수 있는 Role (6.2절). 실제 검사는 create_meeting 함수가 한다.

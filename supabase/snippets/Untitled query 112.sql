@@ -1,0 +1,1 @@
+select private.bootstrap_first_executive('00000000-0000-0000-0000-000000000001', 'hanluta77@hanyang.ac.kr');
