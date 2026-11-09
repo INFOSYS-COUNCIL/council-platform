@@ -507,6 +507,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"site_settings": {
+                  Row: {
+                    "council_name": string,"id": boolean,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "council_name"?: string,"id"?: boolean,"updated_at"?: string
+                  }
+                  Update: {
+                    "council_name"?: string,"id"?: boolean,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"suggestion_authors": {
                   Row: {
                     "author_user_id": string,"request_id": string,"suggestion_id": string
@@ -1119,6 +1133,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"delete_approved_account":
+{ Args: { "p_account_id": string }; Returns: undefined
+                           },
 "delete_dashboard_link":
 { Args: { "p_link_id": string }; Returns: undefined
                            },
@@ -1237,6 +1254,18 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "approved_council_accounts"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_council_name":
+{ Args: { "p_name": string }; Returns: {
+              "council_name": string,
+"id": boolean,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "site_settings"
         isOneToOne: true
         isSetofReturn: false
       } },

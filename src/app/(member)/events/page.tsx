@@ -20,7 +20,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "행사 | 학생회 운영 플랫폼",
+  title: "행사",
 };
 
 const PER_PAGE = 20;

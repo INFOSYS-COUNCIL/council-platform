@@ -12,7 +12,7 @@ import { TASK_CREATE_ROLES } from "@/lib/tasks/labels";
 import { NewTaskForm } from "./new-task-form";
 
 export const metadata: Metadata = {
-  title: "업무 만들기 | 학생회 운영 플랫폼",
+  title: "업무 만들기",
 };
 
 export default function NewTaskPage() {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getPlatformName } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,10 +13,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "정보시스템학과 학생회 운영 플랫폼",
-  description: "학생회 업무와 기록을 한곳에 모으는 운영 플랫폼",
-};
+// 탭 제목은 "<화면> | <학생회 이름> 운영 플랫폼". 각 page는 화면 이름만 적는다.
+export async function generateMetadata(): Promise<Metadata> {
+  const name = await getPlatformName();
+  return { title: { default: name, template: `%s | ${name}` } };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

@@ -14,7 +14,7 @@ import { SUGGESTION_STATUS_LABELS } from "@/lib/suggestions/labels";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "대시보드 | 학생회 운영 플랫폼",
+  title: "대시보드",
 };
 
 // 위젯은 기획서 3.1절·부록 C.3 제안값. 모든 위젯은 RLS로 볼 수 있는 자료만 보여 준다.
@@ -113,7 +113,7 @@ async function DashboardContent() {
       <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="내 업무" value={mine.error ? null : (mine.count ?? 0)} unit="건" href="/tasks" />
         <Stat
-          label="3일 안 마감"
+          label="3일 내 마감"
           value={dueSoon.error ? null : (dueSoon.count ?? 0)}
           unit="건"
           href="/tasks?tab=all"
@@ -222,7 +222,7 @@ async function DashboardContent() {
           href="/tasks?tab=all"
           failed={!!dueSoon.error}
           empty={dueSoon.data?.length === 0}
-          emptyText="3일 안에 마감인 업무가 없습니다."
+          emptyText="3일 내 마감인 업무가 없습니다."
         >
           {dueSoon.data?.map((t) => (
             <TaskLine key={t.id} task={t} today={today} />

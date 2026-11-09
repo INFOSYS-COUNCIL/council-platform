@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createLink, deleteLink, toggleLink } from "./actions";
 
 export const metadata: Metadata = {
-  title: "바로가기 | 학생회 운영 플랫폼",
+  title: "바로가기",
 };
 
 const ROUTE = ADMIN_ROUTES.links;

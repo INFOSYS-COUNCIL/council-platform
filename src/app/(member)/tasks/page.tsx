@@ -30,7 +30,7 @@ import {
 } from "@/lib/tasks/list-params";
 
 export const metadata: Metadata = {
-  title: "업무 | 학생회 운영 플랫폼",
+  title: "업무",
 };
 
 

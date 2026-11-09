@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth/session";
 import { NewSuggestionForm } from "./new-suggestion-form";
 
 export const metadata: Metadata = {
-  title: "건의하기 | 학생회 운영 플랫폼",
+  title: "건의하기",
 };
 
 export default function NewSuggestionPage() {

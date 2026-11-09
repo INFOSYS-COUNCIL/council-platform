@@ -6,7 +6,7 @@ import { ADMIN_ROUTES } from "@/lib/admin/routes";
 import { requireMember } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "구성원 | 학생회 운영 플랫폼",
+  title: "구성원",
 };
 
 const ROUTE = ADMIN_ROUTES.members;

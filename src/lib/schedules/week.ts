@@ -19,6 +19,19 @@ export function weekDays(monday: string): string[] {
 
 export { addDays };
 
+// 달력 한 장: "YYYY-MM"이 들어 있는 6주(42일), 월요일부터
+export function monthGrid(month: string): string[] {
+  const monday = mondayOf(`${month}-01`);
+  return Array.from({ length: 42 }, (_, i) => addDays(monday, i));
+}
+
+// "YYYY-MM"에 달 수를 더한다
+export function addMonths(month: string, months: number): string {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + months, 1));
+  return d.toISOString().slice(0, 7);
+}
+
 export type ScheduleTime = {
   is_all_day: boolean;
   start_date: string | null;

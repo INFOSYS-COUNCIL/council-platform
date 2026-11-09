@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextField } from "@/components/ui/form-field";
 import { FOCUS_RING } from "@/components/ui/link-button";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
@@ -26,7 +27,7 @@ import {
 import { MeetingEditor } from "./meeting-editor";
 
 export const metadata: Metadata = {
-  title: "회의록 | 학생회 운영 플랫폼",
+  title: "회의록",
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -171,7 +172,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
             <ActionForm action={updateMeeting} submitLabel="저장" className="grid gap-4 sm:grid-cols-2">
               {hidden}
               <TextField label="제목" name="title" required maxLength={100} defaultValue={meeting.title} />
-              <TextField label="회의 일시" name="meeting_at" type="datetime-local" required defaultValue={isoToSeoulLocal(meeting.meeting_at)} hint="한국 시간" />
+              <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={isoToSeoulLocal(meeting.meeting_at)} hint="한국 시간" />
             </ActionForm>
           </Section>
 

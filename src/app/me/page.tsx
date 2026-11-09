@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "내 계정 | 학생회 운영 플랫폼",
+  title: "내 계정",
 };
 
 const ROLE_LABELS = {
@@ -55,6 +57,13 @@ async function AccountDetails() {
 
   return (
     <div className="space-y-6">
+      {/* 내 계정은 사이드바 밖 화면이라 돌아갈 길을 따로 둔다. 일반 학생은 내 건의로 */}
+      <Link
+        href={memberships.length > 0 ? "/dashboard" : "/suggestions"}
+        className={`inline-flex items-center gap-1 rounded-md text-sm font-medium text-coral-800 hover:underline dark:text-coral-300 ${FOCUS_RING}`}
+      >
+        ← {memberships.length > 0 ? "대시보드로 돌아가기" : "내 건의로 돌아가기"}
+      </Link>
       <dl className="space-y-1">
         <dt className="text-sm text-zinc-600 dark:text-zinc-400">이메일</dt>
         <dd>{profile.email}</dd>

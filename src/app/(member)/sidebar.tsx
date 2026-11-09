@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 
 // 구성원 화면의 왼쪽 사이드바(Linear 방식). 넓은 화면에서는 항상 보이고,
 // 좁은 화면(375px 등)에서는 위쪽 막대의 "메뉴" 버튼으로 연다.
+// 넓은 화면에서는 접기 버튼으로 아이콘만 남길 수 있고, 이 선택은 브라우저에 기억한다.
 // 어떤 메뉴를 보여 줄지는 서버(layout.tsx)가 정해서 넘긴다. 여기서는 표시만 한다.
 
 export type NavIcon =
@@ -17,7 +18,9 @@ export type NavIcon =
   | "inbox"
   | "chat"
   | "settings"
-  | "user";
+  | "user"
+  | "collapse"
+  | "expand";
 
 export type NavGroup = {
   label: string;
@@ -31,23 +34,55 @@ function isCurrent(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const COLLAPSED_KEY = "sidebar-collapsed";
+const COLLAPSED_EVENT = "sidebar-collapsed-change";
+
+function subscribeCollapsed(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(COLLAPSED_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(COLLAPSED_EVENT, onChange);
+  };
+}
+
+// 저장소를 못 쓰는 환경에서는 펼친 상태로 둔다.
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function Sidebar({
   groups,
   footer,
   roleLabel,
+  platformName,
 }: {
   groups: readonly NavGroup[];
   footer: NavGroup["items"];
   roleLabel?: string;
+  platformName: string;
 }) {
   const pathname = usePathname();
   // 메뉴를 연 주소를 기억한다. 다른 화면으로 이동하면 주소가 달라져 저절로 닫힌다.
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const open = openedAt === pathname;
+  const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
+  const toggleCollapsed = () => {
+    try {
+      localStorage.setItem(COLLAPSED_KEY, collapsed ? "0" : "1");
+    } catch {}
+    window.dispatchEvent(new Event(COLLAPSED_EVENT));
+  };
+  // 접혔을 때 넓은 화면에서만 글자를 숨긴다(스크린리더는 계속 읽는다).
+  const hideWide = collapsed ? "md:sr-only" : "";
 
   return (
     <aside
-      className="sticky top-0 z-30 shrink-0 border-b border-zinc-200 bg-sidebar md:h-screen md:w-60 md:border-r md:border-b-0 dark:border-zinc-800"
+      className={`sticky top-0 z-30 shrink-0 border-b border-zinc-200 bg-sidebar/90 backdrop-blur md:h-screen md:border-r md:border-b-0 md:transition-[width] dark:border-zinc-800 ${collapsed ? "md:w-16" : "md:w-60"}`}
       onKeyDown={(e) => {
         if (e.key === "Escape" && open) setOpenedAt(null);
       }}
@@ -63,8 +98,8 @@ export function Sidebar({
           >
             IS
           </span>
-          <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">학생회 운영 플랫폼</span>
+          <span className={`min-w-0 ${hideWide}`}>
+            <span className="block truncate text-sm font-semibold">{platformName}</span>
             {roleLabel && (
               <span className="block truncate text-xs text-zinc-600 dark:text-zinc-400">
                 정보시스템학과 · {roleLabel}
@@ -92,28 +127,39 @@ export function Sidebar({
         <div className="space-y-5">
           {groups.map((group) => (
             <div key={group.label}>
-              <p className="px-2 pb-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <p className={`px-2 pb-1 text-xs font-medium text-zinc-600 dark:text-zinc-400 ${hideWide}`}>
                 {group.label}
               </p>
               <ul className="space-y-0.5">
                 {group.items.map((item) => (
                   <li key={item.href}>
-                    <NavLink item={item} current={isCurrent(pathname, item.href)} />
+                    <NavLink item={item} current={isCurrent(pathname, item.href)} collapsed={collapsed} />
                   </li>
                 ))}
               </ul>
             </div>
           ))}
         </div>
-        {footer.length > 0 && (
-          <ul className="space-y-0.5 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-            {footer.map((item) => (
-              <li key={item.href}>
-                <NavLink item={item} current={isCurrent(pathname, item.href)} />
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="space-y-0.5 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+          {footer.map((item) => (
+            <li key={item.href}>
+              <NavLink item={item} current={isCurrent(pathname, item.href)} collapsed={collapsed} />
+            </li>
+          ))}
+          <li className="hidden md:block">
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              aria-expanded={!collapsed}
+              aria-controls="member-nav"
+              aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
+              title={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
+              className={`grid size-8 place-items-center rounded-md text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-50 ${FOCUS}`}
+            >
+              <Icon name={collapsed ? "expand" : "collapse"} />
+            </button>
+          </li>
+        </ul>
       </nav>
     </aside>
   );
@@ -137,14 +183,17 @@ export function SidebarFallback() {
 function NavLink({
   item,
   current,
+  collapsed,
 }: {
   item: NavGroup["items"][number];
   current: boolean;
+  collapsed: boolean;
 }) {
   return (
     <Link
       href={item.href}
       aria-current={current ? "page" : undefined}
+      title={collapsed ? item.label : undefined}
       className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm ${FOCUS} ${
         current
           ? "bg-white font-medium text-zinc-950 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-700"
@@ -154,7 +203,7 @@ function NavLink({
       <span className={current ? "text-coral-700 dark:text-coral-300" : "text-zinc-500 dark:text-zinc-400"}>
         <Icon name={item.icon} />
       </span>
-      {item.label}
+      <span className={collapsed ? "md:sr-only" : ""}>{item.label}</span>
     </Link>
   );
 }
@@ -202,6 +251,18 @@ const ICON_PATHS: Record<NavIcon | "menu" | "close", ReactNode> = {
     </>
   ),
   menu: <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />,
+  collapse: (
+    <>
+      <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" />
+      <path d="M6 2.5v11M10.5 6 8.5 8l2 2" />
+    </>
+  ),
+  expand: (
+    <>
+      <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" />
+      <path d="M6 2.5v11M8.5 6l2 2-2 2" />
+    </>
+  ),
   close: <path d="m4 4 8 8M12 4l-8 8" />,
 };
 

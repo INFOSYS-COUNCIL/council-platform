@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NewMeetingForm } from "./new-meeting-form";
 
 export const metadata: Metadata = {
-  title: "회의록 만들기 | 학생회 운영 플랫폼",
+  title: "회의록 만들기",
 };
 
 export default function NewMeetingPage(props: PageProps<"/meetings/new">) {

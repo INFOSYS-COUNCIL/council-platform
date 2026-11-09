@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ADMIN_ROLES, adminRoutesFor } from "./routes";
 
 describe("adminRoutesFor", () => {
-  it("회장단은 관리 화면 6개를 모두 본다", () => {
+  it("회장단은 관리 화면 7개를 모두 본다", () => {
     expect(adminRoutesFor("EXECUTIVE").map((r) => r.href)).toEqual([
       "/admin/members",
       "/admin/approved-accounts",
@@ -10,6 +10,7 @@ describe("adminRoutesFor", () => {
       "/admin/positions",
       "/admin/links",
       "/admin/templates",
+      "/admin/settings",
     ]);
   });
 

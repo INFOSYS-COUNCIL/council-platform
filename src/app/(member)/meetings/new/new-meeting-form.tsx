@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { SelectField, TextField, type SelectOption } from "@/components/ui/form-field";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { FormMessage } from "@/components/ui/form-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { initialActionState } from "@/lib/actions/result";
@@ -36,7 +37,7 @@ export function NewMeetingForm({
     <form action={formAction} className="max-w-2xl space-y-5">
       <TextField label="제목" name="title" required maxLength={100} error={errors.title} />
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="회의 일시" name="meeting_at" type="datetime-local" required defaultValue={defaultMeetingAt} hint="한국 시간" error={errors.meeting_at} />
+        <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={defaultMeetingAt} hint="한국 시간" error={errors.meeting_at} />
         <SelectField label="Template" name="template_id" options={templates} placeholder="빈 문서" error={errors.template_id} />
       </div>
       <SelectField

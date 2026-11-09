@@ -39,7 +39,7 @@ import { NewScheduleForm, ScheduleItem } from "../../schedule/schedule-parts";
 import { UploadForm } from "./upload-form";
 
 export const metadata: Metadata = {
-  title: "행사 상세 | 학생회 운영 플랫폼",
+  title: "행사 상세",
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

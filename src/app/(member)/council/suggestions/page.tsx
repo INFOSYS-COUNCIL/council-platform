@@ -17,7 +17,7 @@ import {
 } from "@/lib/suggestions/labels";
 
 export const metadata: Metadata = {
-  title: "건의 처리 | 학생회 운영 플랫폼",
+  title: "건의 처리",
 };
 
 const PER_PAGE = 20;

@@ -1,54 +1,39 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { SunsetScene } from "@/components/sunset-scene";
+import { getPlatformName } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "정보시스템학과 학생회 운영 플랫폼",
-};
-
-const FEATURES = [
-  { title: "업무", text: "국별·개인별 업무와 마감을 한눈에" },
-  { title: "회의록", text: "회의 결과를 기록하고 업무로 연결" },
-  { title: "일정", text: "이번 주 학생회 일정을 함께" },
-  { title: "건의", text: "학우 건의 접수부터 처리 결과까지" },
-] as const;
-
+// 첫 화면: 노을 그림 위에 로고, 플랫폼 이름, 로그인 버튼만 둔다.
+// 로고는 임시 "IS". 바꿀 때는 이 파일과 sidebar.tsx·login/page.tsx의 IS 표시를 함께 바꾼다.
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col">
-      <div aria-hidden="true" className="bg-coral-gradient h-1 shrink-0" />
-      <div className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
-        <div className="flex w-full max-w-2xl flex-col items-center text-center">
+    <main className="relative isolate flex flex-1 flex-col overflow-hidden">
+      <SunsetScene className="absolute inset-0 -z-10 size-full" />
+      <div className="flex flex-1 items-end justify-center px-4 pt-16 pb-[14vh]">
+        <div className="flex flex-col items-center rounded-3xl bg-white/55 px-8 py-8 text-center shadow-[0_20px_60px_-20px_rgb(244_91_79/0.4)] ring-1 ring-white/70 backdrop-blur-md sm:px-14">
           <span
             aria-hidden="true"
-            className="bg-coral-gradient grid size-12 place-items-center rounded-xl text-base font-bold text-zinc-950 shadow-sm"
+            className="bg-coral-gradient grid size-14 place-items-center rounded-2xl text-lg font-bold text-zinc-950 shadow-sm"
           >
             IS
           </span>
-          <h1 className="mt-6 text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
-            정보시스템학과 학생회 운영 플랫폼
+          <h1 className="mt-5 text-3xl font-bold tracking-tight text-balance text-zinc-900 sm:text-5xl">
+            <Suspense fallback="운영 플랫폼">
+              <PlatformName />
+            </Suspense>
           </h1>
-          <p className="mt-4 text-base leading-7 text-zinc-600 sm:text-lg dark:text-zinc-400">
-            학생회 업무와 기록을 한곳에서 관리하고, 다음 기수에 남깁니다.
-          </p>
           <Link
             href="/login"
-            className="mt-8 inline-flex min-h-11 items-center justify-center rounded-md bg-coral-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-coral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-coral-400 dark:text-zinc-950 dark:hover:bg-coral-300"
+            className="mt-8 inline-flex min-h-11 items-center justify-center rounded-full bg-coral-700 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-coral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
-            학교 Google 계정으로 로그인
+            로그인
           </Link>
-          <ul className="mt-12 grid w-full gap-3 text-left sm:grid-cols-2">
-            {FEATURES.map((f) => (
-              <li
-                key={f.title}
-                className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <p className="text-sm font-semibold">{f.title}</p>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{f.text}</p>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </main>
   );
+}
+
+async function PlatformName() {
+  return await getPlatformName();
 }
