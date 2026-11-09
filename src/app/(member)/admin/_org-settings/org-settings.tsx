@@ -28,7 +28,7 @@ export function OrgSettings({ label, items, create, update, setActive }: {
       <SubmitButton>추가</SubmitButton>
       <FormMessage state={createState} />
     </form>
-    {sorted.length === 0 ? <EmptyState title={`등록된 ${label}이 없습니다`} description={`${label}을 추가해 주세요.`} /> :
+    {sorted.length === 0 ? <EmptyState title={`등록된 ${label} 항목이 없습니다`} description="위 양식에서 추가해 주세요." /> :
       <ul className="space-y-4">{sorted.map(item => <OrgRow key={item.id} label={label} item={item} update={update} setActive={setActive} />)}</ul>}
   </div>;
 }
