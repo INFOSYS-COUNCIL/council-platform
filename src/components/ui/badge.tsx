@@ -6,12 +6,20 @@ import {
   type TaskStatus,
 } from "@/lib/tasks/labels";
 
+// Linear처럼 얇은 테두리 + 앞쪽 점으로 상태를 구분한다.
 const TONES = {
-  neutral: "border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300",
-  strong: "border-coral-700 bg-coral-700 text-white dark:border-coral-400 dark:bg-coral-400 dark:text-zinc-950",
-  muted: "border-zinc-200 text-zinc-500 dark:border-zinc-800 dark:text-zinc-400",
-  danger: "border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200",
+  neutral: "border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300",
+  strong: "border-coral-200 bg-coral-50 text-coral-900 dark:border-coral-900 dark:bg-coral-900/40 dark:text-coral-200",
+  muted: "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
+  danger: "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200",
 } as const;
+
+const DOTS: Record<keyof typeof TONES, string> = {
+  neutral: "bg-zinc-400",
+  strong: "bg-coral-500",
+  muted: "bg-zinc-300 dark:bg-zinc-600",
+  danger: "bg-red-500",
+};
 
 // 짧은 상태 표시. 색만으로 뜻을 전하지 않도록 항상 글자를 함께 쓴다.
 export function Badge({
@@ -23,8 +31,9 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${TONES[tone]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${TONES[tone]}`}
     >
+      <span aria-hidden="true" className={`size-1.5 rounded-full ${DOTS[tone]}`} />
       {children}
     </span>
   );

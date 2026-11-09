@@ -9,7 +9,7 @@ import type {
 // 스크린리더가 함께 읽게 한다. id를 주지 않으면 name을 id로 쓴다.
 
 const CONTROL =
-  "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60 aria-[invalid=true]:border-red-500 dark:border-zinc-700 dark:bg-zinc-900";
+  "w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-base shadow-sm sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60 aria-[invalid=true]:border-red-500 dark:border-zinc-700 dark:bg-zinc-900";
 
 type FieldProps = {
   label: string;
@@ -40,16 +40,16 @@ function FieldFrame({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <label htmlFor={id} className="block text-sm font-medium">
         {label}
         {required && (
-          <span className="ml-1 text-red-700 dark:text-red-400">(필수)</span>
+          <span className="ml-1 text-xs font-normal text-red-700 dark:text-red-400">(필수)</span>
         )}
       </label>
       {children}
       {hint && (
-        <p id={`${id}-hint`} className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p id={`${id}-hint`} className="text-xs text-zinc-600 dark:text-zinc-400">
           {hint}
         </p>
       )}

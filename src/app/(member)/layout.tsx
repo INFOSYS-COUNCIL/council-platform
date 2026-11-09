@@ -1,83 +1,82 @@
-import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { ADMIN_ROLES } from "@/lib/admin/routes";
 import { getActiveMembership } from "@/lib/auth/session";
+import { ROLE_LABELS } from "@/lib/auth/roles";
+import { Sidebar, SidebarFallback, type NavGroup, type NavIcon } from "./sidebar";
 
-// 학생회 구성원 화면의 공통 틀(메뉴). 공용 파일이므로 리드가 관리한다.
+type NavItem = { href: string; label: string; icon: NavIcon; memberOnly: boolean };
+
+// 학생회 구성원 화면의 공통 틀(왼쪽 사이드바). 공용 파일이므로 리드가 관리한다.
 // 로그인·권한 확인은 여기서 하지 않는다. 레이아웃은 같은 그룹 안에서 이동할 때
 // 다시 실행되지 않으므로, 각 page에서 requireMember()를 부른다.
-// 새 기능 화면이 생기면 리드가 NAV_ITEMS에 추가한다(아직 없는 주소는 넣지 않는다).
+// 새 기능 화면이 생기면 리드가 NAV_GROUPS에 추가한다(아직 없는 주소는 넣지 않는다).
 // memberOnly: 학생회 구성원에게만 보인다. 일반 학생은 건의와 내 계정만 쓴다.
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "대시보드", memberOnly: true },
-  { href: "/tasks", label: "업무", memberOnly: true },
-  { href: "/events", label: "행사", memberOnly: true },
-  { href: "/meetings", label: "회의록", memberOnly: true },
-  { href: "/schedule", label: "일정", memberOnly: true },
-  { href: "/council/suggestions", label: "건의 처리", memberOnly: true },
-  { href: "/suggestions", label: "내 건의", memberOnly: false },
-  { href: "/me", label: "내 계정", memberOnly: false },
-] as const;
+const NAV_GROUPS = [
+  {
+    label: "업무 공간",
+    items: [
+      { href: "/dashboard", label: "대시보드", icon: "home", memberOnly: true },
+      { href: "/tasks", label: "업무", icon: "tasks", memberOnly: true },
+      { href: "/schedule", label: "일정", icon: "calendar", memberOnly: true },
+    ],
+  },
+  {
+    label: "기록",
+    items: [
+      { href: "/meetings", label: "회의록", icon: "doc", memberOnly: true },
+      { href: "/events", label: "행사", icon: "flag", memberOnly: true },
+    ],
+  },
+  {
+    label: "건의",
+    items: [
+      { href: "/council/suggestions", label: "건의 처리", icon: "inbox", memberOnly: true },
+      { href: "/suggestions", label: "내 건의", icon: "chat", memberOnly: false },
+    ],
+  },
+] as const satisfies readonly { label: string; items: readonly NavItem[] }[];
 
 export default function MemberLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div className="flex min-h-full flex-1 flex-col md:flex-row">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-zinc-900"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-zinc-900"
       >
         본문 바로가기
       </a>
-      <header className="border-b border-zinc-200 dark:border-zinc-800">
-        <nav
-          aria-label="주 메뉴"
-          className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3"
-        >
-          <Link href="/dashboard" className="font-bold text-coral-800 dark:text-coral-300">
-            학생회 운영 플랫폼
-          </Link>
-          <ul className="flex flex-wrap gap-4 text-sm">
-            <Suspense fallback={null}>
-              <NavItems />
-            </Suspense>
-          </ul>
-        </nav>
-      </header>
-      <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-        {children}
+      <Suspense fallback={<SidebarFallback />}>
+        <MemberSidebar />
+      </Suspense>
+      <main id="main" className="min-w-0 flex-1">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8 sm:py-8">{children}</div>
       </main>
     </div>
   );
 }
 
-function NavLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-    >
-      {children}
-    </Link>
-  );
-}
-
 // 메뉴는 표시용이며, 접근 확인은 각 page의 requireMember()·requireUser()가 한다.
 // 관리 메뉴는 관리 화면이 있는 Role(회장단·국장)에게만 보인다.
-async function NavItems() {
+async function MemberSidebar() {
   const membership = await getActiveMembership();
-  const items = NAV_ITEMS.filter((item) => membership || !item.memberOnly);
+  const groups = NAV_GROUPS.map((group) => ({
+    label: group.label,
+    items: group.items
+      .filter((item) => membership || !item.memberOnly)
+      .map(({ href, label, icon }) => ({ href, label, icon })),
+  })).filter((group) => group.items.length > 0);
+
+  const footer: NavGroup["items"][number][] = [];
+  if (membership && ADMIN_ROLES.includes(membership.role)) {
+    footer.push({ href: "/admin", label: "관리", icon: "settings" });
+  }
+  footer.push({ href: "/me", label: "내 계정", icon: "user" });
+
   return (
-    <>
-      {items.map((item) => (
-        <li key={item.href}>
-          <NavLink href={item.href}>{item.label}</NavLink>
-        </li>
-      ))}
-      {membership && ADMIN_ROLES.includes(membership.role) && (
-        <li>
-          <NavLink href="/admin">관리</NavLink>
-        </li>
-      )}
-    </>
+    <Sidebar
+      groups={groups}
+      footer={footer}
+      roleLabel={membership ? ROLE_LABELS[membership.role] : "학생"}
+    />
   );
 }

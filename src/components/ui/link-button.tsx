@@ -8,7 +8,7 @@ export const FOCUS_RING =
 export function LinkButton({ className = "", ...props }: ComponentProps<typeof Link>) {
   return (
     <Link
-      className={`inline-block rounded-md bg-coral-700 px-4 py-2 font-medium text-white hover:bg-coral-800 dark:bg-coral-400 dark:text-zinc-950 dark:hover:bg-coral-300 ${FOCUS_RING} ${className}`}
+      className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md bg-coral-700 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-coral-800 dark:bg-coral-400 dark:text-zinc-950 dark:hover:bg-coral-300 ${FOCUS_RING} ${className}`}
       {...props}
     />
   );

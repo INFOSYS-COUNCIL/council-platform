@@ -40,7 +40,7 @@ export function GoogleLoginButton({ next }: { next?: string }) {
         onClick={handleClick}
         disabled={pending}
         aria-busy={pending}
-        className="w-full py-3"
+        className="min-h-11 w-full"
       >
         {pending ? "Google로 이동하는 중…" : "학교 Google 계정으로 로그인"}
       </Button>

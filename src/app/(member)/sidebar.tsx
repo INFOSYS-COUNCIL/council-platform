@@ -1,0 +1,223 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState, type ReactNode } from "react";
+
+// 구성원 화면의 왼쪽 사이드바(Linear 방식). 넓은 화면에서는 항상 보이고,
+// 좁은 화면(375px 등)에서는 위쪽 막대의 "메뉴" 버튼으로 연다.
+// 어떤 메뉴를 보여 줄지는 서버(layout.tsx)가 정해서 넘긴다. 여기서는 표시만 한다.
+
+export type NavIcon =
+  | "home"
+  | "tasks"
+  | "calendar"
+  | "doc"
+  | "flag"
+  | "inbox"
+  | "chat"
+  | "settings"
+  | "user";
+
+export type NavGroup = {
+  label: string;
+  items: readonly { href: string; label: string; icon: NavIcon }[];
+};
+
+const FOCUS =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+
+function isCurrent(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function Sidebar({
+  groups,
+  footer,
+  roleLabel,
+}: {
+  groups: readonly NavGroup[];
+  footer: NavGroup["items"];
+  roleLabel?: string;
+}) {
+  const pathname = usePathname();
+  // 메뉴를 연 주소를 기억한다. 다른 화면으로 이동하면 주소가 달라져 저절로 닫힌다.
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
+  const open = openedAt === pathname;
+
+  return (
+    <aside
+      className="sticky top-0 z-30 shrink-0 border-b border-zinc-200 bg-sidebar md:h-screen md:w-60 md:border-r md:border-b-0 dark:border-zinc-800"
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && open) setOpenedAt(null);
+      }}
+    >
+      <div className="flex h-14 items-center justify-between gap-2 px-4 md:h-auto md:px-3 md:pt-4 md:pb-2">
+        <Link
+          href="/dashboard"
+          className={`flex min-w-0 items-center gap-2.5 rounded-md px-1 py-1 ${FOCUS}`}
+        >
+          <span
+            aria-hidden="true"
+            className="bg-coral-gradient grid size-7 shrink-0 place-items-center rounded-md text-xs font-bold text-zinc-950"
+          >
+            IS
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">학생회 운영 플랫폼</span>
+            {roleLabel && (
+              <span className="block truncate text-xs text-zinc-600 dark:text-zinc-400">
+                정보시스템학과 · {roleLabel}
+              </span>
+            )}
+          </span>
+        </Link>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls="member-nav"
+          onClick={() => setOpenedAt(open ? null : pathname)}
+          className={`inline-flex items-center gap-1.5 rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm font-medium hover:bg-zinc-100 md:hidden dark:border-zinc-700 dark:hover:bg-zinc-800 ${FOCUS}`}
+        >
+          <Icon name={open ? "close" : "menu"} />
+          메뉴
+        </button>
+      </div>
+
+      <nav
+        id="member-nav"
+        aria-label="주 메뉴"
+        className={`${open ? "flex" : "hidden"} max-h-[calc(100dvh-3.5rem)] flex-col justify-between gap-4 overflow-y-auto border-t border-zinc-200 px-3 pt-3 pb-4 md:flex md:h-[calc(100vh-4.5rem)] md:max-h-none md:border-t-0 md:pt-2 dark:border-zinc-800`}
+      >
+        <div className="space-y-5">
+          {groups.map((group) => (
+            <div key={group.label}>
+              <p className="px-2 pb-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                {group.label}
+              </p>
+              <ul className="space-y-0.5">
+                {group.items.map((item) => (
+                  <li key={item.href}>
+                    <NavLink item={item} current={isCurrent(pathname, item.href)} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        {footer.length > 0 && (
+          <ul className="space-y-0.5 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+            {footer.map((item) => (
+              <li key={item.href}>
+                <NavLink item={item} current={isCurrent(pathname, item.href)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </nav>
+    </aside>
+  );
+}
+
+// 메뉴를 불러오는 동안 보이는 자리(주소를 읽지 않으므로 미리 렌더링할 수 있다).
+export function SidebarFallback() {
+  return (
+    <aside
+      aria-hidden="true"
+      className="h-14 shrink-0 border-b border-zinc-200 bg-sidebar md:h-screen md:w-60 md:border-r md:border-b-0 dark:border-zinc-800"
+    >
+      <div className="flex items-center gap-2.5 px-4 py-3.5 md:px-4 md:pt-5">
+        <span className="bg-coral-gradient size-7 rounded-md" />
+        <span className="h-4 w-28 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+      </div>
+    </aside>
+  );
+}
+
+function NavLink({
+  item,
+  current,
+}: {
+  item: NavGroup["items"][number];
+  current: boolean;
+}) {
+  return (
+    <Link
+      href={item.href}
+      aria-current={current ? "page" : undefined}
+      className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm ${FOCUS} ${
+        current
+          ? "bg-white font-medium text-zinc-950 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-700"
+          : "text-zinc-700 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-50"
+      }`}
+    >
+      <span className={current ? "text-coral-700 dark:text-coral-300" : "text-zinc-500 dark:text-zinc-400"}>
+        <Icon name={item.icon} />
+      </span>
+      {item.label}
+    </Link>
+  );
+}
+
+// 선 아이콘(16px). 장식용이라 스크린리더에는 읽히지 않는다.
+const ICON_PATHS: Record<NavIcon | "menu" | "close", ReactNode> = {
+  home: <path d="M3 7.5 8 3.5l5 4V13a.5.5 0 0 1-.5.5H10V10H6v3.5H3.5A.5.5 0 0 1 3 13Z" />,
+  tasks: (
+    <>
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="m5.75 8 1.5 1.5 3-3" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" />
+      <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" />
+    </>
+  ),
+  doc: (
+    <>
+      <path d="M4 2.5h5l3 3v8a.5.5 0 0 1-.5.5h-7.5a.5.5 0 0 1-.5-.5v-10.5a.5.5 0 0 1 .5-.5Z" />
+      <path d="M9 2.5v3h3M5.5 8.5h5M5.5 11h3.5" />
+    </>
+  ),
+  flag: <path d="M3.5 14V2.5M3.5 3h8l-1.75 2.75L11.5 8.5h-8" />,
+  inbox: (
+    <>
+      <path d="M2.5 9 4 3.5h8L13.5 9v3.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1Z" />
+      <path d="M2.5 9H6l.5 1.5h3L10 9h3.5" />
+    </>
+  ),
+  chat: <path d="M2.5 4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H6.5l-3 2.5v-2.5h0a1 1 0 0 1-1-1Z" />,
+  settings: (
+    <>
+      <path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7" />
+      <circle cx="11" cy="4.5" r="1.5" />
+      <circle cx="5" cy="11.5" r="1.5" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="8" cy="5.5" r="2.5" />
+      <path d="M3 13.5a5 5 0 0 1 10 0" />
+    </>
+  ),
+  menu: <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />,
+  close: <path d="m4 4 8 8M12 4l-8 8" />,
+};
+
+function Icon({ name }: { name: keyof typeof ICON_PATHS }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 16 16"
+      className="size-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {ICON_PATHS[name]}
+    </svg>
+  );
+}

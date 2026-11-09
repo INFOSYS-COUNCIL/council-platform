@@ -15,15 +15,15 @@ export function Pagination({
   return (
     <nav aria-label="쪽 이동" className="flex items-center justify-center gap-4 text-sm">
       {page > 1 && (
-        <Link href={hrefFor(page - 1)} className={`underline ${FOCUS_RING}`}>
+        <Link href={hrefFor(page - 1)} className={`rounded-md border border-zinc-300 px-2.5 py-1 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800 ${FOCUS_RING}`}>
           이전
         </Link>
       )}
-      <span>
+      <span className="tabular-nums text-zinc-600 dark:text-zinc-400">
         {page} / {totalPages}
       </span>
       {page < totalPages && (
-        <Link href={hrefFor(page + 1)} className={`underline ${FOCUS_RING}`}>
+        <Link href={hrefFor(page + 1)} className={`rounded-md border border-zinc-300 px-2.5 py-1 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800 ${FOCUS_RING}`}>
           다음
         </Link>
       )}
@@ -37,10 +37,10 @@ export function PillLink({ href, current, children }: { href: string; current: b
     <Link
       href={href}
       aria-current={current ? "page" : undefined}
-      className={`rounded-full px-3 py-1 text-sm ${FOCUS_RING} ${
+      className={`rounded-md px-2.5 py-1 text-sm ${FOCUS_RING} ${
         current
-          ? "bg-coral-100 font-semibold text-coral-900 dark:bg-coral-900 dark:text-coral-100"
-          : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          ? "bg-white font-medium text-zinc-950 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-700"
+          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
       }`}
     >
       {children}
