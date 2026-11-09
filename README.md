@@ -128,13 +128,21 @@ src/
   app/                 화면 (폴더 = 주소)
     (member)/          구성원 전용 화면. 괄호 폴더는 주소에 나타나지 않음 (공통 메뉴 layout.tsx)
       dashboard/       대시보드 (/dashboard)
+      tasks/           업무 목록·생성·상세
+      events/          행사·자료 (파일은 Storage event-files, files/ 경로로 서명 URL 내려받기)
+      schedule/        일정 (주 보기)
+      meetings/        회의록·실시간 공동편집
+      suggestions/     내 건의 (모든 로그인 사용자)
+      council/suggestions/  건의 처리 (구성원)
+      admin/           관리 화면 (승인 명단·구성원·부서·직책·바로가기·Template)
     login/             로그인 화면
     auth/callback/     Google 로그인 후 세션 교환 + 소속 활성화 + 첫 화면 결정
     auth/signout/      로그아웃 (POST)
     me/                내 계정·소속 확인
     error.tsx          예상하지 못한 오류 화면
     not-found.tsx      없는 화면·권한 없음 화면
-  components/ui/       여러 화면에서 쓰는 부품 (버튼, 알림, 빈 목록, 화면 제목)
+  components/ui/       여러 화면에서 쓰는 부품 (버튼, 알림, 빈 목록, 화면 제목, ActionForm, 쪽 이동)
+  lib/<영역>/          영역별 이름표·조회·계산 (tasks, events, suggestions, schedules, meetings, org)
   lib/supabase/
     client.ts          브라우저(Client Component)용 Supabase 클라이언트
     server.ts          서버(Server Component·Action)용 Supabase 클라이언트
@@ -166,7 +174,7 @@ supabase/              로컬 DB 설정, Migration, Seed, 테스트
 - Cache Components가 켜져 있어서, 로그인 정보(쿠키)를 읽는 컴포넌트는 `<Suspense>` 안에 둡니다. (`src/app/me/page.tsx` 참고)
 - 로컬에서 실제 Google 로그인을 해 보려면 개인 Google OAuth 클라이언트가 필요합니다. 없어도 DB 권한은 pgTAP 테스트로 확인할 수 있습니다.
   1. Google Cloud Console에서 OAuth 클라이언트(웹)를 만들고 Redirect URI에 `http://127.0.0.1:54321/auth/v1/callback` 추가
-  2. `supabase/.env` 파일(커밋 금지)에 `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=...` 입력
+  2. `supabase/.env` 파일(`.env.local`이 아니라 `supabase` 폴더 안의 새 파일, 커밋 금지)에 `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=...` 입력
   3. `npx supabase stop` → `npx supabase start`
   4. 로컬 DB에는 승인 명단이 비어 있으므로, 회장단 화면이 생기기 전까지는 아래 "첫 회장단 등록" SQL을 Studio에서 실행해 자기 계정을 등록합니다.
 
@@ -229,6 +237,9 @@ Migration 외에 대시보드에서 직접 켜야 하는 설정입니다.
    - Redirect URLs: `http://localhost:3000/auth/callback`, 배포 주소의 `/auth/callback`, Preview 주소 패턴
 3. Authentication → Hooks → **Before User Created** → Postgres 함수 `public.hook_before_user_created` 연결
 4. 학교 계정과 외부 Gmail로 한 번씩 로그인해 보고, 외부 Gmail이 거부되고 `auth.users`에 행이 생기지 않는지 확인
+5. Realtime → Settings → **"Allow public access"(공개 채널 허용) 끄기**. 회의록 공동편집은 Private Channel만 쓰고, 권한은 `realtime.messages` RLS가 검사한다
+
+`event-files` Storage Bucket(비공개, 파일당 10MB, 허용 형식)과 그 정책은 Migration이 만든다. 대시보드에서 따로 만들지 않는다.
 
 ### 첫 회장단 등록 (기수마다 한 번, 비상 절차)
 
