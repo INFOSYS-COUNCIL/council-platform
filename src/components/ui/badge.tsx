@@ -8,7 +8,7 @@ import {
 
 const TONES = {
   neutral: "border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300",
-  strong: "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900",
+  strong: "border-coral-700 bg-coral-700 text-white dark:border-coral-400 dark:bg-coral-400 dark:text-zinc-950",
   muted: "border-zinc-200 text-zinc-500 dark:border-zinc-800 dark:text-zinc-400",
   danger: "border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200",
 } as const;
