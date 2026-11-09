@@ -118,3 +118,15 @@ export function aclRuleLabel(
   }
   return `그룹 · ${roleGroupLabels[rule.role_group ?? ""] ?? rule.role_group}`;
 }
+
+// aclSubjectOptions 값 하나를 DB 함수 인자로 바꾼다. 형식이 다르면 null.
+export function parseAclSubject(value: string) {
+  const [type, id] = value.split(":");
+  if (!id || (type !== "DEPARTMENT" && type !== "USER" && type !== "ROLE_GROUP")) return null;
+  return {
+    p_subject_type: type,
+    p_department_id: type === "DEPARTMENT" ? id : undefined,
+    p_user_id: type === "USER" ? id : undefined,
+    p_role_group: type === "ROLE_GROUP" ? (id as "ALL_COUNCIL" | "DIRECTORS" | "EXECUTIVES") : undefined,
+  } as const;
+}

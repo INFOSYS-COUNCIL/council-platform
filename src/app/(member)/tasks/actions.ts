@@ -10,13 +10,12 @@ import {
   type FieldErrors,
 } from "@/lib/actions/result";
 import { requireMember } from "@/lib/auth/session";
+import { parseAclSubject } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import {
   TASK_CREATE_ROLES,
   TASK_PRIORITY_ORDER,
   TASK_STATUS_ORDER,
-  type AclRoleGroup,
-  type AclSubjectType,
   type TaskPriority,
   type TaskStatus,
   type VisibilityMode,
@@ -146,17 +145,9 @@ export async function setTaskVisibility(_prev: ActionState, formData: FormData):
 // 열람 대상 값은 "DEPARTMENT:<id>", "USER:<id>", "ROLE_GROUP:<그룹>" 하나로 받는다.
 export async function addTaskAccessRule(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { taskId, supabase } = await taskContext(formData);
-  const [type, value] = text(formData, "subject").split(":") as [AclSubjectType, string];
-  if (!value || !["DEPARTMENT", "USER", "ROLE_GROUP"].includes(type)) {
-    return actionFailure("추가할 열람 대상을 선택해 주세요.");
-  }
-  const { error } = await supabase.rpc("add_task_access_rule", {
-    p_task_id: taskId,
-    p_subject_type: type,
-    p_department_id: type === "DEPARTMENT" ? value : undefined,
-    p_user_id: type === "USER" ? value : undefined,
-    p_role_group: type === "ROLE_GROUP" ? (value as AclRoleGroup) : undefined,
-  });
+  const subject = parseAclSubject(text(formData, "subject"));
+  if (!subject) return actionFailure("추가할 열람 대상을 선택해 주세요.");
+  const { error } = await supabase.rpc("add_task_access_rule", { p_task_id: taskId, ...subject });
   return done(error, "열람 대상을 추가했습니다.");
 }
 
