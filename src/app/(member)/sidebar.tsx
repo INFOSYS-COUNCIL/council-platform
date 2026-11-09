@@ -152,11 +152,11 @@ export function Sidebar({
               onClick={toggleCollapsed}
               aria-expanded={!collapsed}
               aria-controls="member-nav"
-              title={collapsed ? "사이드바 펼치기" : undefined}
-              className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-50 ${FOCUS}`}
+              aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
+              title={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
+              className={`grid size-8 place-items-center rounded-md text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-50 ${FOCUS}`}
             >
               <Icon name={collapsed ? "expand" : "collapse"} />
-              <span className={hideWide}>{collapsed ? "사이드바 펼치기" : "사이드바 접기"}</span>
             </button>
           </li>
         </ul>
