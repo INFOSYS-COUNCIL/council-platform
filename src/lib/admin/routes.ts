@@ -29,6 +29,11 @@ export const ADMIN_ROUTES = {
     label: "바로가기",
     roles: ["EXECUTIVE"],
   },
+  templates: {
+    href: "/admin/templates",
+    label: "회의록 Template",
+    roles: ["EXECUTIVE"],
+  },
 } as const satisfies Record<
   string,
   { href: string; label: string; roles: readonly MemberRole[] }

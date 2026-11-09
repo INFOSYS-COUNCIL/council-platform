@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { OverdueBadge, TaskStatusBadge } from "@/components/ui/badge";
+import { Badge, OverdueBadge, TaskStatusBadge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/detail";
 import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, formatDateTime, isOverdue, todayInSeoul } from "@/lib/dates";
+import { MEETING_STATUS_LABELS } from "@/lib/meetings/labels";
 import { fetchWeekSchedules } from "@/lib/schedules/queries";
 import { addDays, groupByDay, mondayOf, timeLabel, weekDays } from "@/lib/schedules/week";
 import { createClient } from "@/lib/supabase/server";
@@ -35,7 +36,7 @@ async function DashboardContent() {
   const today = todayInSeoul();
   const supabase = await createClient();
 
-  const [mine, dueSoon, week, events, links] = await Promise.all([
+  const [mine, dueSoon, week, events, links, meetings] = await Promise.all([
     supabase
       .from("tasks")
       .select(TASK_FIELDS)
@@ -63,6 +64,13 @@ async function DashboardContent() {
       .order("starts_at", { ascending: true, nullsFirst: false })
       .limit(5),
     supabase.from("dashboard_links").select("id, name, url, description").eq("is_active", true).order("sort_order").order("name"),
+    supabase
+      .from("meeting_minutes")
+      .select("id, title, status, updated_at")
+      .eq("term_id", membership.termId)
+      .neq("status", "ARCHIVED")
+      .order("updated_at", { ascending: false })
+      .limit(5),
   ]);
 
   // 오늘부터 이번 주 일요일까지만
@@ -118,6 +126,20 @@ async function DashboardContent() {
                 {e.name}
               </Link>
               {e.starts_at && <span className="text-sm text-zinc-600 dark:text-zinc-400"> · {formatDateTime(e.starts_at, today)}</span>}
+            </li>
+          ))}
+        </Widget>
+
+        <Widget title="최근 회의록" href="/meetings" failed={!!meetings.error} empty={meetings.data?.length === 0} emptyText="볼 수 있는 회의록이 없습니다.">
+          {meetings.data?.map((m) => (
+            <li key={m.id} className="flex flex-wrap items-center justify-between gap-2">
+              <Link href={`/meetings/${m.id}`} className={`min-w-0 truncate font-medium underline-offset-2 hover:underline ${FOCUS_RING}`}>
+                {m.title}
+              </Link>
+              <span className="flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-400">
+                {formatDateTime(m.updated_at, today)}
+                <Badge tone={m.status === "CONFIRMED" ? "strong" : "neutral"}>{MEETING_STATUS_LABELS[m.status]}</Badge>
+              </span>
             </li>
           ))}
         </Widget>
