@@ -1,3 +1,4 @@
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -205,8 +206,8 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
                 defaultValue={task.priority}
                 options={TASK_PRIORITY_ORDER.map((p) => ({ value: p, label: TASK_PRIORITY_LABELS[p] }))}
               />
-              <TextField label="시작일" name="start_date" type="date" defaultValue={task.start_date ?? ""} />
-              <TextField label="마감일" name="due_date" type="date" defaultValue={task.due_date ?? ""} />
+              <DateTimePicker withTime={false} label="시작일" name="start_date" defaultValue={task.start_date ?? ""} />
+              <DateTimePicker withTime={false} label="마감일" name="due_date" defaultValue={task.due_date ?? ""} />
             </div>
           </ActionForm>
         </Section>

@@ -1,5 +1,6 @@
 "use client";
 
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { useActionState } from "react";
 import {
   SelectField,
@@ -68,8 +69,8 @@ export function NewTaskForm({
           error={errors.priority}
         />
         <div aria-hidden="true" className="hidden sm:block" />
-        <TextField label="시작일" name="start_date" type="date" error={errors.start_date} />
-        <TextField label="마감일" name="due_date" type="date" error={errors.due_date} />
+        <DateTimePicker withTime={false} label="시작일" name="start_date" defaultValue="" error={errors.start_date} />
+        <DateTimePicker withTime={false} label="마감일" name="due_date" defaultValue="" error={errors.due_date} />
       </div>
 
       <fieldset className="space-y-2">

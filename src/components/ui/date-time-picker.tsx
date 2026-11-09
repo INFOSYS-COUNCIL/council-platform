@@ -1,11 +1,12 @@
 "use client";
 
 import { useId, useState } from "react";
-import { formatDate } from "@/lib/dates";
+import { formatDate, todayInSeoul } from "@/lib/dates";
 import { addMonths, monthGrid } from "@/lib/schedules/week";
 
 // 달력에서 날짜를 고르고 30분 단위 시각을 눌러 정하는 입력칸.
 // 폼에는 <input type="datetime-local">과 같은 "YYYY-MM-DDTHH:mm"(한국 시간)으로 보낸다.
+// withTime={false}면 날짜만 고르고 <input type="date">처럼 "YYYY-MM-DD"를 보낸다(비워 둘 수 있다).
 
 const WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
 const TIMES = Array.from({ length: 29 }, (_, i) => {
@@ -22,6 +23,7 @@ export function DateTimePicker({
   required,
   hint,
   error,
+  withTime = true,
 }: {
   label: string;
   name: string;
@@ -29,15 +31,16 @@ export function DateTimePicker({
   required?: boolean;
   hint?: string;
   error?: string;
+  withTime?: boolean;
 }) {
   const id = useId();
   const [date, setDate] = useState(defaultValue.slice(0, 10));
   const [time, setTime] = useState(defaultValue.slice(11, 16));
-  const [month, setMonth] = useState(defaultValue.slice(0, 7));
+  const [month, setMonth] = useState(defaultValue.slice(0, 7) || todayInSeoul().slice(0, 7));
   const [open, setOpen] = useState(false);
   const days = monthGrid(month);
   const [year, monthNo] = month.split("-").map(Number);
-  const value = date && time ? `${date}T${time}` : "";
+  const value = !withTime ? date : date && time ? `${date}T${time}` : "";
   const times = TIMES.includes(time) || !time ? TIMES : [...TIMES, time].sort();
 
   return (
@@ -58,7 +61,7 @@ export function DateTimePicker({
           error ? "border-red-500" : "border-zinc-300 dark:border-zinc-700"
         }`}
       >
-        <span id={`${id}-value`}>{value ? `${formatDate(date)} ${time}` : "날짜와 시각을 고르세요"}</span>
+        <span id={`${id}-value`}>{value ? `${formatDate(date)}${withTime ? ` ${time}` : ""}` : withTime ? "날짜와 시각을 고르세요" : "날짜를 고르세요"}</span>
         <span aria-hidden="true" className="text-zinc-500">▾</span>
       </button>
       {hint && <p id={`${id}-hint`} className="text-xs text-zinc-600 dark:text-zinc-400">{hint}</p>}
@@ -94,7 +97,10 @@ export function DateTimePicker({
                     type="button"
                     aria-pressed={selected}
                     aria-label={formatDate(day)}
-                    onClick={() => setDate(day)}
+                    onClick={() => {
+                      setDate(day);
+                      if (!withTime) setOpen(false);
+                    }}
                     className={`${CELL} ${day.startsWith(month) ? "" : "text-zinc-400 dark:text-zinc-600"} ${
                       selected
                         ? "bg-coral-700 font-semibold text-white dark:bg-coral-400 dark:text-zinc-950"
@@ -107,6 +113,7 @@ export function DateTimePicker({
               })}
             </div>
           </div>
+          {withTime ? (
           <div>
             <p className="mb-2 text-sm font-semibold">시각</p>
             <div role="group" aria-label="시각" className="grid max-h-40 grid-cols-4 gap-1 overflow-y-auto">
@@ -130,6 +137,20 @@ export function DateTimePicker({
               확인
             </button>
           </div>
+          ) : (
+            !required && date && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDate("");
+                  setOpen(false);
+                }}
+                className="justify-self-start rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                날짜 지우기
+              </button>
+            )
+          )}
         </div>
       )}
     </div>
