@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { SCHOOL_EMAIL_DOMAIN } from "@/lib/auth/email";
 import { createClient } from "@/lib/supabase/client";
 
-export function GoogleLoginButton() {
+export function GoogleLoginButton({ next }: { next?: string }) {
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -13,10 +15,12 @@ export function GoogleLoginButton() {
     setFailed(false);
 
     const supabase = createClient();
+    const callback = new URL("/auth/callback", window.location.origin);
+    if (next) callback.searchParams.set("next", next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callback.toString(),
         // hd는 계정 선택 화면의 힌트일 뿐이다. 실제 차단은 DB의 Auth Hook이 한다.
         queryParams: { hd: SCHOOL_EMAIL_DOMAIN, prompt: "select_account" },
       },
@@ -31,22 +35,22 @@ export function GoogleLoginButton() {
 
   return (
     <div className="space-y-2">
-      <button
+      <Button
         type="button"
         onClick={handleClick}
         disabled={pending}
         aria-busy={pending}
-        className="w-full rounded-md bg-zinc-900 px-4 py-3 font-medium text-white hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 dark:focus-visible:outline-blue-400"
+        className="w-full py-3"
       >
         {pending ? "Google로 이동하는 중…" : "학교 Google 계정으로 로그인"}
-      </button>
+      </Button>
       <p role="status" className="sr-only">
         {pending ? "Google로 이동하는 중…" : ""}
       </p>
       {failed && (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+        <Alert>
           로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.
-        </p>
+        </Alert>
       )}
     </div>
   );

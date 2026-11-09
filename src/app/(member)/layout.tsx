@@ -12,6 +12,8 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "대시보드", memberOnly: true },
   { href: "/tasks", label: "업무", memberOnly: true },
   { href: "/events", label: "행사", memberOnly: true },
+  { href: "/meetings", label: "회의록", memberOnly: true },
+  { href: "/schedule", label: "일정", memberOnly: true },
   { href: "/council/suggestions", label: "건의 처리", memberOnly: true },
   { href: "/suggestions", label: "내 건의", memberOnly: false },
   { href: "/me", label: "내 계정", memberOnly: false },

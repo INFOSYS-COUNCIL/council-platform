@@ -10,7 +10,8 @@ import { SelectField, TextareaField, TextField } from "@/components/ui/form-fiel
 import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
-import { formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
+import { formatDate, formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
+import { scheduleDateRange } from "@/lib/schedules/week";
 import {
   EVENT_STATUS_LABELS,
   EVENT_STATUS_ORDER,
@@ -34,6 +35,7 @@ import {
   setEventVisibility,
   updateEvent,
 } from "../actions";
+import { NewScheduleForm, ScheduleItem } from "../../schedule/schedule-parts";
 import { UploadForm } from "./upload-form";
 
 export const metadata: Metadata = {
@@ -57,7 +59,7 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
   const me = (await getCurrentUserId())!;
 
   const supabase = await createClient();
-  const [eventResult, rulesResult, resourcesResult, org] = await Promise.all([
+  const [eventResult, rulesResult, resourcesResult, schedulesResult, org] = await Promise.all([
     supabase
       .from("events")
       .select("*, department:departments(name), manager:profiles!events_manager_id_fkey(display_name, email)")
@@ -69,6 +71,10 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
       .select("id, resource_type, title, description, external_url, size_bytes, uploaded_by, created_at, uploader:profiles!event_resources_uploaded_by_fkey(display_name, email)")
       .eq("event_id", eventId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("schedules")
+      .select("id, title, location, event_id, created_by, is_all_day, start_date, end_date, starts_at, ends_at")
+      .eq("event_id", eventId),
     getTermOrgOptions(membership.termId),
   ]);
 
@@ -120,6 +126,21 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
           <Info label="공개 범위">{EVENT_VISIBILITY_LABELS[event.visibility_mode].label}</Info>
         </InfoList>
         <p className="whitespace-pre-wrap">{event.description || "설명이 없습니다."}</p>
+      </Section>
+
+      <Section title="일정">
+        {schedulesResult.data && schedulesResult.data.length > 0 ? (
+          <ul className="space-y-2">
+            {[...schedulesResult.data]
+              .sort((a, b) => scheduleDateRange(a)[0].localeCompare(scheduleDateRange(b)[0]) || (a.starts_at ?? "").localeCompare(b.starts_at ?? ""))
+              .map((s) => (
+                <ScheduleItem key={s.id} s={{ ...s, title: `${formatDate(scheduleDateRange(s)[0], today)} ${s.title}` }} canDelete={editable || s.created_by === me} />
+              ))}
+          </ul>
+        ) : (
+          <p className="text-sm">아직 일정이 없습니다.</p>
+        )}
+        {editable && <NewScheduleForm eventId={event.id} defaultDate={isoToSeoulLocal(event.starts_at).slice(0, 10) || today} />}
       </Section>
 
       {canManage && nextStatuses.length > 0 && (
