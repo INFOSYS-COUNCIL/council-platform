@@ -9,6 +9,7 @@ import { getActiveMembership } from "@/lib/auth/session";
 // 새 기능 화면이 생기면 리드가 NAV_ITEMS에 추가한다(아직 없는 주소는 넣지 않는다).
 const NAV_ITEMS = [
   { href: "/dashboard", label: "대시보드" },
+  { href: "/tasks", label: "업무" },
   { href: "/me", label: "내 계정" },
 ] as const;
 

@@ -5,7 +5,33 @@ export type Database = {
   
   "public": {
           Tables: {
-            "approved_council_accounts": {
+            "activity_logs": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"after_summary": Json | null,"before_summary": Json | null,"created_at": string,"id": number,"resource_id": string,"resource_type": string,"term_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"after_summary"?: Json | null,"before_summary"?: Json | null,"created_at"?: string,"id"?: never,"resource_id": string,"resource_type": string,"term_id": string
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"after_summary"?: Json | null,"before_summary"?: Json | null,"created_at"?: string,"id"?: never,"resource_id"?: string,"resource_type"?: string,"term_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "activity_logs_actor_id_fkey"
+      columns: ["actor_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "activity_logs_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"approved_council_accounts": {
                   Row: {
                     "activated_at": string | null,"activated_user_id": string | null,"created_at": string,"department_id": string | null,"email": string,"id": string,"is_active": boolean,"position_id": string | null,"registered_by": string | null,"role": Database["public"]['Enums']["member_role"],"student_no": string | null,"term_id": string
                   }
@@ -147,6 +173,94 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"task_access_rules": {
+                  Row: {
+                    "created_at": string,"department_id": string | null,"granted_by": string,"id": string,"role_group": Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"task_id": string,"term_id": string,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"department_id"?: string | null,"granted_by": string,"id"?: string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"task_id": string,"term_id": string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"department_id"?: string | null,"granted_by"?: string,"id"?: string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type"?: Database["public"]['Enums']["acl_subject_type"],"task_id"?: string,"term_id"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_access_department_same_term"
+      columns: ["term_id","department_id"]
+isOneToOne: false
+      referencedRelation: "departments"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "task_access_rules_granted_by_fkey"
+      columns: ["granted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_access_rules_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_access_task_same_term"
+      columns: ["term_id","task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["term_id","id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "archived_at": string | null,"archived_by": string | null,"assignee_id": string | null,"completed_at": string | null,"created_at": string,"creator_id": string,"department_id": string,"description": string,"due_date": string | null,"id": string,"manager_id": string,"priority": Database["public"]['Enums']["task_priority"],"start_date": string | null,"status": Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at": string,"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id": string,"department_id": string,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id": string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id"?: string,"department_id"?: string,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id"?: string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tasks_archived_by_fkey"
+      columns: ["archived_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_assignee_id_fkey"
+      columns: ["assignee_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_creator_id_fkey"
+      columns: ["creator_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_department_same_term"
+      columns: ["term_id","department_id"]
+isOneToOne: false
+      referencedRelation: "departments"
+      referencedColumns: ["term_id","id"]
+    },{
+      foreignKeyName: "tasks_manager_id_fkey"
+      columns: ["manager_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"terms": {
                   Row: {
                     "created_at": string,"ends_on": string | null,"id": string,"name": string,"starts_on": string | null,"status": Database["public"]['Enums']["term_status"]
@@ -185,6 +299,51 @@ isOneToOne: false
         to: "memberships"
         isOneToOne: false
         isSetofReturn: true
+      } },
+"add_task_access_rule":
+{ Args: { "p_department_id"?: string,"p_role_group"?: Database["public"]['Enums']["acl_role_group"],"p_subject_type": Database["public"]['Enums']["acl_subject_type"],"p_task_id": string,"p_user_id"?: string }; Returns: {
+              "created_at": string,
+"department_id": string | null,
+"granted_by": string,
+"id": string,
+"role_group": Database["public"]['Enums']["acl_role_group"] | null,
+"subject_type": Database["public"]['Enums']["acl_subject_type"],
+"task_id": string,
+"term_id": string,
+"user_id": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "task_access_rules"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"archive_task":
+{ Args: { "p_task_id": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
       } },
 "cancel_approved_account":
 { Args: { "p_account_id": string }; Returns: {
@@ -226,6 +385,33 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"change_task_status":
+{ Args: { "p_status": Database["public"]['Enums']["task_status"],"p_task_id": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "create_department":
 { Args: { "p_name": string,"p_sort_order"?: number,"p_term_id": string }; Returns: {
               "created_at": string,
@@ -256,8 +442,35 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"create_task":
+{ Args: { "p_assignee_id"?: string,"p_department_id": string,"p_description"?: string,"p_due_date"?: string,"p_priority"?: Database["public"]['Enums']["task_priority"],"p_start_date"?: string,"p_term_id": string,"p_title": string,"p_visibility_mode"?: Database["public"]['Enums']["visibility_mode"] }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "end_membership":
-{ Args: { "p_membership_id": string }; Returns: {
+{ Args: { "p_membership_id": string,"p_transfer_to"?: string }; Returns: {
               "approved_account_id": string | null,
 "department_id": string | null,
 "id": string,
@@ -278,11 +491,46 @@ isOneToOne: false
 "hook_before_user_created":
 { Args: { "event": Json }; Returns: Json
                            },
+"membership_responsibilities":
+{ Args: { "p_membership_id": string }; Returns: {
+              "assigned_open_tasks": number,"managed_open_tasks": number,"restricted_managed_tasks": number
+            }[]
+                           },
 "register_approved_accounts":
 { Args: { "p_rows": Json,"p_term_id": string }; Returns: {
               "account_id": string,"email": string,"error": string,"row_no": number
             }[]
                            },
+"remove_task_access_rule":
+{ Args: { "p_rule_id": string }; Returns: undefined
+                           },
+"restore_task":
+{ Args: { "p_task_id": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "set_approved_student_no":
 { Args: { "p_account_id": string,"p_student_no": string }; Returns: {
               "activated_at": string | null,
@@ -331,6 +579,60 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "positions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_task_manager":
+{ Args: { "p_manager_id": string,"p_task_id": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_task_visibility":
+{ Args: { "p_mode": Database["public"]['Enums']["visibility_mode"],"p_task_id": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -384,10 +686,64 @@ isOneToOne: false
         to: "positions"
         isOneToOne: true
         isSetofReturn: false
+      } },
+"update_task":
+{ Args: { "p_assignee_id": string,"p_due_date": string,"p_priority": Database["public"]['Enums']["task_priority"],"p_start_date": string,"p_task_id": string,"p_title": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_task_description":
+{ Args: { "p_description": string,"p_task_id": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
       } }
           }
           Enums: {
-            "member_role": "MEMBER"|"DIRECTOR"|"EXECUTIVE","term_status": "DRAFT"|"ACTIVE"|"CLOSED"
+            "acl_role_group": "ALL_COUNCIL"|"DIRECTORS"|"EXECUTIVES","acl_subject_type": "DEPARTMENT"|"USER"|"ROLE_GROUP","member_role": "MEMBER"|"DIRECTOR"|"EXECUTIVE","task_priority": "LOW"|"NORMAL"|"HIGH","task_status": "TODO"|"IN_PROGRESS"|"REVIEW"|"DONE","term_status": "DRAFT"|"ACTIVE"|"CLOSED","visibility_mode": "DEFAULT"|"RESTRICTED"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -503,7 +859,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "member_role": ["MEMBER", "DIRECTOR", "EXECUTIVE"],"term_status": ["DRAFT", "ACTIVE", "CLOSED"]
+            "acl_role_group": ["ALL_COUNCIL", "DIRECTORS", "EXECUTIVES"],"acl_subject_type": ["DEPARTMENT", "USER", "ROLE_GROUP"],"member_role": ["MEMBER", "DIRECTOR", "EXECUTIVE"],"task_priority": ["LOW", "NORMAL", "HIGH"],"task_status": ["TODO", "IN_PROGRESS", "REVIEW", "DONE"],"term_status": ["DRAFT", "ACTIVE", "CLOSED"],"visibility_mode": ["DEFAULT", "RESTRICTED"]
           }
         }
 } as const
