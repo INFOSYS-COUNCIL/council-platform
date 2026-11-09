@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SUGGESTION_STATUS_LABELS } from "@/lib/suggestions/labels";
 
 export const metadata: Metadata = {
-  title: "내 건의 | 학생회 운영 플랫폼",
+  title: "내 건의",
 };
 
 // 로그인한 학생 누구나. 알림이 없으므로 여기서 처리 상태를 확인한다(기획서 13.2절).

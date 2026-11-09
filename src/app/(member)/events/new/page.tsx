@@ -8,7 +8,7 @@ import { departmentSelectOptions, getTermOrgOptions } from "@/lib/org/options";
 import { NewEventForm } from "./new-event-form";
 
 export const metadata: Metadata = {
-  title: "행사 만들기 | 학생회 운영 플랫폼",
+  title: "행사 만들기",
 };
 
 export default function NewEventPage() {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupByDay, mondayOf, timeLabel, weekDays } from "./week";
+import { addMonths, groupByDay, monthGrid, mondayOf, timeLabel, weekDays } from "./week";
 
 describe("mondayOf / weekDays", () => {
   it("일요일은 그 주의 월요일(6일 전)로, 월요일은 그대로", () => {
@@ -31,5 +31,19 @@ describe("groupByDay", () => {
   it("시간 표시는 한국 시각", () => {
     expect(timeLabel(night)).toBe("23:00–01:00");
     expect(timeLabel(allDay)).toBe("종일");
+  });
+});
+
+describe("monthGrid / addMonths", () => {
+  it("그 달 1일이 든 주의 월요일부터 42일", () => {
+    const grid = monthGrid("2026-11"); // 11/1은 일요일
+    expect(grid).toHaveLength(42);
+    expect(grid[0]).toBe("2026-10-26");
+    expect(grid[41]).toBe("2026-12-06");
+  });
+
+  it("해를 넘겨 달을 옮긴다", () => {
+    expect(addMonths("2026-12", 1)).toBe("2027-01");
+    expect(addMonths("2026-01", -1)).toBe("2025-12");
   });
 });

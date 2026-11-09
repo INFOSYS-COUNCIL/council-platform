@@ -137,3 +137,17 @@ export async function correctStudentNo(_previous: ActionState, form: FormData): 
   refresh();
   return actionSuccess("학번을 정정했습니다.");
 }
+
+// 로그인 전 행(대기·등록 취소)만 지운다. 같은 이메일을 다시 등록할 수 있게 된다.
+export async function deleteAccount(_previous: ActionState, form: FormData): Promise<ActionState> {
+  await requireMember(ROUTE.href, ROUTE.roles);
+  if (form.get("confirm") !== "yes") return actionFailure("삭제 대상을 확인해 주세요.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_approved_account", {
+    p_account_id: String(form.get("accountId") ?? ""),
+  });
+  if (error) return actionFailure(rpcErrorMessage(error));
+  refresh();
+  return actionSuccess("승인 행을 삭제했습니다.");
+}

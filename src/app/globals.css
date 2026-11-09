@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
-/* 디자인 방향: Linear의 간결한 화면(사이드바·얇은 테두리·작은 글자)을 기본으로,
-   Plane식 대시보드 카드, Notion식 문서 화면을 따른다.
-   강조색은 Orange Coral 하나만 쓴다. 기준: #FF6F61(코랄) → #FFD5A1(피치).
+/* 디자인 방향: 노을(코랄 → 오렌지 → 피치 → 크림) 그라데이션 톤.
+   화면 틀은 Linear의 간결한 사이드바·얇은 테두리, 대시보드는 Plane식 카드를 따른다.
+   강조색은 Orange Coral 하나만 쓴다. 기준: #F45B4F(코랄) → #F7944F(오렌지) → #FBC58A(피치).
    글자 대비는 WCAG AA(4.5:1) 이상인 값만 글자·버튼에 쓴다:
    흰 글자 배경은 coral-700 이상, 어두운 배경의 강조 글자는 coral-300·coral-400. */
 :root {
-  --background: #fbfaf9;
-  --foreground: #1f1a18;
-  --surface: #ffffff;
-  --sidebar: #f5f3f1;
+  --background: #fff8f0;
+  --foreground: #2a1a15;
+  --surface: #fffdfa;
+  --sidebar: #ffefe2;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #141110;
-    --foreground: #f2ece9;
-    --surface: #1c1817;
-    --sidebar: #181514;
+    --background: #1a1210;
+    --foreground: #f7ebe4;
+    --surface: #231815;
+    --sidebar: #1f1512;
   }
 }
 
@@ -47,17 +47,17 @@
   /* 기존 화면이 쓰는 zinc(회색)를 살짝 따뜻한 중립 회색으로 바꾼다.
      팀원 화면 파일을 고치지 않고도 같은 톤이 되게 하려는 것이다.
      zinc-600 이상은 흰 배경에서, zinc-400 이하는 어두운 배경에서 글자 대비 4.5:1 이상이다. */
-  --color-zinc-50: #faf8f7;
-  --color-zinc-100: #f3f0ee;
-  --color-zinc-200: #e8e3e0;
-  --color-zinc-300: #d6cfcb;
-  --color-zinc-400: #a49a95;
-  --color-zinc-500: #827772;
-  --color-zinc-600: #655b57;
-  --color-zinc-700: #4a423f;
-  --color-zinc-800: #2f2927;
-  --color-zinc-900: #1f1a18;
-  --color-zinc-950: #141110;
+  --color-zinc-50: #fdf6f0;
+  --color-zinc-100: #f8ece3;
+  --color-zinc-200: #f0ddd0;
+  --color-zinc-300: #e2c9b9;
+  --color-zinc-400: #ae9a8f;
+  --color-zinc-500: #8a766c;
+  --color-zinc-600: #6a5850;
+  --color-zinc-700: #4d3e38;
+  --color-zinc-800: #33261f;
+  --color-zinc-900: #231815;
+  --color-zinc-950: #1a1210;
 
   /* focus 테두리(outline-blue-600/400)도 코랄로 맞춘다. 앱에서 파란색은 focus 표시에만 쓴다. */
   --color-blue-600: #c73b2c;
@@ -69,7 +69,12 @@ html {
 }
 
 body {
-  background: var(--background);
+  /* 노을빛이 화면 가장자리에 은은하게 번지는 배경 */
+  background:
+    radial-gradient(60rem 40rem at 100% -10%, rgb(251 197 138 / 0.28), transparent 60%),
+    radial-gradient(50rem 36rem at -10% 110%, rgb(244 91 79 / 0.12), transparent 60%),
+    var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "cv11";
@@ -84,7 +89,17 @@ body {
   color: #1f1a18;
 }
 
-/* 첫 화면·로그인 강조에 쓰는 코랄→피치 그라데이션 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background:
+      radial-gradient(60rem 40rem at 100% -10%, rgb(247 148 79 / 0.12), transparent 60%),
+      radial-gradient(50rem 36rem at -10% 110%, rgb(244 91 79 / 0.1), transparent 60%),
+      var(--background);
+    background-attachment: fixed;
+  }
+}
+
+/* 로고·강조에 쓰는 노을 그라데이션(코랄 → 오렌지 → 피치) */
 .bg-coral-gradient {
-  background-image: linear-gradient(90deg, #ff6f61, #ffd5a1);
+  background-image: linear-gradient(135deg, #f45b4f, #f7944f 55%, #fbc58a);
 }

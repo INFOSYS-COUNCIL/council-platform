@@ -14,7 +14,7 @@ import { toggleTemplate } from "./actions";
 import { TemplateForm } from "./template-form";
 
 export const metadata: Metadata = {
-  title: "회의록 Template | 학생회 운영 플랫폼",
+  title: "회의록 Template",
 };
 
 const ROUTE = ADMIN_ROUTES.templates;

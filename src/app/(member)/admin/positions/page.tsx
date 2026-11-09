@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { OrgSettings } from "../_org-settings/org-settings";
 import { createItem, updateItem, setItemActive } from "./actions";
 
-export const metadata: Metadata = { title: "직책 | 학생회 운영 플랫폼" };
+export const metadata: Metadata = { title: "직책" };
 const ROUTE = ADMIN_ROUTES.positions;
 
 export default function Page() {

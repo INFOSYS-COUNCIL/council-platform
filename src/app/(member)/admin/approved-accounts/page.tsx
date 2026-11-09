@@ -10,9 +10,10 @@ import { createClient } from "@/lib/supabase/server";
 import { AccountActions } from "./account-actions";
 import { BulkForm } from "./bulk-form";
 import { readApprovedAccounts, readOrganisation } from "./queries";
+import { SingleForm } from "./single-form";
 
 export const metadata: Metadata = {
-  title: "승인 명단 | 학생회 운영 플랫폼",
+  title: "승인 명단",
 };
 
 const ROUTE = ADMIN_ROUTES.approvedAccounts;
@@ -55,9 +56,15 @@ async function ApprovedAccountsContent() {
 
   return (
     <>
+      <SingleForm
+        termId={membership.termId}
+        director={Boolean(director)}
+        departments={departments.filter(({ is_active }) => is_active).map(({ id, name }) => ({ value: id, label: name }))}
+        positions={positions.filter(({ is_active }) => is_active).map(({ id, name }) => ({ value: id, label: name }))}
+      />
       <BulkForm termId={membership.termId} director={Boolean(director)} />
       {sorted.length === 0 ? (
-        <EmptyState title="승인 명단이 비어 있습니다" description="일괄 등록에서 승인할 계정을 추가할 수 있습니다." />
+        <EmptyState title="승인 명단이 비어 있습니다" description="한 명 등록이나 일괄 등록으로 승인할 계정을 추가할 수 있습니다." />
       ) : (
         <div
           role="region"

@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import { ADMIN_ROLES } from "@/lib/admin/routes";
 import { getActiveMembership } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/lib/auth/roles";
+import { getPlatformName } from "@/lib/site";
 import { Sidebar, SidebarFallback, type NavGroup, type NavIcon } from "./sidebar";
 
 type NavItem = { href: string; label: string; icon: NavIcon; memberOnly: boolean };
@@ -58,7 +59,7 @@ export default function MemberLayout({ children }: { children: ReactNode }) {
 // 메뉴는 표시용이며, 접근 확인은 각 page의 requireMember()·requireUser()가 한다.
 // 관리 메뉴는 관리 화면이 있는 Role(회장단·국장)에게만 보인다.
 async function MemberSidebar() {
-  const membership = await getActiveMembership();
+  const [membership, platformName] = await Promise.all([getActiveMembership(), getPlatformName()]);
   const groups = NAV_GROUPS.map((group) => ({
     label: group.label,
     items: group.items
@@ -77,6 +78,7 @@ async function MemberSidebar() {
       groups={groups}
       footer={footer}
       roleLabel={membership ? ROLE_LABELS[membership.role] : "학생"}
+      platformName={platformName}
     />
   );
 }
