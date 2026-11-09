@@ -1,6 +1,37 @@
-# 학생회 플랫폼 TF 진행 현황 · 2026-10-29
+# 학생회 플랫폼 TF 진행 현황 · 2026-10-29 (11/9 리드 선행 작업 추가)
 
 작업 방식의 기준은 [협업 가이드](TF_작업방식_기준.md), 기능 기준은 [기획서 v0.8](학생회_운영플랫폼_기획서.md), 앞으로의 일정은 [주차별 계획](TF_일정.md)이다. 이 문서는 사용자가 전달한 10/28~10/29 진행 상태를 보관한다. 실제 수행·재검증 없이 완료 항목을 늘리지 않는다.
+
+## 11/9 추가: 리드 선행 작업 (PR 대기, main 미반영)
+
+3~6주차 리드 기반과 화면을 미리 만들어 PR로 올렸다. **아래는 PR 상태이며 main·dev·prod에는 아직 반영되지 않았다.** CI(app·db·Vercel)는 PR마다 따로 확인한다.
+
+| PR | 내용 | Migration | 기준 브랜치 |
+|---|---|---|---|
+| [#23](https://github.com/INFOSYS-COUNCIL/council-platform/pull/23) | Orange Coral 테마(라이트·다크). 회색 계열 전체가 따뜻한 톤으로 바뀐다 | 없음 | main |
+| [#20](https://github.com/INFOSYS-COUNCIL/council-platform/pull/20) | 업무 DB·RLS·RPC, `activity_logs` | `20261107090000_tasks` | main |
+| [#24](https://github.com/INFOSYS-COUNCIL/council-platform/pull/24) | 업무 목록·생성·상세 화면, 공용 `ActionForm`·`LinkButton`·`Pagination` | 없음 | #20 |
+| [#25](https://github.com/INFOSYS-COUNCIL/council-platform/pull/25) | 행사·자료(`event-files` Storage, 10MB)·건의 DB와 화면 | `20261109100000_events_suggestions` | #24 |
+| [#26](https://github.com/INFOSYS-COUNCIL/council-platform/pull/26) | 일정(주 보기)·바로가기(`/admin/links`)·대시보드 위젯 | `20261109120000_schedules_links` | #25 |
+| [#27](https://github.com/INFOSYS-COUNCIL/council-platform/pull/27) | 회의록·Template·실시간 공동편집(BlockNote + Yjs + Realtime Broadcast) | `20261109140000_meetings` | #26 |
+
+Merge 순서: #23 → #20 → #24 → #25 → #26 → #27 → 이 문서 PR. Migration이 있는 PR은 Merge 직전에 README 8장대로 dev 적용 → Preview 확인 → prod 적용을 한다.
+
+Merge 전 남은 일:
+
+- [ ] 각 PR 1단계 리뷰어 Approve (리드 PR이라 관리자 우회 Merge, 가이드 3.1절)
+- [ ] Migration 4개 dev·prod 적용, Preview에서 실제 Google 계정으로 업무·행사·건의·일정·회의록 흐름 확인
+- [ ] dev·prod Realtime의 "공개 채널 허용" 끄기 (회의록 채널은 Private만 쓴다)
+- [ ] 부록 C.1 D-7~D-13·D-15를 회장단과 확정. 지금은 제안값으로 구현되어 있다
+- [ ] 회의록 공동편집의 Free 요금제 Realtime 사용량을 원격에서 측정
+- [ ] 4~6주차 팀원 Issue 범위 다시 정하기: 화면 신규 구현은 이 PR들에 들어 있으므로 아래 남은 범위·검증·개선으로 자른다
+
+PR에 넣지 않고 남긴 범위 (코드에 `shortcut:` 주석):
+
+- 행사 공개 범위를 좁힐 때의 충돌 처리 화면(기획서 5.2), 업무 ↔ 행사 연결(`tasks.event_id`)
+- 일정 수정·월 보기, 건의 하루 10건 제한의 운영값
+- 회의록: 주기적 Snapshot 압축, 미저장 묶음 IndexedDB 보관, 생성 후 열람 범위 변경, Export
+- 인수인계, 기수 전환·이전 자료, 활동 기록 화면(`/admin/activity`)
 
 ## 완료된 기반
 
