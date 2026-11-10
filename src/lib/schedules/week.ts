@@ -67,3 +67,41 @@ export function timeLabel(s: ScheduleTime): string {
   if (s.is_all_day) return "종일";
   return `${isoToSeoulLocal(s.starts_at).slice(11)}–${isoToSeoulLocal(s.ends_at).slice(11)}`;
 }
+
+// 여러 날에 걸친 일정(시작일 ≠ 종료일)을 한 주 안에서 이어진 막대로 놓는다.
+// 겹치지 않게 줄(lane)을 나눈다: 먼저 시작하는 것, 같은 날이면 긴 것부터 비어 있는 가장 위 줄에 둔다.
+// col은 그 주에서 0(월)~6(일), span은 그 주 안에서 걸친 날 수. 주를 넘어가면 다음 주에 다시 놓인다.
+export type WeekBar<T> = { item: T; col: number; span: number; lane: number; fromPrev: boolean; toNext: boolean };
+
+export function isMultiDay(s: ScheduleTime): boolean {
+  const [from, to] = scheduleDateRange(s);
+  return from !== to;
+}
+
+export function weekBars<T extends ScheduleTime>(schedules: T[], week: string[]): { bars: WeekBar<T>[]; lanes: number } {
+  const first = week[0];
+  const last = week[week.length - 1];
+  const spans = schedules
+    .filter(isMultiDay)
+    .map((item) => {
+      const [from, to] = scheduleDateRange(item);
+      return { item, from, to };
+    })
+    .filter(({ from, to }) => from <= last && to >= first)
+    .map(({ item, from, to }) => {
+      const col = from < first ? 0 : week.indexOf(from);
+      const end = to > last ? week.length - 1 : week.indexOf(to);
+      return { item, col, span: end - col + 1, fromPrev: from < first, toNext: to > last };
+    })
+    .sort((a, b) => a.col - b.col || b.span - a.span);
+
+  const taken: boolean[][] = []; // taken[lane][col]
+  const bars = spans.map((s) => {
+    let lane = 0;
+    while (taken[lane]?.slice(s.col, s.col + s.span).some(Boolean)) lane++;
+    taken[lane] ??= Array(week.length).fill(false);
+    for (let c = s.col; c < s.col + s.span; c++) taken[lane][c] = true;
+    return { ...s, lane };
+  });
+  return { bars, lanes: taken.length };
+}

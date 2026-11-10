@@ -2,7 +2,7 @@
 -- 실행: npx supabase test db
 -- 모든 계정은 가짜다. 트랜잭션 끝에 rollback되어 DB에 남지 않는다.
 begin;
-select plan(5);
+select plan(6);
 
 -- E: 회장단 / D: 재무국 국장 / D2: 홍보국 국장
 insert into auth.users (id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data)
@@ -40,6 +40,12 @@ select ok(
   (select not is_all_day and start_date is null and color = 'green' and location = '학생회실'
    from public.schedules where id = (select id from ids where name = 'sch')),
   '종일을 시간 일정으로 바꾸면 / 날짜 칸은 비고 / 색·장소도 바뀐다'
+);
+select is(
+  (public.update_schedule((select id from ids where name = 'sch'), '메모 일정', true,
+     null, null, '2026-11-21', '2026-11-21', '', 'green', '  준비물: 명찰  ')).description,
+  '준비물: 명찰',
+  '일정을 고칠 때 / 메모도 / 함께 저장된다'
 );
 select throws_ok(
   $$ select public.update_schedule((select id from ids where name = 'sch'), '거꾸로', false,

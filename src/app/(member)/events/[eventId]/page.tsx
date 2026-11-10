@@ -75,7 +75,7 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
       .order("created_at", { ascending: false }),
     supabase
       .from("schedules")
-      .select("id, title, location, color, event_id, created_by, is_all_day, start_date, end_date, starts_at, ends_at")
+      .select("id, title, location, description, color, event_id, created_by, is_all_day, start_date, end_date, starts_at, ends_at")
       .eq("event_id", eventId),
     getTermOrgOptions(membership.termId),
   ]);

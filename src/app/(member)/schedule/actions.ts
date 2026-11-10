@@ -36,6 +36,7 @@ function readFields(formData: FormData) {
     p_start_date: (isAllDay ? starts : null) as string,
     p_end_date: (isAllDay ? ends : null) as string,
     p_location: text(formData, "location"),
+    p_description: text(formData, "description"),
     p_color: color,
   };
 }
