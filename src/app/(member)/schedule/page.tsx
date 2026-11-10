@@ -55,6 +55,8 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
   return (
     <div className="space-y-6">
       <PageHeader title="일정" />
+      {/* 월 제목 바로 밑에 달력을 붙인다. 불러오지 못해도 달력 틀은 보여 준다. */}
+      <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight" aria-live="polite">
           {year}년 {monthNo}월
@@ -66,9 +68,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
         </nav>
       </div>
 
-      {error ? (
-        <Alert>불러오지 못했습니다. 새로고침해 주세요.</Alert>
-      ) : (
+      {error && <Alert>일정을 불러오지 못했습니다. 새로고침해 주세요.</Alert>}
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
           <div className="grid grid-cols-7 border-b border-zinc-200 bg-zinc-50 text-center text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400" aria-hidden="true">
             {WEEKDAY_HEADERS.map((w) => (
@@ -121,7 +121,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
             })}
           </ol>
         </div>
-      )}
+      </div>
 
       <Section title={`${formatDate(selected, today)}${selected === today ? " · 오늘" : ""}`}>
         {selectedItems.length === 0 ? (
@@ -136,7 +136,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
       </Section>
 
       {canCreate && (
-        <Section title="기수 일정 추가">
+        <Section title="새 일정 추가">
           <NewScheduleForm key={selected} defaultDate={selected} />
         </Section>
       )}

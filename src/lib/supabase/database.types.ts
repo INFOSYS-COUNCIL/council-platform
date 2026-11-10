@@ -549,14 +549,14 @@ isOneToOne: true
                   ]
                 },"suggestion_messages": {
                   Row: {
-                    "body": string,"created_at": string,"id": string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"writer_id": string
+                    "body": string,"created_at": string,"id": string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"updated_at": string | null,"writer_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "body": string,"created_at"?: string,"id"?: string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"writer_id": string
+                    "body": string,"created_at"?: string,"id"?: string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"updated_at"?: string | null,"writer_id": string
                   }
                   Update: {
-                    "body"?: string,"created_at"?: string,"id"?: string,"message_type"?: Database["public"]['Enums']["suggestion_message_type"],"suggestion_id"?: string,"writer_id"?: string
+                    "body"?: string,"created_at"?: string,"id"?: string,"message_type"?: Database["public"]['Enums']["suggestion_message_type"],"suggestion_id"?: string,"updated_at"?: string | null,"writer_id"?: string
                   }
                   Relationships: [
                     {
@@ -780,6 +780,7 @@ isOneToOne: false
 "id": string,
 "message_type": Database["public"]['Enums']["suggestion_message_type"],
 "suggestion_id": string,
+"updated_at": string | null,
 "writer_id": string
             }
                           SetofOptions: {
@@ -1151,6 +1152,9 @@ isOneToOne: false
                            },
 "delete_schedule":
 { Args: { "p_schedule_id": string }; Returns: undefined
+                           },
+"delete_suggestion_message":
+{ Args: { "p_message_id": string }; Returns: undefined
                            },
 "end_membership":
 { Args: { "p_membership_id": string,"p_transfer_to"?: string }; Returns: {
@@ -1560,6 +1564,22 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "positions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_suggestion_message":
+{ Args: { "p_body": string,"p_message_id": string }; Returns: {
+              "body": string,
+"created_at": string,
+"id": string,
+"message_type": Database["public"]['Enums']["suggestion_message_type"],
+"suggestion_id": string,
+"updated_at": string | null,
+"writer_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "suggestion_messages"
         isOneToOne: true
         isSetofReturn: false
       } },

@@ -5,14 +5,21 @@ import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
+import { ManageMenu } from "@/components/ui/manage-menu";
 import { SelectField, TextareaField } from "@/components/ui/form-field";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
-import { requireMember } from "@/lib/auth/session";
+import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import { SUGGESTION_STATUS_LABELS, SUGGESTION_STATUS_ORDER } from "@/lib/suggestions/labels";
-import { addSuggestionMessage, assignSuggestion, changeSuggestionStatus } from "../../../suggestions/actions";
+import {
+  addSuggestionMessage,
+  assignSuggestion,
+  changeSuggestionStatus,
+  deleteSuggestionMessage,
+  updateSuggestionMessage,
+} from "../../../suggestions/actions";
 
 export const metadata: Metadata = {
   title: "건의 처리 상세",
@@ -33,6 +40,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
   const membership = await requireMember(`/council/suggestions/${suggestionId}`);
   if (!UUID.test(suggestionId)) notFound();
   const isExecutive = membership.role === "EXECUTIVE";
+  const me = await getCurrentUserId();
 
   const supabase = await createClient();
   const [{ data: s, error }, { data: messages }, identity, org] = await Promise.all([
@@ -43,7 +51,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
       .maybeSingle(),
     supabase
       .from("suggestion_messages")
-      .select("id, message_type, body, created_at, writer:profiles!suggestion_messages_writer_id_fkey(display_name, email)")
+      .select("id, message_type, body, created_at, updated_at, writer_id, writer:profiles!suggestion_messages_writer_id_fkey(display_name, email)")
       .eq("suggestion_id", suggestionId)
       .order("created_at"),
     // 신원은 회장단만 (7.1절). 다른 사람은 부르지도 않는다
@@ -92,13 +100,58 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
                 key={m.id}
                 className={`rounded-md border-l-4 p-3 ${m.message_type === "AUTHOR_VISIBLE" ? "border-coral-500 bg-coral-50 dark:bg-zinc-900" : "border-zinc-400 bg-zinc-100 dark:bg-zinc-800"}`}
               >
-                <Badge tone={m.message_type === "AUTHOR_VISIBLE" ? "strong" : "muted"}>
-                  {m.message_type === "AUTHOR_VISIBLE" ? "작성자에게 공개" : "내부 메모"}
-                </Badge>
+                <div className="flex items-start justify-between gap-2">
+                  <Badge tone={m.message_type === "AUTHOR_VISIBLE" ? "strong" : "muted"}>
+                    {m.message_type === "AUTHOR_VISIBLE" ? "작성자에게 공개" : "내부 메모"}
+                  </Badge>
+                  {!closed && (isExecutive || m.writer_id === me) && (
+                    <ManageMenu
+                      title={m.message_type === "AUTHOR_VISIBLE" ? "답변 관리" : "메모 관리"}
+                      subtitle={m.body.slice(0, 30)}
+                      items={[
+                        {
+                          key: "edit",
+                          label: "수정",
+                          content: (
+                            <ActionForm action={updateSuggestionMessage} submitLabel="고친 내용 저장">
+                              {hidden}
+                              <input type="hidden" name="message_id" value={m.id} />
+                              <TextareaField
+                                label="내용"
+                                name="body"
+                                rows={5}
+                                maxLength={3000}
+                                required
+                                defaultValue={m.body}
+                                hint={m.message_type === "AUTHOR_VISIBLE" ? "고친 내용이 작성자에게 바로 보입니다." : undefined}
+                              />
+                            </ActionForm>
+                          ),
+                        },
+                        {
+                          key: "delete",
+                          label: "삭제",
+                          danger: true,
+                          content: (
+                            <ActionForm action={deleteSuggestionMessage} submitLabel="삭제">
+                              {hidden}
+                              <input type="hidden" name="message_id" value={m.id} />
+                              <p className="text-sm">
+                                이 글을 지웁니다. 되돌릴 수 없습니다.
+                                {m.message_type === "AUTHOR_VISIBLE" && " 작성자 화면에서도 사라집니다."}
+                              </p>
+                            </ActionForm>
+                          ),
+                        },
+                      ]}
+                    />
+                  )}
+                </div>
                 <p className="mt-2 whitespace-pre-wrap">{m.body}</p>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   {m.writer?.display_name?.trim() || m.writer?.email} ·{" "}
                   {new Date(m.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
+                  {m.updated_at && " · 수정됨"}
                 </p>
               </li>
             ))}
@@ -116,7 +169,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
               action={addSuggestionMessage}
               submitLabel="작성자에게 답변"
               variant="secondary"
-              confirmMessage="이 답변은 작성자에게 공개되고 지울 수 없습니다. 남길까요?"
+              confirmMessage="이 답변은 작성자에게 바로 공개됩니다. 남길까요?"
             >
               {hidden}
               <input type="hidden" name="message_type" value="AUTHOR_VISIBLE" />

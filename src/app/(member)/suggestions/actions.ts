@@ -91,3 +91,19 @@ export async function assignSuggestion(_prev: ActionState, formData: FormData): 
   });
   return done(error, "배정을 바꿨습니다.");
 }
+
+// 답변·메모 수정·삭제: 쓴 사람(처리자일 때) 또는 회장단만. DB 함수가 검사한다.
+export async function updateSuggestionMessage(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { supabase } = await handlerContext(formData);
+  const { error } = await supabase.rpc("update_suggestion_message", {
+    p_message_id: text(formData, "message_id"),
+    p_body: text(formData, "body"),
+  });
+  return done(error, "글을 고쳤습니다.");
+}
+
+export async function deleteSuggestionMessage(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { supabase } = await handlerContext(formData);
+  const { error } = await supabase.rpc("delete_suggestion_message", { p_message_id: text(formData, "message_id") });
+  return done(error, "글을 지웠습니다.");
+}
