@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DateTimeRange } from "@/components/ui/date-time-picker";
-import { TextField } from "@/components/ui/form-field";
+import { TextareaField, TextField } from "@/components/ui/form-field";
 import { SCHEDULE_COLORS, type ScheduleColor } from "@/lib/schedules/colors";
 
 // 일정 입력칸: 제목·장소, 종일 여부, 시작·종료(종료는 시작보다 앞설 수 없음), 색.
@@ -10,6 +10,7 @@ import { SCHEDULE_COLORS, type ScheduleColor } from "@/lib/schedules/colors";
 export type ScheduleInitial = {
   title: string;
   location: string;
+  description: string;
   allDay: boolean;
   starts: string;
   ends: string;
@@ -27,6 +28,7 @@ export function ScheduleFields({ defaultDate, initial }: { defaultDate: string; 
         <TextField label="제목" name="title" required maxLength={100} defaultValue={initial?.title} />
         <TextField label="장소" name="location" maxLength={100} defaultValue={initial?.location} />
       </div>
+      <TextareaField label="메모" name="description" rows={3} maxLength={2000} defaultValue={initial?.description} hint="준비물, 할 일 등 일정에 덧붙일 내용 (선택)" />
       <label className="inline-flex items-center gap-2 text-sm font-medium">
         <input type="checkbox" name="all_day" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} className="size-4 accent-coral-700" />
         하루 종일

@@ -12,6 +12,7 @@ export type ScheduleRow = ScheduleTime & {
   id: string;
   title: string;
   location: string;
+  description?: string;
   event_id: string | null;
   created_by: string;
   color?: string;
@@ -22,6 +23,7 @@ function initialOf(s: ScheduleRow): ScheduleInitial {
   return {
     title: s.title,
     location: s.location,
+    description: s.description ?? "",
     allDay: s.is_all_day,
     starts: s.is_all_day ? (s.start_date ?? "") : isoToSeoulLocal(s.starts_at),
     ends: s.is_all_day ? (s.end_date ?? "") : isoToSeoulLocal(s.ends_at),
@@ -41,6 +43,7 @@ export function ScheduleItem({ s, canManage, prefix }: { s: ScheduleRow; canMana
           <span className="block text-sm text-zinc-600 dark:text-zinc-400">
             {[s.event?.name, s.location].filter(Boolean).join(" · ") || "기수 공통"}
           </span>
+          {s.description && <span className="mt-1 block whitespace-pre-wrap text-sm">{s.description}</span>}
         </span>
       </span>
       {canManage && (

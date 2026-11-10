@@ -1574,7 +1574,7 @@ isOneToOne: false
         isSetofReturn: false
       } },
 "update_schedule":
-{ Args: { "p_color"?: string,"p_end_date": string,"p_ends_at": string,"p_is_all_day": boolean,"p_location"?: string,"p_schedule_id": string,"p_start_date": string,"p_starts_at": string,"p_title": string }; Returns: {
+{ Args: { "p_color"?: string,"p_description"?: string,"p_end_date": string,"p_ends_at": string,"p_is_all_day": boolean,"p_location"?: string,"p_schedule_id": string,"p_start_date": string,"p_starts_at": string,"p_title": string }; Returns: {
               "color": string,
 "created_at": string,
 "created_by": string,
