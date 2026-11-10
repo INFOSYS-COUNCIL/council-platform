@@ -44,7 +44,7 @@ async function SuggestionDetail({ params }: { params: Promise<{ suggestionId: st
   const [{ data: s, error }, { data: answers }] = await Promise.all([
     supabase.from("suggestions").select("id, title, content, status, created_at, withdrawn_at").eq("id", suggestionId).single(),
     // 작성자에게는 RLS가 공개 답변만 돌려준다(내부 메모 제외)
-    supabase.from("suggestion_messages").select("id, body, created_at").eq("suggestion_id", suggestionId).order("created_at"),
+    supabase.from("suggestion_messages").select("id, body, created_at, updated_at").eq("suggestion_id", suggestionId).order("created_at"),
   ]);
   if (error) return <Alert>불러오지 못했습니다. 새로고침해 주세요.</Alert>;
 
@@ -76,6 +76,7 @@ async function SuggestionDetail({ params }: { params: Promise<{ suggestionId: st
                 <p className="whitespace-pre-wrap">{a.body}</p>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   {new Date(a.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
+                  {a.updated_at && " · 수정됨"}
                 </p>
               </li>
             ))}

@@ -87,7 +87,7 @@ export function Sidebar({
         if (e.key === "Escape" && open) setOpenedAt(null);
       }}
     >
-      {/* 접기 버튼: 사이드바 오른쪽 테두리 밖, 맨 위에 걸쳐 둔다(넓은 화면만) */}
+      {/* 접기 버튼: 사이드바 오른쪽 테두리 밖, 세로 가운데(넓은 화면만) */}
       <button
         type="button"
         onClick={toggleCollapsed}
@@ -95,7 +95,7 @@ export function Sidebar({
         aria-controls="member-nav"
         aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
         title={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
-        className={`absolute top-5 -right-3.5 z-10 hidden size-7 place-items-center rounded-full border border-zinc-300 bg-surface text-zinc-600 shadow-sm hover:text-zinc-950 md:grid dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-50 ${FOCUS}`}
+        className={`absolute top-1/2 -right-9 z-10 -translate-y-1/2 hidden size-7 place-items-center rounded-full border border-zinc-300 bg-surface text-zinc-600 shadow-sm hover:text-zinc-950 md:grid dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-50 ${FOCUS}`}
       >
         <Icon name={collapsed ? "expand" : "collapse"} />
       </button>
