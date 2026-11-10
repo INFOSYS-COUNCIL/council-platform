@@ -176,3 +176,11 @@ export async function restoreTask(_prev: ActionState, formData: FormData): Promi
   const { error } = await supabase.rpc("restore_task", { p_task_id: taskId });
   return done(error, "업무를 복원했습니다.");
 }
+
+// 삭제: 보관과 같은 권한. 되돌릴 수 없으므로 화면에서 한 번 더 확인한다.
+export async function deleteTask(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { taskId, supabase } = await taskContext(formData);
+  const { error } = await supabase.rpc("delete_task", { p_task_id: taskId });
+  if (error) return actionFailure(rpcErrorMessage(error));
+  redirect("/tasks");
+}

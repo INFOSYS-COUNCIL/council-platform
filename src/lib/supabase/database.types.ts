@@ -1156,6 +1156,9 @@ isOneToOne: false
 "delete_suggestion_message":
 { Args: { "p_message_id": string }; Returns: undefined
                            },
+"delete_task":
+{ Args: { "p_task_id": string }; Returns: undefined
+                           },
 "end_membership":
 { Args: { "p_membership_id": string,"p_transfer_to"?: string }; Returns: {
               "approved_account_id": string | null,
@@ -1564,6 +1567,30 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "positions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_schedule":
+{ Args: { "p_color"?: string,"p_end_date": string,"p_ends_at": string,"p_is_all_day": boolean,"p_location"?: string,"p_schedule_id": string,"p_start_date": string,"p_starts_at": string,"p_title": string }; Returns: {
+              "color": string,
+"created_at": string,
+"created_by": string,
+"description": string,
+"end_date": string | null,
+"ends_at": string | null,
+"event_id": string | null,
+"id": string,
+"is_all_day": boolean,
+"location": string,
+"start_date": string | null,
+"starts_at": string | null,
+"term_id": string,
+"title": string,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "schedules"
         isOneToOne: true
         isSetofReturn: false
       } },

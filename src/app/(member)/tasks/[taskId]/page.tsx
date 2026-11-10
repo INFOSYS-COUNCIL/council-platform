@@ -35,6 +35,7 @@ import {
 import {
   addTaskAccessRule,
   archiveTask,
+  deleteTask,
   changeTaskStatus,
   removeTaskAccessRule,
   restoreTask,
@@ -295,6 +296,22 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
               {hidden}
             </ActionForm>
           )}
+        </Section>
+      )}
+
+      {canManage && (
+        <Section title="업무 삭제">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            잘못 만든 업무를 완전히 지웁니다. 되돌릴 수 없습니다. 기록을 남기려면 보관함으로 옮겨 주세요.
+          </p>
+          <ActionForm
+            action={deleteTask}
+            submitLabel="업무 삭제"
+            variant="secondary"
+            confirmMessage="이 업무를 완전히 지웁니다. 되돌릴 수 없습니다. 지울까요?"
+          >
+            {hidden}
+          </ActionForm>
         </Section>
       )}
 
