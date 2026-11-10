@@ -1156,6 +1156,9 @@ isOneToOne: false
 "delete_suggestion_message":
 { Args: { "p_message_id": string }; Returns: undefined
                            },
+"delete_task":
+{ Args: { "p_task_id": string }; Returns: undefined
+                           },
 "end_membership":
 { Args: { "p_membership_id": string,"p_transfer_to"?: string }; Returns: {
               "approved_account_id": string | null,
