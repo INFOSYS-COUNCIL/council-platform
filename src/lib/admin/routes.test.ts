@@ -6,11 +6,11 @@ describe("adminRoutesFor", () => {
     expect(adminRoutesFor("EXECUTIVE").map((r) => r.href)).toEqual([
       "/admin/members",
       "/admin/approved-accounts",
+      "/admin/settings",
       "/admin/departments",
       "/admin/positions",
       "/admin/links",
       "/admin/templates",
-      "/admin/settings",
     ]);
   });
 

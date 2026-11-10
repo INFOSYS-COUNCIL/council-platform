@@ -49,14 +49,14 @@ export async function createMeeting(_prev: ActionState, formData: FormData): Pro
   let blocks: unknown = [];
   if (templateId) {
     const { data } = await supabase.from("meeting_templates").select("blocks").eq("id", templateId).maybeSingle();
-    if (!data) return actionFailure("입력값을 확인해 주세요.", { template_id: "사용할 수 없는 Template입니다." });
+    if (!data) return actionFailure("입력값을 확인해 주세요.", { template_id: "사용할 수 없는 템플릿입니다." });
     blocks = data.blocks;
   }
   let initial;
   try {
     initial = templateState(blocks);
   } catch {
-    return actionFailure("Template 본문을 읽지 못했습니다. 관리자에게 Template 수정을 요청해 주세요.");
+    return actionFailure("템플릿 본문을 읽지 못했습니다. 회장단에게 템플릿 수정을 요청해 주세요.");
   }
 
   const { data, error } = await supabase.rpc("create_meeting", {
@@ -135,7 +135,7 @@ export async function confirmMeeting(_prev: ActionState, formData: FormData): Pr
     p_state_vector: current.vector,
     p_last_sequence_no: current.lastSeq,
   });
-  return done(error, "회의록을 확정했습니다.");
+  return done(error, "최종본으로 확정했습니다. 이제 본문이 잠깁니다.");
 }
 
 export async function changeMeetingStatus(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -147,5 +147,13 @@ export async function changeMeetingStatus(_prev: ActionState, formData: FormData
     p_status: status,
     p_reason: text(formData, "reason") || undefined,
   });
-  return done(error, "상태를 바꿨습니다.");
+  return done(error, status === "ARCHIVED" ? "보관했습니다. 목록의 \"보관됨\"에서 볼 수 있습니다." : "다시 편집할 수 있게 열었습니다.");
+}
+
+// 보관된 회의록 삭제: 회장단 또는 국장 이상인 대표 작성자(DB 함수가 검사). 지운 뒤 목록으로 간다.
+export async function deleteMeeting(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { meetingId, supabase } = await meetingContext(formData);
+  const { error } = await supabase.rpc("delete_meeting", { p_meeting_id: meetingId });
+  if (error) return actionFailure(rpcErrorMessage(error));
+  redirect("/meetings?status=ARCHIVED");
 }

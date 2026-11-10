@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { FOCUS_RING } from "@/components/ui/link-button";
+import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -58,21 +57,22 @@ async function AccountDetails() {
   return (
     <div className="space-y-6">
       {/* 내 계정은 사이드바 밖 화면이라 돌아갈 길을 따로 둔다. 일반 학생은 내 건의로 */}
-      <Link
-        href={memberships.length > 0 ? "/dashboard" : "/suggestions"}
-        className={`inline-flex items-center gap-1 rounded-md text-sm font-medium text-coral-800 hover:underline dark:text-coral-300 ${FOCUS_RING}`}
-      >
+      <SecondaryLinkButton href={memberships.length > 0 ? "/dashboard" : "/suggestions"}>
         ← {memberships.length > 0 ? "대시보드로 돌아가기" : "내 건의로 돌아가기"}
-      </Link>
-      <dl className="space-y-1">
-        <dt className="text-sm text-zinc-600 dark:text-zinc-400">이메일</dt>
-        <dd>{profile.email}</dd>
-        <dt className="text-sm text-zinc-600 dark:text-zinc-400">이름</dt>
-        <dd>{profile.display_name ?? "(이름 없음)"}</dd>
+      </SecondaryLinkButton>
+      <dl className="space-y-4 rounded-lg border border-zinc-200 bg-surface p-4 dark:border-zinc-800">
+        <div className="space-y-1">
+          <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">이메일</dt>
+          <dd className="break-all">{profile.email}</dd>
+        </div>
+        <div className="space-y-1">
+          <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">이름</dt>
+          <dd>{profile.display_name ?? "(이름 없음)"}</dd>
+        </div>
       </dl>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">학생회 소속</h2>
+        <h2 className="border-l-4 border-coral-500 pl-2.5 text-lg font-bold">학생회 소속</h2>
         {memberships.length === 0 ? (
           <p>
             학생회 구성원으로 등록되어 있지 않아 일반 학생으로 로그인했습니다.

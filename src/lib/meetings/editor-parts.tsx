@@ -71,6 +71,9 @@ export function MeetingSlashMenu({ editor }: { editor: MeetingEditorInstance }) 
 }
 
 // D-7: 파일·이미지 붙여넣기를 막는다. 막았으면 true
+// 붙여 넣는 글이 마크다운이면 마크다운으로 읽는다(다른 편집기에서 복사한 HTML보다 우선).
+export const MARKDOWN_PASTE = { prioritizeMarkdownOverHTML: true, plainTextAsMarkdown: true } as const;
+
 export function blocksFilePaste(event: ClipboardEvent): boolean {
   return (event.clipboardData?.files.length ?? 0) > 0;
 }

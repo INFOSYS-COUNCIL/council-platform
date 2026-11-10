@@ -13,7 +13,7 @@ export function PageHeader({
   return (
     <div className="flex flex-wrap items-end justify-between gap-3 border-b border-zinc-200 pb-4 dark:border-zinc-800">
       <div className="min-w-0 space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-950 sm:text-3xl dark:text-zinc-50">{title}</h1>
         {description && (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {description}

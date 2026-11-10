@@ -6,8 +6,8 @@ export type SuggestionStatus = Database["public"]["Enums"]["suggestion_status"];
 export const SUGGESTION_STATUS_LABELS: Record<SuggestionStatus, string> = {
   RECEIVED: "접수됨",
   IN_REVIEW: "검토 중",
-  RESOLVED: "처리 완료",
-  CLOSED: "종료",
+  RESOLVED: "답변 완료",
+  CLOSED: "마감됨",
 };
 export const SUGGESTION_STATUS_ORDER: readonly SuggestionStatus[] = ["RECEIVED", "IN_REVIEW", "RESOLVED", "CLOSED"];
 

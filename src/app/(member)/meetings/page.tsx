@@ -120,7 +120,7 @@ async function MeetingsContent({
                 </span>
                 <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                   수정 {formatDateTime(m.updated_at, today)}
-                  {status === "CONFIRMED" && <Badge tone="strong">확정</Badge>}
+                  {status === "CONFIRMED" && <Badge tone="strong">{MEETING_STATUS_LABELS.CONFIRMED}</Badge>}
                 </span>
               </Link>
             </li>

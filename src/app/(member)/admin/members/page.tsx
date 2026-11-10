@@ -13,7 +13,7 @@ import { readMembers } from "./queries";
 import { sortMembers } from "./sort";
 
 export const metadata: Metadata = {
-  title: "구성원",
+  title: "활동 중인 구성원",
 };
 
 const ROUTE = ADMIN_ROUTES.members;
@@ -24,7 +24,7 @@ const columns = ["이름", "부서", "역할", "직책", "관리"];
 export default function MembersPage() {
   return (
     <div className="min-w-0 space-y-6">
-      <PageHeader title="구성원" description="학생회에 로그인해 활동 중인 사람입니다. 아직 로그인 전인 사람은 승인 명단에서 봅니다." />
+      <PageHeader title="활동 중인 구성원" description="가입 승인 명단에 있던 사람 중 로그인해 활동 중인 사람입니다. 역할을 바꾸거나 학생회에서 내보낼 수 있습니다." />
       <Suspense fallback={<p role="status">불러오는 중…</p>}>
         <MembersContent />
       </Suspense>

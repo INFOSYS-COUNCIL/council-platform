@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { SelectField, TextareaField, TextField, type SelectOption } from "@/components/ui/form-field";
+import { DateTimeRange } from "@/components/ui/date-time-picker";
 import { FormMessage } from "@/components/ui/form-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { initialActionState } from "@/lib/actions/result";
@@ -32,8 +33,7 @@ export function NewEventForm({
         error={errors.owner_department_id}
       />
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="시작" name="starts_at" type="datetime-local" hint="한국 시간" error={errors.starts_at} />
-        <TextField label="종료" name="ends_at" type="datetime-local" hint="한국 시간" error={errors.ends_at} />
+        <DateTimeRange startName="starts_at" endName="ends_at" hint="선택 사항 · 한국 시간" />
       </div>
 
       <fieldset className="space-y-2">

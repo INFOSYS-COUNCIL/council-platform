@@ -4,7 +4,7 @@ import "@blocknote/mantine/style.css";
 import type { PartialBlock } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
-import { blocksFilePaste, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
+import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
 import { meetingSchema } from "@/lib/meetings/schema";
 import type { Json } from "@/lib/supabase/database.types";
 
@@ -15,7 +15,7 @@ export function TemplateEditor({ initialBlocks, onChange }: { initialBlocks: Jso
     dictionary: MEETING_DICTIONARY,
     initialContent:
       Array.isArray(initialBlocks) && initialBlocks.length > 0 ? (initialBlocks as PartialBlock[]) : undefined,
-    pasteHandler: ({ event, defaultPasteHandler }) => blocksFilePaste(event) || defaultPasteHandler(),
+    pasteHandler: ({ event, defaultPasteHandler }) => blocksFilePaste(event) || defaultPasteHandler(MARKDOWN_PASTE),
   });
 
   return (

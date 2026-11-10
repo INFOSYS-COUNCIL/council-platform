@@ -10,9 +10,9 @@ export type AclRoleGroup = Enums["acl_role_group"];
 
 // 화면에 보이는 이름. 순서 배열은 선택 목록과 정렬에 쓴다 (기획서 4.1절, D-1·D-2).
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  TODO: "할 일",
+  TODO: "시작 전",
   IN_PROGRESS: "진행 중",
-  REVIEW: "확인 요청",
+  REVIEW: "검토 요청",
   DONE: "완료",
 };
 export const TASK_STATUS_ORDER: readonly TaskStatus[] = [
@@ -39,11 +39,11 @@ export const VISIBILITY_LABELS: Record<
   { label: string; description: string }
 > = {
   DEFAULT: {
-    label: "기본 공개",
+    label: "담당 국에 공개",
     description: "회장단, 담당 국 구성원, 생성자, 담당자, 추가한 열람 대상이 볼 수 있습니다.",
   },
   RESTRICTED: {
-    label: "제한 공개",
+    label: "지정한 사람만",
     description:
       "회장단, 생성자, 담당자, 관리 책임자와 직접 추가한 열람 대상만 볼 수 있습니다. 담당 국의 다른 구성원은 자동으로 볼 수 없습니다.",
   },

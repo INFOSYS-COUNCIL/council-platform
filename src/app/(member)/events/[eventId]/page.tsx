@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
@@ -7,7 +6,8 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextareaField, TextField } from "@/components/ui/form-field";
-import { FOCUS_RING } from "@/components/ui/link-button";
+import { FOCUS_RING, SecondaryLinkButton } from "@/components/ui/link-button";
+import { DateTimeRange } from "@/components/ui/date-time-picker";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
@@ -73,7 +73,7 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
       .order("created_at", { ascending: false }),
     supabase
       .from("schedules")
-      .select("id, title, location, event_id, created_by, is_all_day, start_date, end_date, starts_at, ends_at")
+      .select("id, title, location, color, event_id, created_by, is_all_day, start_date, end_date, starts_at, ends_at")
       .eq("event_id", eventId),
     getTermOrgOptions(membership.termId),
   ]);
@@ -111,9 +111,9 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
         }
       />
       <p>
-        <Link href="/events" className={`text-sm underline ${FOCUS_RING}`}>
+        <SecondaryLinkButton href="/events">
           ← 행사 목록
-        </Link>
+        </SecondaryLinkButton>
       </p>
       {archived && <Alert tone="info">보관된 행사입니다. 읽기만 할 수 있습니다.</Alert>}
 
@@ -217,11 +217,10 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
             {hidden}
             <TextField label="행사 이름" name="name" required maxLength={100} defaultValue={event.name} />
             <TextareaField label="설명" name="description" rows={4} maxLength={10000} defaultValue={event.description} />
-            <div className="grid gap-4 sm:grid-cols-3">
-              <TextField label="시작" name="starts_at" type="datetime-local" defaultValue={isoToSeoulLocal(event.starts_at)} />
-              <TextField label="종료" name="ends_at" type="datetime-local" defaultValue={isoToSeoulLocal(event.ends_at)} />
-              <SelectField label="관리자" name="manager_id" options={memberSelectOptions(org.members)} defaultValue={event.manager_id} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <DateTimeRange startName="starts_at" endName="ends_at" defaultStart={isoToSeoulLocal(event.starts_at)} defaultEnd={isoToSeoulLocal(event.ends_at)} />
             </div>
+            <SelectField label="관리자" name="manager_id" options={memberSelectOptions(org.members)} defaultValue={event.manager_id} />
           </ActionForm>
         </Section>
       )}
