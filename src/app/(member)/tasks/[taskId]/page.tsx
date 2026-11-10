@@ -11,9 +11,11 @@ import {
   TaskPriorityBadge,
   TaskStatusBadge,
 } from "@/components/ui/badge";
+import { DialogButton } from "@/components/ui/dialog-button";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextareaField, TextField } from "@/components/ui/form-field";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
+import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
@@ -65,6 +67,7 @@ const ACTIVITY_LABELS: Record<string, string> = {
   MANAGER_CHANGE: "관리 책임자를 바꿨습니다",
   ARCHIVE: "업무를 보관했습니다",
   RESTORE: "업무를 복원했습니다",
+  DELETE: "업무를 지웠습니다",
 };
 
 // 볼 수 없는 업무는 RLS가 행을 돌려주지 않으므로 "찾을 수 없음"으로 보인다(부록 C.2).
@@ -130,16 +133,130 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
   const managerOptions = memberSelectOptions(org.members.filter((m) => m.role !== "MEMBER"));
   const hidden = <input type="hidden" name="task_id" value={task.id} />;
 
+  // 관리 ⋯ 메뉴: 상태·정보·공개 모드·관리 책임자·보관·삭제를 한곳에 모은다(화면에는 내용만 둔다)
+  const manageItems: ManageItem[] = [];
+  if (!archived && (canManage || isAssignee)) {
+    manageItems.push({
+      key: "status",
+      label: "상태 바꾸기",
+      content: (
+        <ActionForm action={changeTaskStatus} submitLabel="상태 바꾸기">
+          {hidden}
+          <SelectField
+            label="상태"
+            name="status"
+            defaultValue={task.status}
+            options={TASK_STATUS_ORDER.map((st) => ({ value: st, label: TASK_STATUS_LABELS[st] }))}
+          />
+        </ActionForm>
+      ),
+    });
+  }
+  if (!archived && canManage) {
+    manageItems.push(
+      {
+        key: "edit",
+        label: "제목·담당자·일정 수정",
+        content: (
+          <ActionForm action={updateTask} submitLabel="저장">
+            {hidden}
+            <TextField label="제목" name="title" required maxLength={100} defaultValue={task.title} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SelectField label="담당자" name="assignee_id" options={memberOptions} placeholder="담당자 없음" defaultValue={task.assignee_id ?? ""} />
+              <SelectField
+                label="우선순위"
+                name="priority"
+                defaultValue={task.priority}
+                options={TASK_PRIORITY_ORDER.map((pr) => ({ value: pr, label: TASK_PRIORITY_LABELS[pr] }))}
+              />
+              <DateTimePicker withTime={false} label="시작일" name="start_date" defaultValue={task.start_date ?? ""} />
+              <DateTimePicker withTime={false} label="마감일" name="due_date" defaultValue={task.due_date ?? ""} />
+            </div>
+          </ActionForm>
+        ),
+      },
+      {
+        key: "visibility",
+        label: "공개 모드 바꾸기",
+        content: (
+          <ActionForm
+            action={setTaskVisibility}
+            submitLabel="공개 모드 바꾸기"
+            confirmMessage="공개 모드를 바꾸면 이 업무를 볼 수 있는 사람이 달라집니다. 바꿀까요?"
+          >
+            {hidden}
+            <SelectField
+              label="공개 모드"
+              name="visibility_mode"
+              defaultValue={task.visibility_mode}
+              options={(["DEFAULT", "RESTRICTED"] as const).map((m) => ({ value: m, label: VISIBILITY_LABELS[m].label }))}
+              hint="제한 공개는 회장단이나 관리 책임자만 고를 수 있습니다."
+            />
+          </ActionForm>
+        ),
+      },
+    );
+  }
+  if (!archived && (isExecutive || task.manager_id === me)) {
+    manageItems.push({
+      key: "manager",
+      label: "관리 책임자 바꾸기",
+      content: (
+        <ActionForm action={setTaskManager} submitLabel="관리 책임자 바꾸기">
+          {hidden}
+          <SelectField label="관리 책임자" name="manager_id" options={managerOptions} defaultValue={task.manager_id} hint="국장이나 회장단만 맡을 수 있습니다." />
+        </ActionForm>
+      ),
+    });
+  }
+  if (canManage) {
+    manageItems.push(
+      archived
+        ? {
+            key: "restore",
+            label: "보관함에서 꺼내기",
+            content: (
+              <ActionForm action={restoreTask} submitLabel="보관함에서 꺼내기">
+                {hidden}
+                <p className="text-sm">다시 목록에 보이고 수정할 수 있게 됩니다.</p>
+              </ActionForm>
+            ),
+          }
+        : {
+            key: "archive",
+            label: "보관함으로 옮기기",
+            content: (
+              <ActionForm action={archiveTask} submitLabel="보관함으로 옮기기">
+                {hidden}
+                <p className="text-sm">끝났거나 더 이상 쓰지 않는 업무를 목록에서 빼 둡니다. 지워지지 않고 보관함에서 다시 꺼낼 수 있습니다.</p>
+              </ActionForm>
+            ),
+          },
+      {
+        key: "delete",
+        label: "삭제",
+        danger: true,
+        content: (
+          <ActionForm action={deleteTask} submitLabel="삭제">
+            {hidden}
+            <p className="text-sm">이 업무를 완전히 지웁니다. 되돌릴 수 없습니다. 기록을 남기려면 보관함으로 옮겨 주세요.</p>
+          </ActionForm>
+        ),
+      },
+    );
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader
         title={task.title}
         actions={
-          <span className="flex flex-wrap gap-1">
+          <span className="flex flex-wrap items-center gap-1">
             <TaskStatusBadge status={task.status} />
             <TaskPriorityBadge priority={task.priority} />
             {isOverdue(task.due_date, task.status === "DONE", today) && <OverdueBadge />}
             {archived && <Badge tone="muted">보관됨</Badge>}
+            <ManageMenu title="업무 관리" subtitle={task.title} items={manageItems} />
           </span>
         }
       />
@@ -169,52 +286,37 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         </Info>
       </InfoList>
 
-      {!archived && (canManage || isAssignee) && (
-        <Section title="상태">
-          <ActionForm action={changeTaskStatus} submitLabel="상태 바꾸기" className="flex flex-wrap items-end gap-3">
-            {hidden}
-            <SelectField
-              label="상태"
-              name="status"
-              defaultValue={task.status}
-              options={TASK_STATUS_ORDER.map((s) => ({ value: s, label: TASK_STATUS_LABELS[s] }))}
-            />
-          </ActionForm>
-        </Section>
-      )}
-
-      <Section title="설명">
-        {!archived && (canManage || isAssignee) ? (
-          <ActionForm action={updateTaskDescription} submitLabel="설명 저장" variant="secondary">
-            {hidden}
-            <TextareaField label="설명" name="description" rows={6} maxLength={10000} defaultValue={task.description} />
-          </ActionForm>
-        ) : (
-          <p className="whitespace-pre-wrap">{task.description || "설명이 없습니다."}</p>
-        )}
+      <Section
+        title="설명"
+        action={
+          !archived &&
+          (canManage || isAssignee) && (
+            <DialogButton label="설명 수정">
+              <ActionForm action={updateTaskDescription} submitLabel="설명 저장">
+                {hidden}
+                <TextareaField label="설명" name="description" rows={8} maxLength={10000} defaultValue={task.description} />
+              </ActionForm>
+            </DialogButton>
+          )
+        }
+      >
+        <p className="whitespace-pre-wrap">{task.description || "설명이 없습니다."}</p>
       </Section>
 
-      {!archived && canManage && (
-        <Section title="정보 수정">
-          <ActionForm action={updateTask} submitLabel="저장" variant="secondary">
-            {hidden}
-            <TextField label="제목" name="title" required maxLength={100} defaultValue={task.title} />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <SelectField label="담당자" name="assignee_id" options={memberOptions} placeholder="담당자 없음" defaultValue={task.assignee_id ?? ""} />
-              <SelectField
-                label="우선순위"
-                name="priority"
-                defaultValue={task.priority}
-                options={TASK_PRIORITY_ORDER.map((p) => ({ value: p, label: TASK_PRIORITY_LABELS[p] }))}
-              />
-              <DateTimePicker withTime={false} label="시작일" name="start_date" defaultValue={task.start_date ?? ""} />
-              <DateTimePicker withTime={false} label="마감일" name="due_date" defaultValue={task.due_date ?? ""} />
-            </div>
-          </ActionForm>
-        </Section>
-      )}
-
-      <Section title="공개 범위">
+      <Section
+        title="공개 범위"
+        action={
+          !archived &&
+          canManage && (
+            <DialogButton label="+ 열람 대상 추가">
+              <ActionForm action={addTaskAccessRule} submitLabel="열람 대상 추가">
+                {hidden}
+                <SelectField label="열람 대상" name="subject" placeholder="선택하세요" options={aclSubjectOptions(org, ACL_ROLE_GROUP_LABELS)} />
+              </ActionForm>
+            </DialogButton>
+          )
+        }
+      >
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {VISIBILITY_LABELS[task.visibility_mode].description}
         </p>
@@ -235,85 +337,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         ) : (
           <p className="text-sm">추가한 열람 대상이 없습니다.</p>
         )}
-
-        {!archived && canManage && (
-          <div className="grid gap-6 sm:grid-cols-2">
-            <ActionForm action={addTaskAccessRule} submitLabel="열람 대상 추가" variant="secondary">
-              {hidden}
-              <SelectField
-                label="열람 대상"
-                name="subject"
-                placeholder="선택하세요"
-                options={aclSubjectOptions(org, ACL_ROLE_GROUP_LABELS)}
-              />
-            </ActionForm>
-            <ActionForm
-              action={setTaskVisibility}
-              submitLabel="공개 모드 바꾸기"
-              variant="secondary"
-              confirmMessage="공개 모드를 바꾸면 이 업무를 볼 수 있는 사람이 달라집니다. 바꿀까요?"
-            >
-              {hidden}
-              <SelectField
-                label="공개 모드"
-                name="visibility_mode"
-                defaultValue={task.visibility_mode}
-                options={(["DEFAULT", "RESTRICTED"] as const).map((m) => ({ value: m, label: VISIBILITY_LABELS[m].label }))}
-                hint="제한 공개는 회장단이나 관리 책임자만 고를 수 있습니다."
-              />
-            </ActionForm>
-          </div>
-        )}
       </Section>
-
-      {!archived && (isExecutive || task.manager_id === me) && (
-        <Section title="관리 책임자">
-          <ActionForm action={setTaskManager} submitLabel="관리 책임자 바꾸기" variant="secondary" className="flex flex-wrap items-end gap-3">
-            {hidden}
-            <SelectField label="관리 책임자" name="manager_id" options={managerOptions} defaultValue={task.manager_id} hint="국장이나 회장단만 맡을 수 있습니다." />
-          </ActionForm>
-        </Section>
-      )}
-
-      {canManage && (
-        <Section title={archived ? "보관함에서 꺼내기" : "보관함으로 옮기기"}>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {archived
-              ? "다시 목록에 보이고 수정할 수 있게 됩니다."
-              : "끝났거나 더 이상 쓰지 않는 업무를 목록에서 빼 둡니다. 지워지지 않고 보관함에서 다시 꺼낼 수 있습니다."}
-          </p>
-          {archived ? (
-            <ActionForm action={restoreTask} submitLabel="보관함에서 꺼내기" variant="secondary">
-              {hidden}
-            </ActionForm>
-          ) : (
-            <ActionForm
-              action={archiveTask}
-              submitLabel="보관함으로 옮기기"
-              variant="secondary"
-              confirmMessage="업무를 보관하면 목록에서 빠지고 수정할 수 없습니다. 보관할까요?"
-            >
-              {hidden}
-            </ActionForm>
-          )}
-        </Section>
-      )}
-
-      {canManage && (
-        <Section title="업무 삭제">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            잘못 만든 업무를 완전히 지웁니다. 되돌릴 수 없습니다. 기록을 남기려면 보관함으로 옮겨 주세요.
-          </p>
-          <ActionForm
-            action={deleteTask}
-            submitLabel="업무 삭제"
-            variant="secondary"
-            confirmMessage="이 업무를 완전히 지웁니다. 되돌릴 수 없습니다. 지울까요?"
-          >
-            {hidden}
-          </ActionForm>
-        </Section>
-      )}
 
       <Section title="변경 이력">
         {logsResult.error ? (

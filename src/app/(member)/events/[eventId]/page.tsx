@@ -4,10 +4,12 @@ import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { DialogButton } from "@/components/ui/dialog-button";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextareaField, TextField } from "@/components/ui/form-field";
 import { FOCUS_RING, SecondaryLinkButton } from "@/components/ui/link-button";
 import { DateTimeRange } from "@/components/ui/date-time-picker";
+import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
@@ -99,14 +101,73 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
     p ? p.display_name?.trim() || p.email : "없음";
   const hidden = <input type="hidden" name="event_id" value={event.id} />;
 
+  // 관리 ⋯ 메뉴: 상태·정보·공개 범위를 한곳에 모은다(화면에는 내용만 둔다)
+  const manageItems: ManageItem[] = [];
+  if (canManage && nextStatuses.length > 0) {
+    manageItems.push({
+      key: "status",
+      label: "상태 바꾸기",
+      content: (
+        <ActionForm action={changeEventStatus} submitLabel="상태 바꾸기">
+          {hidden}
+          <SelectField
+            label="바꿀 상태"
+            name="status"
+            options={nextStatuses.map((st) => ({ value: st, label: EVENT_STATUS_LABELS[st] }))}
+            hint="한 단계씩 앞뒤로만 바꿀 수 있습니다."
+          />
+        </ActionForm>
+      ),
+    });
+  }
+  if (editable) {
+    manageItems.push(
+      {
+        key: "edit",
+        label: "정보 수정",
+        content: (
+          <ActionForm action={updateEvent} submitLabel="저장">
+            {hidden}
+            <TextField label="행사 이름" name="name" required maxLength={100} defaultValue={event.name} />
+            <TextareaField label="설명" name="description" rows={4} maxLength={10000} defaultValue={event.description} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <DateTimeRange startName="starts_at" endName="ends_at" defaultStart={isoToSeoulLocal(event.starts_at)} defaultEnd={isoToSeoulLocal(event.ends_at)} />
+            </div>
+            <SelectField label="관리자" name="manager_id" options={memberSelectOptions(org.members)} defaultValue={event.manager_id} />
+          </ActionForm>
+        ),
+      },
+      {
+        key: "visibility",
+        label: "공개 범위 바꾸기",
+        content: (
+          <ActionForm
+            action={setEventVisibility}
+            submitLabel="공개 범위 바꾸기"
+            confirmMessage="공개 범위를 바꾸면 이 행사와 자료를 볼 수 있는 사람이 달라집니다. 바꿀까요?"
+          >
+            {hidden}
+            <SelectField
+              label="공개 범위"
+              name="visibility_mode"
+              defaultValue={event.visibility_mode}
+              options={(["ALL_COUNCIL", "RESTRICTED"] as const).map((m) => ({ value: m, label: EVENT_VISIBILITY_LABELS[m].label }))}
+            />
+          </ActionForm>
+        ),
+      },
+    );
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader
         title={event.name}
         actions={
-          <span className="flex gap-1">
+          <span className="flex items-center gap-1">
             <Badge tone={event.status === "ACTIVE" ? "strong" : "neutral"}>{EVENT_STATUS_LABELS[event.status]}</Badge>
             {event.visibility_mode === "RESTRICTED" && <Badge tone="muted">제한 공개</Badge>}
+            <ManageMenu title="행사 관리" subtitle={event.name} items={manageItems} />
           </span>
         }
       />
@@ -128,36 +189,51 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
         <p className="whitespace-pre-wrap">{event.description || "설명이 없습니다."}</p>
       </Section>
 
-      <Section title="일정">
+      <Section
+        title="일정"
+        action={
+          editable && (
+            <DialogButton label="+ 일정 추가">
+              <NewScheduleForm eventId={event.id} defaultDate={isoToSeoulLocal(event.starts_at).slice(0, 10) || today} />
+            </DialogButton>
+          )
+        }
+      >
         {schedulesResult.data && schedulesResult.data.length > 0 ? (
           <ul className="space-y-2">
             {[...schedulesResult.data]
               .sort((a, b) => scheduleDateRange(a)[0].localeCompare(scheduleDateRange(b)[0]) || (a.starts_at ?? "").localeCompare(b.starts_at ?? ""))
-              .map((s) => (
-                <ScheduleItem key={s.id} s={s} prefix={formatDate(scheduleDateRange(s)[0], today)} canManage={editable || s.created_by === me} />
+              .map((sch) => (
+                <ScheduleItem key={sch.id} s={sch} prefix={formatDate(scheduleDateRange(sch)[0], today)} canManage={editable} />
               ))}
           </ul>
         ) : (
           <p className="text-sm">아직 일정이 없습니다.</p>
         )}
-        {editable && <NewScheduleForm eventId={event.id} defaultDate={isoToSeoulLocal(event.starts_at).slice(0, 10) || today} />}
       </Section>
 
-      {canManage && nextStatuses.length > 0 && (
-        <Section title="상태">
-          <ActionForm action={changeEventStatus} submitLabel="상태 바꾸기" className="flex flex-wrap items-end gap-3">
-            {hidden}
-            <SelectField
-              label="바꿀 상태"
-              name="status"
-              options={nextStatuses.map((s) => ({ value: s, label: EVENT_STATUS_LABELS[s] }))}
-              hint="한 단계씩 앞뒤로만 바꿀 수 있습니다."
-            />
-          </ActionForm>
-        </Section>
-      )}
-
-      <Section title="자료">
+      <Section
+        title="자료"
+        action={
+          !archived && (
+            <DialogButton label="+ 자료 추가">
+              <div className="space-y-6">
+                <UploadForm termId={event.term_id} eventId={event.id} />
+                <hr className="border-zinc-200 dark:border-zinc-800" />
+                <ActionForm action={addEventLink} submitLabel="링크 등록" variant="secondary">
+                  {hidden}
+                  <TextField label="제목" name="title" required maxLength={100} />
+                  <TextField label="주소" name="url" type="url" required pattern="https://.+" placeholder="https://" />
+                  <label className="flex items-start gap-2 text-sm">
+                    <input type="checkbox" name="share_checked" required className="mt-1 accent-coral-700" />
+                    원본 서비스(Google Drive 등)의 공유 권한을 확인했습니다. 이 플랫폼의 공개 범위는 외부 링크를 보호하지 못합니다.
+                  </label>
+                </ActionForm>
+              </div>
+            </DialogButton>
+          )
+        }
+      >
         {resourcesResult.error ? (
           <Alert>자료를 불러오지 못했습니다.</Alert>
         ) : resourcesResult.data.length === 0 ? (
@@ -165,7 +241,7 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
         ) : (
           <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
             {resourcesResult.data.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+              <li key={r.id} className="flex items-center justify-between gap-3 p-3">
                 <span className="min-w-0">
                   {r.resource_type === "UPLOAD" ? (
                     <a href={`/events/${event.id}/files/${r.id}`} className={`font-medium underline ${FOCUS_RING}`}>
@@ -181,51 +257,44 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
                   </span>
                 </span>
                 {!archived && (canManage || r.uploaded_by === me) && (
-                  <ActionForm
-                    action={deleteEventResource}
-                    submitLabel="지우기"
-                    variant="secondary"
-                    confirmMessage={`"${r.title}" 자료를 지울까요? 되돌릴 수 없습니다.`}
-                  >
-                    {hidden}
-                    <input type="hidden" name="resource_id" value={r.id} />
-                  </ActionForm>
+                  <ManageMenu
+                    title="자료 관리"
+                    subtitle={r.title}
+                    items={[
+                      {
+                        key: "delete",
+                        label: "삭제",
+                        danger: true,
+                        content: (
+                          <ActionForm action={deleteEventResource} submitLabel="삭제">
+                            {hidden}
+                            <input type="hidden" name="resource_id" value={r.id} />
+                            <p className="text-sm">이 자료를 지웁니다. 되돌릴 수 없습니다.</p>
+                          </ActionForm>
+                        ),
+                      },
+                    ]}
+                  />
                 )}
               </li>
             ))}
           </ul>
         )}
-        {!archived && (
-          <div className="grid gap-8 rounded-md border border-dashed border-zinc-300 p-4 sm:grid-cols-2 dark:border-zinc-700">
-            <UploadForm termId={event.term_id} eventId={event.id} />
-            <ActionForm action={addEventLink} submitLabel="링크 등록" variant="secondary">
-              {hidden}
-              <TextField label="제목" name="title" required maxLength={100} />
-              <TextField label="주소" name="url" type="url" required pattern="https://.+" placeholder="https://" />
-              <label className="flex items-start gap-2 text-sm">
-                <input type="checkbox" name="share_checked" required className="mt-1 accent-coral-700" />
-                원본 서비스(Google Drive 등)의 공유 권한을 확인했습니다. 이 플랫폼의 공개 범위는 외부 링크를 보호하지 못합니다.
-              </label>
-            </ActionForm>
-          </div>
-        )}
       </Section>
 
-      {editable && (
-        <Section title="정보 수정">
-          <ActionForm action={updateEvent} submitLabel="저장" variant="secondary">
-            {hidden}
-            <TextField label="행사 이름" name="name" required maxLength={100} defaultValue={event.name} />
-            <TextareaField label="설명" name="description" rows={4} maxLength={10000} defaultValue={event.description} />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <DateTimeRange startName="starts_at" endName="ends_at" defaultStart={isoToSeoulLocal(event.starts_at)} defaultEnd={isoToSeoulLocal(event.ends_at)} />
-            </div>
-            <SelectField label="관리자" name="manager_id" options={memberSelectOptions(org.members)} defaultValue={event.manager_id} />
-          </ActionForm>
-        </Section>
-      )}
-
-      <Section title="공개 범위">
+      <Section
+        title="공개 범위"
+        action={
+          editable && (
+            <DialogButton label="+ 열람 대상 추가">
+              <ActionForm action={addEventAccessRule} submitLabel="열람 대상 추가">
+                {hidden}
+                <SelectField label="열람 대상" name="subject" placeholder="선택하세요" options={aclSubjectOptions(org, ACL_ROLE_GROUP_LABELS)} />
+              </ActionForm>
+            </DialogButton>
+          )
+        }
+      >
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {EVENT_VISIBILITY_LABELS[event.visibility_mode].description}
         </p>
@@ -243,28 +312,6 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
               </li>
             ))}
           </ul>
-        )}
-        {editable && (
-          <div className="grid gap-6 sm:grid-cols-2">
-            <ActionForm action={addEventAccessRule} submitLabel="열람 대상 추가" variant="secondary">
-              {hidden}
-              <SelectField label="열람 대상" name="subject" placeholder="선택하세요" options={aclSubjectOptions(org, ACL_ROLE_GROUP_LABELS)} />
-            </ActionForm>
-            <ActionForm
-              action={setEventVisibility}
-              submitLabel="공개 범위 바꾸기"
-              variant="secondary"
-              confirmMessage="공개 범위를 바꾸면 이 행사와 자료를 볼 수 있는 사람이 달라집니다. 바꿀까요?"
-            >
-              {hidden}
-              <SelectField
-                label="공개 범위"
-                name="visibility_mode"
-                defaultValue={event.visibility_mode}
-                options={(["ALL_COUNCIL", "RESTRICTED"] as const).map((m) => ({ value: m, label: EVENT_VISIBILITY_LABELS[m].label }))}
-              />
-            </ActionForm>
-          </div>
         )}
       </Section>
     </div>

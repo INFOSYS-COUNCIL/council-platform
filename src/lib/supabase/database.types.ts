@@ -1153,6 +1153,9 @@ isOneToOne: false
 "delete_schedule":
 { Args: { "p_schedule_id": string }; Returns: undefined
                            },
+"delete_suggestion":
+{ Args: { "p_suggestion_id": string }; Returns: undefined
+                           },
 "delete_suggestion_message":
 { Args: { "p_message_id": string }; Returns: undefined
                            },

@@ -5,10 +5,12 @@ import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { DialogButton } from "@/components/ui/dialog-button";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextField } from "@/components/ui/form-field";
 import { FOCUS_RING, SecondaryLinkButton } from "@/components/ui/link-button";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
@@ -69,13 +71,15 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
 
   const nameOf = (id: string) => org.members.find((m) => m.userId === id)?.name ?? "(비활성 구성원)";
   const editorIds = editorsResult.data.map((e) => e.user_id);
-  // 표시용 판정. 실제 검사는 DB 함수(can_edit_meeting·can_manage_meeting)가 한다
+  // 표시용 판정. 실제 검사는 DB 함수(can_edit_meeting·can_manage_meeting·delete_meeting)가 한다.
+  // 관리·삭제는 국장과 회장단만(3차 피드백): 회장단, 또는 만든 사람·대표 작성자인 국장.
   const isExecutive = membership.role === "EXECUTIVE";
-  const canManage = isExecutive || meeting.created_by === me;
+  const isDirector = membership.role === "DIRECTOR";
+  const canManage = isExecutive || (isDirector && meeting.created_by === me);
   const canEdit = meeting.status === "DRAFT" && (isExecutive || editorIds.includes(me));
   const archived = meeting.status === "ARCHIVED";
-  // 보관된 회의록을 다시 열거나 지울 수 있는 사람: 회장단, 또는 국장 이상인 대표 작성자
-  const canHandleArchived = isExecutive || (meeting.author_id === me && membership.role === "DIRECTOR");
+  const canHandleArchived = isExecutive || (isDirector && meeting.author_id === me);
+  const canDelete = isExecutive || (isDirector && (meeting.created_by === me || meeting.author_id === me));
   const today = todayInSeoul();
 
   const groupRule = rulesResult.data.find((r) => r.subject_type === "ROLE_GROUP");
@@ -87,18 +91,116 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
   const hidden = <input type="hidden" name="meeting_id" value={meeting.id} />;
   const candidates = memberSelectOptions(org.members.filter((m) => !editorIds.includes(m.userId)));
 
+  // 관리 ⋯ 메뉴: 진행 상태·회의 정보·대표 작성자·삭제를 한곳에 모은다(화면에는 내용만 둔다)
+  const manageItems: ManageItem[] = [];
+  if (canManage && meeting.status === "DRAFT") {
+    manageItems.push({
+      key: "confirm",
+      label: "최종본으로 확정",
+      content: (
+        <ActionForm action={confirmMeeting} submitLabel="최종본으로 확정">
+          {hidden}
+          <p className="text-sm">확정하면 본문이 잠겨 편집자도 고칠 수 없습니다.</p>
+        </ActionForm>
+      ),
+    });
+  }
+  if (canManage && !archived) {
+    manageItems.push(
+      {
+        key: "edit",
+        label: "제목·회의 일시 수정",
+        content: (
+          <ActionForm action={updateMeeting} submitLabel="저장">
+            {hidden}
+            <TextField label="제목" name="title" required maxLength={100} defaultValue={meeting.title} />
+            <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={isoToSeoulLocal(meeting.meeting_at)} hint="한국 시간" />
+          </ActionForm>
+        ),
+      },
+      {
+        key: "author",
+        label: "대표 작성자 바꾸기",
+        content: (
+          <ActionForm action={setMeetingAuthor} submitLabel="대표 작성자 바꾸기">
+            {hidden}
+            <SelectField label="대표 작성자" name="user_id" options={memberSelectOptions(org.members)} defaultValue={meeting.author_id} />
+          </ActionForm>
+        ),
+      },
+      {
+        key: "archive",
+        label: "보관하기",
+        content: (
+          <ActionForm action={changeMeetingStatus} submitLabel="보관하기">
+            {hidden}
+            <input type="hidden" name="status" value="ARCHIVED" />
+            <p className="text-sm">보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.</p>
+          </ActionForm>
+        ),
+      },
+    );
+  }
+  if (meeting.status === "CONFIRMED" && isExecutive) {
+    manageItems.push({
+      key: "unconfirm",
+      label: "확정 풀고 다시 편집하기",
+      content: (
+        <ActionForm action={changeMeetingStatus} submitLabel="확정 풀기">
+          {hidden}
+          <input type="hidden" name="status" value="DRAFT" />
+          <TextField label="확정을 푸는 이유" name="reason" required maxLength={200} hint="활동 기록에 남습니다." />
+        </ActionForm>
+      ),
+    });
+  }
+  if (archived && canHandleArchived) {
+    manageItems.push({
+      key: "reopen",
+      label: "보관 풀고 다시 편집하기",
+      content: (
+        <ActionForm action={changeMeetingStatus} submitLabel="다시 편집하기">
+          {hidden}
+          <input type="hidden" name="status" value="DRAFT" />
+          <p className="text-sm">&quot;편집 중&quot;으로 돌아가 다시 고칠 수 있게 됩니다.</p>
+        </ActionForm>
+      ),
+    });
+  }
+  if (canDelete) {
+    manageItems.push({
+      key: "delete",
+      label: "삭제",
+      danger: true,
+      content: (
+        <ActionForm action={deleteMeeting} submitLabel="삭제">
+          {hidden}
+          <input type="hidden" name="status_tab" value={meeting.status} />
+          <p className="text-sm">이 회의록을 본문까지 완전히 지웁니다. 되돌릴 수 없습니다.</p>
+        </ActionForm>
+      ),
+    });
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader
         title={meeting.title}
-        actions={<Badge tone={meeting.status === "CONFIRMED" ? "strong" : "neutral"}>{MEETING_STATUS_LABELS[meeting.status]}</Badge>}
+        actions={
+          <span className="flex items-center gap-1">
+            <Badge tone={meeting.status === "CONFIRMED" ? "strong" : "neutral"}>{MEETING_STATUS_LABELS[meeting.status]}</Badge>
+            <ManageMenu title="회의록 관리" subtitle={meeting.title} items={manageItems} />
+          </span>
+        }
       />
       <p>
         <SecondaryLinkButton href="/meetings">
           ← 회의록 목록
         </SecondaryLinkButton>
       </p>
-      {meeting.status !== "DRAFT" && <Alert tone="info">{MEETING_STATUS_HELP[meeting.status]}</Alert>}
+      <Alert tone="info">
+        지금 <strong>{MEETING_STATUS_LABELS[meeting.status]}</strong> · {MEETING_STATUS_HELP[meeting.status]}
+      </Alert>
 
       <Section title="개요">
         <InfoList>
@@ -114,7 +216,6 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
           </Info>
           <Info label="대표 작성자">{nameOf(meeting.author_id)}</Info>
           <Info label="열람 범위">{scopeLabel}</Info>
-          <Info label="편집자">{editorIds.map(nameOf).join(", ")}</Info>
           {meeting.confirmed_at && <Info label="최종 확정한 때">{formatDateTime(meeting.confirmed_at, today)}</Info>}
         </InfoList>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -133,103 +234,37 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
         />
       </Section>
 
-      {(canManage || (archived && canHandleArchived)) && (
-        <Section title="진행 상태">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            지금: <strong className="text-foreground">{MEETING_STATUS_LABELS[meeting.status]}</strong> · {MEETING_STATUS_HELP[meeting.status]}
-          </p>
-          <div className="flex flex-wrap gap-3">
-            {meeting.status === "DRAFT" && (
-              <ActionForm
-                action={confirmMeeting}
-                submitLabel="최종본으로 확정 (본문 잠금)"
-                confirmMessage="최종본으로 확정하면 편집자도 본문을 고칠 수 없습니다. 확정할까요?"
-              >
+      <Section
+        title="편집자"
+        action={
+          canManage &&
+          !archived &&
+          candidates.length > 0 && (
+            <DialogButton label="+ 편집자 추가">
+              <ActionForm action={addMeetingEditor} submitLabel="편집자 추가">
                 {hidden}
+                <SelectField label="추가할 사람" name="user_id" options={candidates} placeholder="추가할 사람을 고르세요" />
               </ActionForm>
-            )}
-            {!archived && canManage && (
-              <ActionForm action={changeMeetingStatus} submitLabel="보관하기 (목록에서 숨김)" variant="secondary" confirmMessage="보관하면 목록에서 숨겨지고 읽기만 할 수 있습니다. 보관할까요?">
-                {hidden}
-                <input type="hidden" name="status" value="ARCHIVED" />
-              </ActionForm>
-            )}
-            {archived && canHandleArchived && (
-              <ActionForm action={changeMeetingStatus} submitLabel="보관 풀고 다시 편집하기" variant="secondary">
-                {hidden}
-                <input type="hidden" name="status" value="DRAFT" />
-              </ActionForm>
-            )}
-            {archived && canHandleArchived && (
-              <ActionForm
-                action={deleteMeeting}
-                submitLabel="회의록 삭제"
-                variant="secondary"
-                confirmMessage="이 회의록을 완전히 삭제합니다. 본문도 함께 지워지고 되돌릴 수 없습니다. 삭제할까요?"
-              >
-                {hidden}
-              </ActionForm>
-            )}
-          </div>
-          {meeting.status === "CONFIRMED" && isExecutive && (
-            <ActionForm action={changeMeetingStatus} submitLabel="확정 풀고 다시 편집하기" variant="secondary" className="flex flex-wrap items-end gap-3">
-              {hidden}
-              <input type="hidden" name="status" value="DRAFT" />
-              <TextField label="확정을 푸는 이유" name="reason" required maxLength={200} hint="활동 기록에 남습니다." />
-            </ActionForm>
-          )}
-        </Section>
-      )}
-
-      {canManage && !archived && (
-        <>
-          <Section title="회의 정보">
-            {/* 입력칸만 두 칸으로 놓고, 저장 버튼은 다른 버튼과 같은 크기로 아래에 둔다 */}
-            <ActionForm action={updateMeeting} submitLabel="저장">
-              {hidden}
-              <div className="grid items-start gap-4 sm:grid-cols-2">
-                <TextField label="제목" name="title" required maxLength={100} defaultValue={meeting.title} />
-                <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={isoToSeoulLocal(meeting.meeting_at)} hint="한국 시간" />
-              </div>
-            </ActionForm>
-          </Section>
-
-          <Section title="작성자·편집자">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold">지금 편집자</h3>
-                <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
-                  {editorIds.map((id) => (
-                    <li key={id} className="flex items-center justify-between gap-3 px-3 py-2">
-                      <span className="min-w-0 text-sm">
-                        {nameOf(id)} {id === meeting.author_id && <Badge tone="muted">대표 작성자</Badge>}
-                      </span>
-                      {id !== meeting.author_id && (
-                        <ActionForm action={removeMeetingEditor} submitLabel="빼기" variant="secondary">
-                          {hidden}
-                          <input type="hidden" name="user_id" value={id} />
-                        </ActionForm>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="space-y-5">
-                <ActionForm action={setMeetingAuthor} submitLabel="대표 작성자 바꾸기">
+            </DialogButton>
+          )
+        }
+      >
+        <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          {editorIds.map((id) => (
+            <li key={id} className="flex items-center justify-between gap-3 px-3 py-2">
+              <span className="min-w-0 text-sm">
+                {nameOf(id)} {id === meeting.author_id && <Badge tone="muted">대표 작성자</Badge>}
+              </span>
+              {canManage && !archived && id !== meeting.author_id && (
+                <ActionForm action={removeMeetingEditor} submitLabel="빼기" variant="secondary">
                   {hidden}
-                  <SelectField label="대표 작성자" name="user_id" options={memberSelectOptions(org.members)} defaultValue={meeting.author_id} />
+                  <input type="hidden" name="user_id" value={id} />
                 </ActionForm>
-                {candidates.length > 0 && (
-                  <ActionForm action={addMeetingEditor} submitLabel="편집자 추가">
-                    {hidden}
-                    <SelectField label="편집자 추가" name="user_id" options={candidates} placeholder="추가할 사람을 고르세요" />
-                  </ActionForm>
-                )}
-              </div>
-            </div>
-          </Section>
-        </>
-      )}
+              )}
+            </li>
+          ))}
+        </ul>
+      </Section>
     </div>
   );
 }

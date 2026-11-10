@@ -107,3 +107,12 @@ export async function deleteSuggestionMessage(_prev: ActionState, formData: Form
   const { error } = await supabase.rpc("delete_suggestion_message", { p_message_id: text(formData, "message_id") });
   return done(error, "글을 지웠습니다.");
 }
+
+// 건의 삭제: 회장단 또는 맡은 국의 국장만(DB 함수가 검사). 지운 뒤 처리 목록으로 간다.
+export async function deleteSuggestion(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { id, supabase } = await handlerContext(formData);
+  const { error } = await supabase.rpc("delete_suggestion", { p_suggestion_id: id });
+  if (error) return actionFailure(rpcErrorMessage(error));
+  refresh();
+  return actionSuccess("건의를 지웠습니다.");
+}
