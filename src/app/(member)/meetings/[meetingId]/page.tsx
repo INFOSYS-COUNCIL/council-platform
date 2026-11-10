@@ -184,10 +184,13 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
       {canManage && !archived && (
         <>
           <Section title="회의 정보">
-            <ActionForm action={updateMeeting} submitLabel="저장" className="grid gap-4 sm:grid-cols-2">
+            {/* 입력칸만 두 칸으로 놓고, 저장 버튼은 다른 버튼과 같은 크기로 아래에 둔다 */}
+            <ActionForm action={updateMeeting} submitLabel="저장">
               {hidden}
-              <TextField label="제목" name="title" required maxLength={100} defaultValue={meeting.title} />
-              <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={isoToSeoulLocal(meeting.meeting_at)} hint="한국 시간" />
+              <div className="grid items-start gap-4 sm:grid-cols-2">
+                <TextField label="제목" name="title" required maxLength={100} defaultValue={meeting.title} />
+                <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={isoToSeoulLocal(meeting.meeting_at)} hint="한국 시간" />
+              </div>
             </ActionForm>
           </Section>
 

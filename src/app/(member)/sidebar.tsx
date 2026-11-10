@@ -81,8 +81,9 @@ export function Sidebar({
   const hideWide = collapsed ? "md:sr-only" : "";
 
   return (
+    // 좁은 화면: 위쪽 고정 막대라 내용 위에 쌓는다(z-30). 넓은 화면: 쌓지 않아 회의록 편집기 메뉴가 사이드바 위로 보인다.
     <aside
-      className={`sticky top-0 z-30 shrink-0 border-b border-zinc-200 bg-sidebar/90 backdrop-blur md:h-screen md:border-r md:border-b-0 md:transition-[width] dark:border-zinc-800 ${collapsed ? "md:w-16" : "md:w-60"}`}
+      className={`sticky top-0 z-30 shrink-0 border-b md:z-auto border-zinc-200 bg-sidebar/90 backdrop-blur md:h-screen md:border-r md:border-b-0 md:transition-[width] dark:border-zinc-800 ${collapsed ? "md:w-16" : "md:w-60"}`}
       onKeyDown={(e) => {
         if (e.key === "Escape" && open) setOpenedAt(null);
       }}
@@ -167,6 +168,7 @@ export function Sidebar({
 // 메뉴를 불러오는 동안 보이는 자리(주소를 읽지 않으므로 미리 렌더링할 수 있다).
 export function SidebarFallback() {
   return (
+    // 좁은 화면: 위쪽 고정 막대라 내용 위에 쌓는다(z-30). 넓은 화면: 쌓지 않아 회의록 편집기 메뉴가 사이드바 위로 보인다.
     <aside
       aria-hidden="true"
       className="h-14 shrink-0 border-b border-zinc-200 bg-sidebar md:h-screen md:w-60 md:border-r md:border-b-0 dark:border-zinc-800"
