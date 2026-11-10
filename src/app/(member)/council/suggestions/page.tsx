@@ -19,7 +19,7 @@ import {
   SUGGESTION_STATUS_ORDER,
   type SuggestionStatus,
 } from "@/lib/suggestions/labels";
-import { assignSuggestion, changeSuggestionStatus } from "../../suggestions/actions";
+import { assignSuggestion, changeSuggestionStatus, deleteSuggestion } from "../../suggestions/actions";
 
 export const metadata: Metadata = {
   title: "건의 처리",
@@ -63,6 +63,9 @@ async function CouncilSuggestions({
   if (status) query = query.eq("status", status);
   const from = (page - 1) * PER_PAGE;
   const isExecutive = membership.role === "EXECUTIVE";
+  // 삭제: 회장단 또는 맡은 국의 국장(DB 함수가 다시 검사)
+  const canDelete = (s: { assigned_department_id: string | null }) =>
+    isExecutive || (membership.role === "DIRECTOR" && s.assigned_department_id === membership.departmentId);
   const [{ data, count, error }, org] = await Promise.all([
     query.order("created_at", { ascending: false }).range(from, from + PER_PAGE - 1),
     // 배정은 회장단만 하므로 부서·구성원 목록도 회장단일 때만 부른다
@@ -95,8 +98,8 @@ async function CouncilSuggestions({
                 </span>
                 <Badge tone={s.status === "RECEIVED" ? "strong" : "neutral"}>{SUGGESTION_STATUS_LABELS[s.status]}</Badge>
               </Link>
-              {/* 철회된 건의는 더 처리하지 않는다. 답변·메모 수정은 상세 화면에서 */}
-              {!s.withdrawn_at && <ManageMenu title="건의 처리" subtitle={s.title} items={suggestionItems(s, org)} />}
+              {/* 답변·메모 수정은 상세 화면에서 */}
+              <ManageMenu title="건의 처리" subtitle={s.title} items={suggestionItems(s, org, canDelete(s))} />
             </li>
           ))}
         </ul>
@@ -106,14 +109,30 @@ async function CouncilSuggestions({
   );
 }
 
-// 목록 ⋯ 관리: 상태 바꾸기(처리자 모두), 배정(회장단만, org가 있을 때). 권한은 DB 함수가 다시 검사한다.
-// 학생이 쓴 건의 내용은 고치거나 지우지 않는다.
+// 목록 ⋯ 관리: 삭제(회장단·맡은 국 국장)를 맨 위에, 그다음 상태 바꾸기·배정(회장단).
+// 철회된 건의는 상태·배정을 바꾸지 않는다. 학생이 쓴 내용은 고치지 않는다. 권한은 DB 함수가 다시 검사한다.
 function suggestionItems(
-  s: { id: string; status: SuggestionStatus; assigned_department_id: string | null; assigned_user_id: string | null },
+  s: { id: string; status: SuggestionStatus; withdrawn_at: string | null; assigned_department_id: string | null; assigned_user_id: string | null },
   org: Awaited<ReturnType<typeof getTermOrgOptions>> | null,
+  canDelete: boolean,
 ): ManageItem[] {
   const hidden = <input type="hidden" name="suggestion_id" value={s.id} />;
-  const items: ManageItem[] = [
+  const items: ManageItem[] = [];
+  if (canDelete) {
+    items.push({
+      key: "delete",
+      label: "삭제",
+      danger: true,
+      content: (
+        <ActionForm action={deleteSuggestion} submitLabel="삭제">
+          {hidden}
+          <p className="text-sm">이 건의와 답변·메모를 모두 지웁니다. 작성자 화면에서도 사라지고 되돌릴 수 없습니다.</p>
+        </ActionForm>
+      ),
+    });
+  }
+  if (s.withdrawn_at) return items;
+  items.push(
     {
       key: "status",
       label: "상태 바꾸기",
@@ -130,7 +149,7 @@ function suggestionItems(
         </ActionForm>
       ),
     },
-  ];
+  );
   if (org) {
     items.push({
       key: "assign",

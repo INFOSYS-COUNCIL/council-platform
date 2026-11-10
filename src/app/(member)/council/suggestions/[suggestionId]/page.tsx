@@ -9,7 +9,7 @@ import { ManageMenu } from "@/components/ui/manage-menu";
 import { SelectField, TextareaField } from "@/components/ui/form-field";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
-import { getCurrentUserId, requireMember } from "@/lib/auth/session";
+import { requireMember } from "@/lib/auth/session";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import { SUGGESTION_STATUS_LABELS, SUGGESTION_STATUS_ORDER } from "@/lib/suggestions/labels";
@@ -40,7 +40,6 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
   const membership = await requireMember(`/council/suggestions/${suggestionId}`);
   if (!UUID.test(suggestionId)) notFound();
   const isExecutive = membership.role === "EXECUTIVE";
-  const me = await getCurrentUserId();
 
   const supabase = await createClient();
   const [{ data: s, error }, { data: messages, error: messagesError }, identity, org] = await Promise.all([
@@ -65,6 +64,8 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
 
   const author = identity?.data?.[0];
   const closed = s.withdrawn_at !== null;
+  // 답변·메모 수정·삭제: 회장단 또는 맡은 국의 국장(이 화면은 처리자만 볼 수 있다). DB 함수가 다시 검사한다.
+  const canEditMessages = isExecutive || membership.role === "DIRECTOR";
   const hidden = <input type="hidden" name="suggestion_id" value={s.id} />;
   const assignee = org.members.find((m) => m.userId === s.assigned_user_id);
 
@@ -106,7 +107,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
                   <Badge tone={m.message_type === "AUTHOR_VISIBLE" ? "strong" : "muted"}>
                     {m.message_type === "AUTHOR_VISIBLE" ? "작성자에게 공개" : "내부 메모"}
                   </Badge>
-                  {!closed && (isExecutive || m.writer_id === me) && (
+                  {!closed && canEditMessages && (
                     <ManageMenu
                       title={m.message_type === "AUTHOR_VISIBLE" ? "답변 관리" : "메모 관리"}
                       subtitle={m.body.slice(0, 30)}

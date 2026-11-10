@@ -139,9 +139,9 @@ async function MeetingsContent({
   );
 }
 
-// 목록 ⋯ 관리: 상세 화면과 같은 권한 기준(DB 함수가 다시 검사한다).
-// 관리(정보 수정·보관): 회장단 또는 만든 사람 / 보관된 회의록 풀기·삭제: 회장단 또는 국장 이상인 대표 작성자.
-// 삭제는 보관된 회의록만 된다(실수로 지우지 않게 한 번 보관을 거친다).
+// 목록 ⋯ 관리: 상세 화면과 같은 권한 기준(DB 함수가 다시 검사한다). 수정·삭제는 국장과 회장단만.
+// 관리(정보 수정·보관): 회장단 또는 만든 국장 / 보관 풀기: 회장단 또는 대표 작성자 국장
+// 삭제: 상태와 관계없이 회장단 또는 만든 사람·대표 작성자인 국장
 function meetingItems(
   m: { id: string; title: string; meeting_at: string; created_by: string; author_id: string },
   status: MeetingStatus,
@@ -149,8 +149,10 @@ function meetingItems(
   me: string | null,
 ): ManageItem[] {
   const isExecutive = role === "EXECUTIVE";
-  const canManage = isExecutive || m.created_by === me;
-  const canHandleArchived = isExecutive || (m.author_id === me && role === "DIRECTOR");
+  const isDirector = role === "DIRECTOR";
+  const canManage = isExecutive || (isDirector && m.created_by === me);
+  const canHandleArchived = isExecutive || (isDirector && m.author_id === me);
+  const canDelete = isExecutive || (isDirector && (m.created_by === me || m.author_id === me));
   const hidden = <input type="hidden" name="meeting_id" value={m.id} />;
   const items: ManageItem[] = [];
 
@@ -174,15 +176,14 @@ function meetingItems(
           <ActionForm action={changeMeetingStatus} submitLabel="보관하기">
             {hidden}
             <input type="hidden" name="status" value="ARCHIVED" />
-            <p className="text-sm">보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다. 지우려면 보관한 뒤 그곳에서 삭제해 주세요.</p>
+            <p className="text-sm">보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.</p>
           </ActionForm>
         ),
       },
     );
   }
   if (status === "ARCHIVED" && canHandleArchived) {
-    items.push(
-      {
+    items.push({
         key: "reopen",
         label: "보관 풀고 다시 편집하기",
         content: (
@@ -192,19 +193,21 @@ function meetingItems(
             <p className="text-sm">&quot;편집 중&quot;으로 돌아가 다시 고칠 수 있게 됩니다.</p>
           </ActionForm>
         ),
-      },
-      {
+    });
+  }
+  if (canDelete) {
+    items.push({
         key: "delete",
         label: "삭제",
         danger: true,
         content: (
           <ActionForm action={deleteMeeting} submitLabel="삭제">
             {hidden}
-            <p className="text-sm">이 회의록을 완전히 지웁니다. 되돌릴 수 없습니다.</p>
+            <input type="hidden" name="status_tab" value={status} />
+            <p className="text-sm">이 회의록을 본문까지 완전히 지웁니다. 되돌릴 수 없습니다.</p>
           </ActionForm>
         ),
-      },
-    );
+    });
   }
   return items;
 }

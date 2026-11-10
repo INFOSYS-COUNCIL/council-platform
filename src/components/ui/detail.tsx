@@ -1,11 +1,15 @@
 import type { ReactNode } from "react";
 
 // 상세 화면의 구역 제목과 "이름: 값" 표시. h1은 PageHeader가 쓰므로 구역은 h2다.
-export function Section({ title, children }: { title: string; children: ReactNode }) {
+// action: 소제목 오른쪽에 두는 작은 버튼(예: "+ 일정 추가")
+export function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="space-y-3">
       {/* 소제목은 본문보다 크고 진하게, 왼쪽 코랄 막대로 구획을 드러낸다 */}
-      <h2 className="border-l-4 border-coral-500 pl-2.5 text-lg font-bold text-zinc-950 dark:text-zinc-50">{title}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="border-l-4 border-coral-500 pl-2.5 text-lg font-bold text-zinc-950 dark:text-zinc-50">{title}</h2>
+        {action}
+      </div>
       {children}
     </section>
   );

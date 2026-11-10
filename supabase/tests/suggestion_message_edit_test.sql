@@ -55,10 +55,9 @@ select throws_ok(
   '23514', null,
   '빈 내용으로는 / 고칠 수 없다'
 );
-select throws_ok(
-  $$ select public.update_suggestion_message((select id from ids where name = 'e_msg'), '남의 글') $$,
-  '42501', null,
-  '국장은 / 회장단이 쓴 메모를 / 고칠 수 없다'
+select lives_ok(
+  $$ select public.update_suggestion_message((select id from ids where name = 'e_msg'), '국장이 고친 메모') $$,
+  '맡은 국의 국장은 / 회장단이 쓴 메모도 / 고칠 수 있다 (3차 피드백)'
 );
 
 set local request.jwt.claims = '{"sub":"d8000000-0000-0000-0000-000000000002","role":"authenticated"}';

@@ -125,10 +125,9 @@ select is(
   'DRAFT'::public.meeting_status,
   '국장인 대표 작성자 D는 / 보관된 회의록을 / 다시 작성 중으로 돌릴 수 있다'
 );
-select throws_ok(
+select lives_ok(
   $$ select public.delete_meeting((select id from ids where name = 'm_d')) $$,
-  '55000', null,
-  '보관되지 않은 회의록은 / 삭제할 수 없다'
+  '국장인 대표 작성자 D는 / 보관하지 않은 회의록도 / 삭제할 수 있다 (3차 피드백)'
 );
 
 set local request.jwt.claims = '{"sub":"e7000000-0000-0000-0000-000000000001","role":"authenticated"}';
