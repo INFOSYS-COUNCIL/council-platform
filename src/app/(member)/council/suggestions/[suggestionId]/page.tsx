@@ -43,7 +43,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
   const me = await getCurrentUserId();
 
   const supabase = await createClient();
-  const [{ data: s, error }, { data: messages }, identity, org] = await Promise.all([
+  const [{ data: s, error }, { data: messages, error: messagesError }, identity, org] = await Promise.all([
     supabase
       .from("suggestions")
       .select("id, title, content, status, created_at, withdrawn_at, assigned_department_id, assigned_user_id, department:departments(name)")
@@ -91,7 +91,9 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
       </Section>
 
       <Section title="답변과 메모">
-        {!messages || messages.length === 0 ? (
+        {messagesError ? (
+          <Alert>답변을 불러오지 못했습니다. 새로고침해 주세요.</Alert>
+        ) : !messages || messages.length === 0 ? (
           <p className="text-sm">아직 남긴 글이 없습니다.</p>
         ) : (
           <ol className="space-y-3">

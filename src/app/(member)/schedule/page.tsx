@@ -129,7 +129,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
         ) : (
           <ul className="space-y-2">
             {selectedItems.map((s) => (
-              <ScheduleItem key={s.id} s={s} canDelete={isExecutive || s.created_by === me} />
+              <ScheduleItem key={s.id} s={s} canManage={isExecutive || s.created_by === me} />
             ))}
           </ul>
         )}

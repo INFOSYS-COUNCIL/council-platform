@@ -6,15 +6,26 @@ import { TextField } from "@/components/ui/form-field";
 import { SCHEDULE_COLORS, type ScheduleColor } from "@/lib/schedules/colors";
 
 // 일정 입력칸: 제목·장소, 종일 여부, 시작·종료(종료는 시작보다 앞설 수 없음), 색.
-// 종일이면 "YYYY-MM-DD", 아니면 "YYYY-MM-DDTHH:mm"로 보낸다.
-export function ScheduleFields({ defaultDate }: { defaultDate: string }) {
-  const [allDay, setAllDay] = useState(false);
-  const [color, setColor] = useState<ScheduleColor>("coral");
+// 종일이면 "YYYY-MM-DD", 아니면 "YYYY-MM-DDTHH:mm"로 보낸다. initial을 주면 수정 폼으로 쓴다.
+export type ScheduleInitial = {
+  title: string;
+  location: string;
+  allDay: boolean;
+  starts: string;
+  ends: string;
+  color: ScheduleColor;
+};
+
+export function ScheduleFields({ defaultDate, initial }: { defaultDate: string; initial?: ScheduleInitial }) {
+  const [allDay, setAllDay] = useState(initial?.allDay ?? false);
+  const [color, setColor] = useState<ScheduleColor>(initial?.color ?? "coral");
+  // 처음 값의 종일 여부와 같을 때만 저장된 시작·종료를 쓴다
+  const keep = initial && initial.allDay === allDay;
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="제목" name="title" required maxLength={100} />
-        <TextField label="장소" name="location" maxLength={100} />
+        <TextField label="제목" name="title" required maxLength={100} defaultValue={initial?.title} />
+        <TextField label="장소" name="location" maxLength={100} defaultValue={initial?.location} />
       </div>
       <label className="inline-flex items-center gap-2 text-sm font-medium">
         <input type="checkbox" name="all_day" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} className="size-4 accent-coral-700" />
@@ -28,8 +39,8 @@ export function ScheduleFields({ defaultDate }: { defaultDate: string }) {
           endName="ends"
           withTime={!allDay}
           required
-          defaultStart={allDay ? defaultDate : `${defaultDate}T10:00`}
-          defaultEnd={allDay ? defaultDate : `${defaultDate}T11:00`}
+          defaultStart={keep ? initial.starts : allDay ? defaultDate : `${defaultDate}T10:00`}
+          defaultEnd={keep ? initial.ends : allDay ? defaultDate : `${defaultDate}T11:00`}
         />
       </div>
       <fieldset>

@@ -134,7 +134,7 @@ async function EventDetail({ params }: { params: Promise<{ eventId: string }> })
             {[...schedulesResult.data]
               .sort((a, b) => scheduleDateRange(a)[0].localeCompare(scheduleDateRange(b)[0]) || (a.starts_at ?? "").localeCompare(b.starts_at ?? ""))
               .map((s) => (
-                <ScheduleItem key={s.id} s={{ ...s, title: `${formatDate(scheduleDateRange(s)[0], today)} ${s.title}` }} canDelete={editable || s.created_by === me} />
+                <ScheduleItem key={s.id} s={s} prefix={formatDate(scheduleDateRange(s)[0], today)} canManage={editable || s.created_by === me} />
               ))}
           </ul>
         ) : (

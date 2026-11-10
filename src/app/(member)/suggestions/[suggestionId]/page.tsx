@@ -41,7 +41,7 @@ async function SuggestionDetail({ params }: { params: Promise<{ suggestionId: st
     .maybeSingle();
   if (!own) notFound();
 
-  const [{ data: s, error }, { data: answers }] = await Promise.all([
+  const [{ data: s, error }, { data: answers, error: answersError }] = await Promise.all([
     supabase.from("suggestions").select("id, title, content, status, created_at, withdrawn_at").eq("id", suggestionId).single(),
     // 작성자에게는 RLS가 공개 답변만 돌려준다(내부 메모 제외)
     supabase.from("suggestion_messages").select("id, body, created_at, updated_at").eq("suggestion_id", suggestionId).order("created_at"),
@@ -67,7 +67,9 @@ async function SuggestionDetail({ params }: { params: Promise<{ suggestionId: st
       </Section>
 
       <Section title="학생회 답변">
-        {!answers || answers.length === 0 ? (
+        {answersError ? (
+          <Alert>답변을 불러오지 못했습니다. 새로고침해 주세요.</Alert>
+        ) : !answers || answers.length === 0 ? (
           <p className="text-sm">아직 답변이 없습니다.</p>
         ) : (
           <ol className="space-y-3">
