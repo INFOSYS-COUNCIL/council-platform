@@ -575,14 +575,14 @@ isOneToOne: false
                   ]
                 },"suggestions": {
                   Row: {
-                    "assigned_department_id": string | null,"assigned_user_id": string | null,"content": string,"created_at": string,"id": string,"resolved_at": string | null,"status": Database["public"]['Enums']["suggestion_status"],"term_id": string,"title": string,"updated_at": string,"withdrawn_at": string | null
+                    "assigned_department_id": string | null,"assigned_user_id": string | null,"content": string,"created_at": string,"id": string,"resolved_at": string | null,"status": Database["public"]['Enums']["suggestion_status"],"term_id": string,"title": string,"updated_at": string,"visibility": string,"withdrawn_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "assigned_department_id"?: string | null,"assigned_user_id"?: string | null,"content": string,"created_at"?: string,"id"?: string,"resolved_at"?: string | null,"status"?: Database["public"]['Enums']["suggestion_status"],"term_id": string,"title": string,"updated_at"?: string,"withdrawn_at"?: string | null
+                    "assigned_department_id"?: string | null,"assigned_user_id"?: string | null,"content": string,"created_at"?: string,"id"?: string,"resolved_at"?: string | null,"status"?: Database["public"]['Enums']["suggestion_status"],"term_id": string,"title": string,"updated_at"?: string,"visibility"?: string,"withdrawn_at"?: string | null
                   }
                   Update: {
-                    "assigned_department_id"?: string | null,"assigned_user_id"?: string | null,"content"?: string,"created_at"?: string,"id"?: string,"resolved_at"?: string | null,"status"?: Database["public"]['Enums']["suggestion_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"withdrawn_at"?: string | null
+                    "assigned_department_id"?: string | null,"assigned_user_id"?: string | null,"content"?: string,"created_at"?: string,"id"?: string,"resolved_at"?: string | null,"status"?: Database["public"]['Enums']["suggestion_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"visibility"?: string,"withdrawn_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -1195,6 +1195,25 @@ isOneToOne: false
               "assigned_open_tasks": number,"managed_open_tasks": number,"restricted_managed_tasks": number
             }[]
                            },
+"reactivate_membership":
+{ Args: { "p_account_id": string }; Returns: {
+              "approved_account_id": string | null,
+"department_id": string | null,
+"id": string,
+"is_active": boolean,
+"joined_at": string,
+"left_at": string | null,
+"position_id": string | null,
+"role": Database["public"]['Enums']["member_role"],
+"term_id": string,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "memberships"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "register_approved_accounts":
 { Args: { "p_rows": Json,"p_term_id": string }; Returns: {
               "account_id": string,"email": string,"error": string,"row_no": number
@@ -1442,7 +1461,7 @@ isOneToOne: false
         isSetofReturn: false
       } },
 "submit_suggestion":
-{ Args: { "p_content": string,"p_request_id": string,"p_title": string }; Returns: string
+{ Args: { "p_content": string,"p_request_id": string,"p_title": string,"p_visibility"?: string }; Returns: string
                            },
 "suggestion_author_identity":
 { Args: { "p_suggestion_id": string }; Returns: {

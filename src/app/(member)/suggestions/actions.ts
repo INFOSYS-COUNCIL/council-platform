@@ -33,6 +33,7 @@ export async function submitSuggestion(_prev: ActionState, formData: FormData): 
   const content = text(formData, "content");
   // 폼을 열 때 만든 요청 번호. 두 번 눌러도 건의는 하나만 생긴다
   const requestId = text(formData, "request_id");
+  const visibility = text(formData, "visibility") === "PUBLIC" ? "PUBLIC" : "COUNCIL";
 
   const errors: FieldErrors = {};
   if (title.length < 1 || title.length > 100) errors.title = "제목은 1~100자로 입력해 주세요.";
@@ -45,6 +46,7 @@ export async function submitSuggestion(_prev: ActionState, formData: FormData): 
     p_title: title,
     p_content: content,
     p_request_id: requestId,
+    p_visibility: visibility,
   });
   if (error) return actionFailure(rpcErrorMessage(error));
   redirect(`/suggestions/${data}`);

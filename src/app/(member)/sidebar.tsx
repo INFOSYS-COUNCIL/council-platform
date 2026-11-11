@@ -17,6 +17,7 @@ export type NavIcon =
   | "flag"
   | "inbox"
   | "chat"
+  | "globe"
   | "settings"
   | "user"
   | "collapse"
@@ -67,6 +68,11 @@ export function Sidebar({
   platformName: string;
 }) {
   const pathname = usePathname();
+  // "/suggestions"와 "/suggestions/public"처럼 겹치는 주소는 가장 길게 맞는 메뉴 하나만 현재로 본다
+  const currentHref = [...groups.flatMap((g) => g.items), ...footer]
+    .map((item) => item.href)
+    .filter((href) => isCurrent(pathname, href))
+    .sort((a, b) => b.length - a.length)[0];
   // 메뉴를 연 주소를 기억한다. 다른 화면으로 이동하면 주소가 달라져 저절로 닫힌다.
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const open = openedAt === pathname;
@@ -146,7 +152,7 @@ export function Sidebar({
               <ul className="space-y-0.5">
                 {group.items.map((item) => (
                   <li key={item.href}>
-                    <NavLink item={item} current={isCurrent(pathname, item.href)} collapsed={collapsed} />
+                    <NavLink item={item} current={item.href === currentHref} collapsed={collapsed} />
                   </li>
                 ))}
               </ul>
@@ -156,7 +162,7 @@ export function Sidebar({
         <ul className="space-y-0.5 border-t border-zinc-200 pt-3 dark:border-zinc-800">
           {footer.map((item) => (
             <li key={item.href}>
-              <NavLink item={item} current={isCurrent(pathname, item.href)} collapsed={collapsed} />
+              <NavLink item={item} current={item.href === currentHref} collapsed={collapsed} />
             </li>
           ))}
         </ul>
@@ -236,6 +242,12 @@ const ICON_PATHS: Record<NavIcon | "menu" | "close", ReactNode> = {
     </>
   ),
   flag: <path d="M3.5 14V2.5M3.5 3h8l-1.75 2.75L11.5 8.5h-8" />,
+  globe: (
+    <>
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="M2.5 8h11M8 2.5c1.6 1.6 2.4 3.4 2.4 5.5S9.6 11.9 8 13.5M8 2.5C6.4 4.1 5.6 5.9 5.6 8s.8 3.9 2.4 5.5" />
+    </>
+  ),
   inbox: (
     <>
       <path d="M2.5 9 4 3.5h8L13.5 9v3.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1Z" />

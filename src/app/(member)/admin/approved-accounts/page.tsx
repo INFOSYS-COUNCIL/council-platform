@@ -83,6 +83,9 @@ async function ApprovedAccountsContent() {
             <tbody>
               {sorted.map((account) => {
                 const activated = Boolean(account.activated_at || account.activated_user_id);
+                // 로그인해 구성원이 됐다가 소속 종료한 사람
+                // 승인 행 하나에 소속은 하나뿐이라 PostgREST가 객체로 줄 수도, 배열로 줄 수도 있어 둘 다 받는다
+                const ended = activated && [account.membership].flat()[0]?.is_active === false;
                 const canManage = !director || (account.role === "MEMBER" && account.department_id === membership.departmentId);
                 return (
                   <tr key={account.id} className="border-b align-top last:border-b-0">
@@ -92,12 +95,13 @@ async function ApprovedAccountsContent() {
                     <td className="whitespace-nowrap px-3 py-2">{ROLE_LABELS[account.role]}</td>
                     <td className="whitespace-nowrap px-3 py-2">{positionById.get(account.position_id ?? "")?.name ?? "—"}</td>
                     <td className="whitespace-nowrap px-3 py-2">
-                      {activated ? "로그인 완료" : account.is_active ? "로그인 대기" : "등록 취소"}
+                      {ended ? "소속 종료" : activated ? "로그인 완료" : account.is_active ? "로그인 대기" : "등록 취소"}
                     </td>
                     <td className="px-3 py-2">
                       {canManage && <AccountActions
                         account={account}
                         activated={activated}
+                        ended={ended}
                         director={Boolean(director)}
                         departments={departments
                           .filter(({ is_active, id }) => is_active || id === account.department_id)
