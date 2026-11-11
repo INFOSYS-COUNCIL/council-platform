@@ -21,7 +21,6 @@ import { createClient } from "@/lib/supabase/server";
 import {
   addMeetingEditor,
   changeMeetingStatus,
-  confirmMeeting,
   deleteMeeting,
   removeMeetingEditor,
   setMeetingAuthor,
@@ -93,18 +92,6 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
 
   // 관리 ⋯ 메뉴: 진행 상태·회의 정보·대표 작성자·삭제를 한곳에 모은다(화면에는 내용만 둔다)
   const manageItems: ManageItem[] = [];
-  if (canManage && meeting.status === "DRAFT") {
-    manageItems.push({
-      key: "confirm",
-      label: "최종본으로 확정",
-      content: (
-        <ActionForm action={confirmMeeting} submitLabel="최종본으로 확정">
-          {hidden}
-          <p className="text-sm">확정하면 본문이 잠겨 편집자도 고칠 수 없습니다.</p>
-        </ActionForm>
-      ),
-    });
-  }
   if (canManage && !archived) {
     manageItems.push(
       {
@@ -135,24 +122,11 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
           <ActionForm action={changeMeetingStatus} submitLabel="보관하기">
             {hidden}
             <input type="hidden" name="status" value="ARCHIVED" />
-            <p className="text-sm">보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.</p>
+            <p className="text-sm">보관하면 보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;보관함보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;으로 옮겨지고 본문이 잠겨 읽기만 할 수 있습니다.</p>
           </ActionForm>
         ),
       },
     );
-  }
-  if (meeting.status === "CONFIRMED" && isExecutive) {
-    manageItems.push({
-      key: "unconfirm",
-      label: "확정 풀고 다시 편집하기",
-      content: (
-        <ActionForm action={changeMeetingStatus} submitLabel="확정 풀기">
-          {hidden}
-          <input type="hidden" name="status" value="DRAFT" />
-          <TextField label="확정을 푸는 이유" name="reason" required maxLength={200} hint="활동 기록에 남습니다." />
-        </ActionForm>
-      ),
-    });
   }
   if (archived && canHandleArchived) {
     manageItems.push({
@@ -188,7 +162,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
         title={meeting.title}
         actions={
           <span className="flex items-center gap-1">
-            <Badge tone={meeting.status === "CONFIRMED" ? "strong" : "neutral"}>{MEETING_STATUS_LABELS[meeting.status]}</Badge>
+            <Badge tone="neutral">{MEETING_STATUS_LABELS[meeting.status]}</Badge>
             <ManageMenu title="회의록 관리" subtitle={meeting.title} items={manageItems} />
           </span>
         }

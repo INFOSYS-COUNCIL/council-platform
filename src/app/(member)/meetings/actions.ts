@@ -12,7 +12,6 @@ import {
 import { requireMember } from "@/lib/auth/session";
 import { seoulLocalToIso } from "@/lib/dates";
 import { MEETING_CREATE_ROLES, MEETING_SCOPES, MEETING_STATUS_ORDER, type MeetingScope, type MeetingStatus } from "@/lib/meetings/labels";
-import { fetchMeetingState } from "@/lib/meetings/queries";
 import { templateState } from "@/lib/meetings/ydoc";
 import { createClient } from "@/lib/supabase/server";
 
@@ -120,24 +119,6 @@ export async function removeMeetingEditor(_prev: ActionState, formData: FormData
   return done(error, "편집자에서 뺐습니다.");
 }
 
-// 확정: 지금까지 저장된 본문을 합쳐 최종 Snapshot으로 넘긴다. 그 사이 새 변경이 저장되면 DB 함수가 거부한다.
-export async function confirmMeeting(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { meetingId, supabase } = await meetingContext(formData);
-  let current;
-  try {
-    current = await fetchMeetingState(supabase, meetingId);
-  } catch {
-    return actionFailure("회의록 본문을 불러오지 못했습니다. 다시 시도해 주세요.");
-  }
-  const { error } = await supabase.rpc("confirm_meeting", {
-    p_meeting_id: meetingId,
-    p_state: current.state,
-    p_state_vector: current.vector,
-    p_last_sequence_no: current.lastSeq,
-  });
-  return done(error, "최종본으로 확정했습니다. 이제 본문이 잠깁니다.");
-}
-
 export async function changeMeetingStatus(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { meetingId, supabase } = await meetingContext(formData);
   const status = text(formData, "status") as MeetingStatus;
@@ -147,7 +128,7 @@ export async function changeMeetingStatus(_prev: ActionState, formData: FormData
     p_status: status,
     p_reason: text(formData, "reason") || undefined,
   });
-  return done(error, status === "ARCHIVED" ? "보관했습니다. 목록의 \"보관됨\"에서 볼 수 있습니다." : "다시 편집할 수 있게 열었습니다.");
+  return done(error, status === "ARCHIVED" ? "보관함으로 옮겼습니다." : "다시 편집할 수 있게 열었습니다.");
 }
 
 // 회의록 삭제: 회장단 또는 만든 사람·대표 작성자인 국장(DB 함수가 검사). 지운 뒤 그 회의록이 있던 목록 탭으로 간다.

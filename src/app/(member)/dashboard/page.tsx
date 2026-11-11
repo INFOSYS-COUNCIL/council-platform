@@ -227,7 +227,7 @@ async function DashboardContent() {
               meta={
                 <>
                   <span>{formatDateTime(m.updated_at, today)}</span>
-                  <Badge tone={m.status === "CONFIRMED" ? "strong" : "neutral"}>{MEETING_STATUS_LABELS[m.status]}</Badge>
+                  <Badge tone="neutral">{MEETING_STATUS_LABELS[m.status]}</Badge>
                 </>
               }
             />

@@ -2,7 +2,7 @@
 -- 실행: npx supabase test db
 -- 모든 계정은 가짜다. 트랜잭션 끝에 rollback되어 DB에 남지 않는다.
 begin;
-select plan(25);
+select plan(27);
 
 -- E: 회장단 / D: 재무국 국장 / D2: 홍보국 국장 / M: 재무국 국원 / M2: 홍보국 국원 / S: 소속 없는 학생
 insert into auth.users (id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data)
@@ -100,9 +100,14 @@ select is(
 set local request.jwt.claims = '{"sub":"d4000000-0000-0000-0000-000000000001","role":"authenticated"}';
 
 select throws_ok(
+  $$ select public.change_event_status((select id from ids where name = 'open'), 'ARCHIVED') $$,
+  '55000', '행사 상태는 한 단계씩만 바꿀 수 있습니다.',
+  '국장 D의 / 진행 전 → 보관함처럼 단계를 건너뛰는 변경이 / 거부된다'
+);
+select throws_ok(
   $$ select public.change_event_status((select id from ids where name = 'open'), 'COMPLETED') $$,
   '55000', '행사 상태는 한 단계씩만 바꿀 수 있습니다.',
-  '국장 D의 / 기획 중 → 완료처럼 단계를 건너뛰는 변경이 / 거부된다'
+  '없앤 상태 "끝난 행사"로는 / 바꿀 수 없다'
 );
 
 select lives_ok(
@@ -208,8 +213,14 @@ select is(
 
 select throws_ok(
   $$ select public.change_suggestion_status((select id from ids where name = 'sug'), 'RESOLVED') $$,
-  '55000', '처리 완료나 종료 전에 작성자에게 보이는 답변을 먼저 남겨 주세요.',
+  '55000', '답변 완료로 바꾸기 전에 작성자에게 보이는 답변을 먼저 남겨 주세요.',
   '국장 D2의 / 공개 답변 없는 처리 완료가 / 거부된다 (D-10)'
+);
+
+select throws_ok(
+  $$ select public.change_suggestion_status((select id from ids where name = 'sug'), 'CLOSED') $$,
+  '22023', null,
+  '처리자는 / 없앤 상태 "마감됨"으로 / 바꿀 수 없다'
 );
 
 select public.add_suggestion_message((select id from ids where name = 'sug'), 'INTERNAL', '예산 확인 필요');
