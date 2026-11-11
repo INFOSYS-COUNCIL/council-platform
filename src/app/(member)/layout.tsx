@@ -32,7 +32,8 @@ const NAV_GROUPS = [
     label: "건의",
     items: [
       { href: "/council/suggestions", label: "받은 건의 처리", icon: "inbox", memberOnly: true },
-      { href: "/suggestions", label: "내가 쓴 건의", icon: "chat", memberOnly: false },
+      { href: "/suggestions", label: "내 건의", icon: "chat", memberOnly: false },
+      { href: "/suggestions/public", label: "모두의 건의", icon: "globe", memberOnly: false },
     ],
   },
 ] as const satisfies readonly { label: string; items: readonly NavItem[] }[];

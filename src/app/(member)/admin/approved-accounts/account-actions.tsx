@@ -7,7 +7,7 @@ import { FormMessage } from "@/components/ui/form-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { initialActionState, type ActionState } from "@/lib/actions/result";
 import { ROLE_LABELS, ROLE_ORDER, type MemberRole } from "@/lib/auth/roles";
-import { cancelAccount, correctStudentNo, deleteAccount, updateAccount } from "./actions";
+import { cancelAccount, correctStudentNo, deleteAccount, reactivateMember, updateAccount } from "./actions";
 
 // 표의 "관리" 칸: ⋯ 버튼을 누르면 설정 창(dialog)이 열리고, 할 일을 골라 처리한다.
 // 표가 가로로 스크롤되므로 떠 있는 메뉴 대신 화면 가운데 창을 쓴다(잘리지 않고, Esc로 닫힌다).
@@ -16,7 +16,7 @@ const roleOptions = ROLE_ORDER.map((role) => ({ value: role, label: ROLE_LABELS[
 const MENU_ITEM =
   "block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800";
 
-type Mode = "menu" | "update" | "studentNo" | "cancel" | "delete";
+type Mode = "menu" | "update" | "studentNo" | "cancel" | "delete" | "reactivate";
 
 function fieldError(state: ActionState, field: string) {
   return state.status === "error" ? state.fieldErrors?.[field] : undefined;
@@ -35,12 +35,14 @@ type Account = {
 export function AccountActions({
   account,
   activated,
+  ended = false,
   director,
   departments,
   positions,
 }: {
   account: Account;
   activated: boolean;
+  ended?: boolean;
   director: boolean;
   departments: SelectOption[];
   positions: SelectOption[];
@@ -52,6 +54,7 @@ export function AccountActions({
   const [cancelled, cancel] = useActionState(cancelAccount, initialActionState);
   const [deleted, remove] = useActionState(deleteAccount, initialActionState);
   const [corrected, correct] = useActionState(correctStudentNo, initialActionState);
+  const [reactivated, reactivate] = useActionState(reactivateMember, initialActionState);
   const [studentNo, setStudentNo] = useState(account.student_no ?? "");
   const [role, setRole] = useState<string>(account.role);
   const [departmentId, setDepartmentId] = useState(account.department_id ?? "");
@@ -59,6 +62,7 @@ export function AccountActions({
 
   const pending = account.is_active && !activated;
   const items: { mode: Mode; label: string; danger?: boolean }[] = [
+    ...(ended && account.is_active ? [{ mode: "reactivate" as const, label: "학생회 권한 다시 주기" }] : []),
     ...(pending ? [{ mode: "update" as const, label: "승인 정보 수정" }] : []),
     ...(account.is_active ? [{ mode: "studentNo" as const, label: "학번 정정" }] : []),
     ...(pending ? [{ mode: "cancel" as const, label: "등록 취소" }] : []),
@@ -166,6 +170,15 @@ export function AccountActions({
             <input type="hidden" name="confirm" value="yes" />
             <div className="flex gap-2">{back}<SubmitButton variant="secondary">등록 취소</SubmitButton></div>
             <FormMessage state={cancelled} />
+          </form>
+        )}
+
+        {mode === "reactivate" && (
+          <form action={reactivate} className="space-y-3">
+            <p className="text-sm">소속을 종료한 이 사람에게 학생회 권한을 다시 줍니다. 역할·부서·직책은 이 명단에 적힌 대로 돌아가고, 바꾸려면 다시 준 뒤 &quot;활동 중인 구성원&quot;에서 고쳐 주세요.</p>
+            <input type="hidden" name="accountId" value={account.id} />
+            <div className="flex gap-2">{back}<SubmitButton>권한 다시 주기</SubmitButton></div>
+            <FormMessage state={reactivated} />
           </form>
         )}
 

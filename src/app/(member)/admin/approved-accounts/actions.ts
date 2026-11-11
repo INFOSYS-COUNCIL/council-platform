@@ -151,3 +151,15 @@ export async function deleteAccount(_previous: ActionState, form: FormData): Pro
   refresh();
   return actionSuccess("승인 행을 삭제했습니다.");
 }
+
+// 소속 종료한 구성원에게 학생회 권한 다시 주기. 권한(회장단 / 자기 국 국원만 국장)은 DB 함수가 검사한다.
+export async function reactivateMember(_previous: ActionState, form: FormData): Promise<ActionState> {
+  await requireMember(ROUTE.href, ROUTE.roles);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reactivate_membership", {
+    p_account_id: String(form.get("accountId") ?? ""),
+  });
+  if (error) return actionFailure(rpcErrorMessage(error));
+  refresh();
+  return actionSuccess("학생회 권한을 다시 줬습니다. 그 사람이 새로고침하면 구성원 화면이 보입니다.");
+}

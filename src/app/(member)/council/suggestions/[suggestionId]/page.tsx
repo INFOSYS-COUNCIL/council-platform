@@ -45,7 +45,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
   const [{ data: s, error }, { data: messages, error: messagesError }, identity, org] = await Promise.all([
     supabase
       .from("suggestions")
-      .select("id, title, content, status, created_at, withdrawn_at, assigned_department_id, assigned_user_id, department:departments(name)")
+      .select("id, title, content, status, visibility, created_at, withdrawn_at, assigned_department_id, assigned_user_id, department:departments(name)")
       .eq("id", suggestionId)
       .maybeSingle(),
     supabase
@@ -78,6 +78,9 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
         </SecondaryLinkButton>
       </p>
       {closed && <Alert tone="info">작성자가 철회한 건의입니다.</Alert>}
+      {!closed && s.visibility === "PUBLIC" && (
+        <Alert tone="info">전체 공개 건의입니다. &quot;작성자에게 답변&quot;은 모든 학생이 &quot;모두의 건의&quot;에서 봅니다. 내부 메모와 작성자 신원은 공개되지 않습니다.</Alert>
+      )}
 
       <InfoList>
         <Info label="제출">{new Date(s.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" })}</Info>

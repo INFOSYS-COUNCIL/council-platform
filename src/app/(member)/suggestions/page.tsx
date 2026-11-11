@@ -38,7 +38,7 @@ async function MySuggestions() {
   // shortcut: 쪽 나누기 없이 최근 100건. 한 학생이 기수 안에 100건을 넘기면 쪽 이동을 붙인다
   const { data, error } = await supabase
     .from("suggestion_authors")
-    .select("suggestion:suggestions(id, title, status, created_at)")
+    .select("suggestion:suggestions(id, title, status, created_at, visibility)")
     .eq("author_user_id", me)
     .limit(100);
 
@@ -56,7 +56,7 @@ async function MySuggestions() {
             <span className="min-w-0">
               <span className="block truncate font-medium">{s.title}</span>
               <span className="block text-sm text-zinc-600 dark:text-zinc-400">
-                {new Date(s.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 제출
+                {new Date(s.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 제출 · {s.visibility === "PUBLIC" ? "전체 공개" : "학생회만"}
               </span>
             </span>
             <Badge tone={s.status === "RESOLVED" ? "strong" : "neutral"}>{SUGGESTION_STATUS_LABELS[s.status]}</Badge>

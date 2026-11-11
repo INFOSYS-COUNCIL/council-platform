@@ -20,7 +20,7 @@ export function readApprovedAccounts(
   director: { departmentId: string | null } | null,
 ) {
   const query = supabase.from("approved_council_accounts")
-    .select("id, email, student_no, department_id, role, position_id, activated_at, activated_user_id, is_active")
+    .select("id, email, student_no, department_id, role, position_id, activated_at, activated_user_id, is_active, membership:memberships(is_active)")
     .eq("term_id", termId);
 
   // The separate own-account policy can also expose a director's original approval row.
