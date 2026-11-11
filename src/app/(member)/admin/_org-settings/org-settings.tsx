@@ -12,12 +12,13 @@ import { SubmitButton } from "@/components/ui/submit-button";
 export type OrgItem = { id: string; name: string; sort_order: number; is_active: boolean };
 type Action = (previous: ActionState, data: FormData) => Promise<ActionState>;
 
-export function OrgSettings({ label, items, create, update, setActive }: {
+export function OrgSettings({ label, items, create, update, setActive, remove }: {
   label: string;
   items: OrgItem[];
   create: Action;
   update: Action;
   setActive: Action;
+  remove: Action;
 }) {
   const [createState, createAction] = useActionState(create, initialActionState);
   const sorted = [...items].sort((a, b) => Number(b.is_active) - Number(a.is_active) || a.sort_order - b.sort_order || a.name.localeCompare(b.name));
@@ -30,13 +31,14 @@ export function OrgSettings({ label, items, create, update, setActive }: {
       <FormMessage state={createState} />
     </form>
     {sorted.length === 0 ? <EmptyState title={`등록된 ${label} 항목이 없습니다`} description="위 양식에서 추가해 주세요." /> :
-      <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 bg-surface dark:divide-zinc-800 dark:border-zinc-800">{sorted.map(item => <OrgRow key={item.id} label={label} item={item} update={update} setActive={setActive} />)}</ul>}
+      <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 bg-surface dark:divide-zinc-800 dark:border-zinc-800">{sorted.map(item => <OrgRow key={item.id} label={label} item={item} update={update} setActive={setActive} remove={remove} />)}</ul>}
   </div>;
 }
 
-function OrgRow({ label, item, update, setActive }: { label: string; item: OrgItem; update: Action; setActive: Action }) {
+function OrgRow({ label, item, update, setActive, remove }: { label: string; item: OrgItem; update: Action; setActive: Action; remove: Action }) {
   const [updateState, updateAction] = useActionState(update, initialActionState);
   const [activeState, activeAction] = useActionState(setActive, initialActionState);
+  const [removeState, removeAction] = useActionState(remove, initialActionState);
   return <li className={`flex items-center justify-between gap-3 px-4 py-3 ${item.is_active ? "" : "opacity-65"}`}>
     <p className="min-w-0 font-medium">
       {item.name}{" "}
@@ -60,7 +62,6 @@ function OrgRow({ label, item, update, setActive }: { label: string; item: OrgIt
         {
           key: "active",
           label: item.is_active ? "사용 중지" : "다시 사용",
-          danger: item.is_active,
           content: <form action={activeAction} className="space-y-3">
             <p className="text-sm">{item.is_active
               ? `이 ${label}을(를) 더 이상 고를 수 없게 합니다. 지금 소속된 사람이 있으면 중지되지 않습니다. 기록은 남습니다.`
@@ -69,6 +70,17 @@ function OrgRow({ label, item, update, setActive }: { label: string; item: OrgIt
             <input type="hidden" name="active" value={item.is_active ? "false" : "true"} />
             <SubmitButton>{item.is_active ? "사용 중지" : "다시 사용"}</SubmitButton>
             <FormMessage state={activeState} />
+          </form>,
+        },
+        {
+          key: "delete",
+          label: "삭제",
+          danger: true,
+          content: <form action={removeAction} className="space-y-3">
+            <p className="text-sm">{`이 ${label}을(를) 완전히 지웁니다. 되돌릴 수 없습니다. 이 ${label}을(를) 쓰는 구성원이나 기록이 있으면 지워지지 않으니, 그때는 사용 중지해 주세요.`}</p>
+            <input type="hidden" name="id" value={item.id} />
+            <SubmitButton>삭제</SubmitButton>
+            <FormMessage state={removeState} />
           </form>,
         },
       ]}
