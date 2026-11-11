@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
@@ -125,7 +124,6 @@ async function MeetingsContent({
                 </span>
                 <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                   수정 {formatDateTime(m.updated_at, today)}
-                  {status === "CONFIRMED" && <Badge tone="strong">{MEETING_STATUS_LABELS.CONFIRMED}</Badge>}
                 </span>
               </Link>
               <ManageMenu title="회의록 관리" subtitle={m.title} items={meetingItems(m, status, membership.role, me)} />
@@ -176,7 +174,7 @@ function meetingItems(
           <ActionForm action={changeMeetingStatus} submitLabel="보관하기">
             {hidden}
             <input type="hidden" name="status" value="ARCHIVED" />
-            <p className="text-sm">보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.</p>
+            <p className="text-sm">보관하면 보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;보관함보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;으로 옮겨지고 본문이 잠겨 읽기만 할 수 있습니다.</p>
           </ActionForm>
         ),
       },

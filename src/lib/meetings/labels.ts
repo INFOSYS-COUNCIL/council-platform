@@ -3,18 +3,19 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type MeetingStatus = Database["public"]["Enums"]["meeting_status"];
 
-export const MEETING_STATUS_ORDER: readonly MeetingStatus[] = ["DRAFT", "CONFIRMED", "ARCHIVED"];
+// "최종본(CONFIRMED)"은 사용 피드백으로 화면에서 없앴다. 있던 최종본은 보관함으로 옮겼다.
+export const MEETING_STATUS_ORDER: readonly MeetingStatus[] = ["DRAFT", "ARCHIVED"];
 // 화면 이름: 상태가 무엇을 뜻하는지 바로 알 수 있게 쓴다
 export const MEETING_STATUS_LABELS: Record<MeetingStatus, string> = {
   DRAFT: "편집 중",
   CONFIRMED: "최종본",
-  ARCHIVED: "보관됨",
+  ARCHIVED: "보관함",
 };
 
 export const MEETING_STATUS_HELP: Record<MeetingStatus, string> = {
   DRAFT: "편집자들이 본문을 함께 고칠 수 있습니다.",
   CONFIRMED: "내용이 최종 확정되어 잠겼습니다. 아무도 본문을 고칠 수 없습니다.",
-  ARCHIVED: "목록에서 숨겨진 지난 회의록입니다. 읽기만 할 수 있습니다.",
+  ARCHIVED: "다 쓴 회의록입니다. 본문이 잠겨 읽기만 할 수 있습니다.",
 };
 
 // 열람 범위 Preset (기획서 6.3절). 하나만 고르며 DB에는 범용 ACL로 저장한다.

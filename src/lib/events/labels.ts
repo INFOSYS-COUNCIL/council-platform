@@ -6,12 +6,13 @@ export type EventStatus = Enums["event_status"];
 export type EventVisibility = Enums["event_visibility"];
 
 // D-15: 한 단계씩 앞뒤로만 바꾼다. 실제 검사는 change_event_status 함수가 한다.
-export const EVENT_STATUS_ORDER: readonly EventStatus[] = ["PLANNING", "ACTIVE", "COMPLETED", "ARCHIVED"];
+// "끝난 행사(COMPLETED)"는 사용 피드백으로 없앴다(DB 제약으로 막음). enum에만 남아 있다.
+export const EVENT_STATUS_ORDER: readonly EventStatus[] = ["PLANNING", "ACTIVE", "ARCHIVED"];
 export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
-  PLANNING: "준비 중",
+  PLANNING: "진행 전",
   ACTIVE: "진행 중",
   COMPLETED: "끝난 행사",
-  ARCHIVED: "보관됨",
+  ARCHIVED: "보관함",
 };
 
 export const EVENT_VISIBILITY_LABELS: Record<EventVisibility, { label: string; description: string }> = {

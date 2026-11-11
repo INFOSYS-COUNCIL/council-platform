@@ -66,7 +66,7 @@ async function EventsContent({
         actions={canCreate && <LinkButton href="/events/new">행사 만들기</LinkButton>}
       />
       <nav aria-label="행사 상태" className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        {(["ACTIVE", "PLANNING", "COMPLETED", "ARCHIVED"] as const).map((s) => (
+        {EVENT_STATUS_ORDER.map((s) => (
           <PillLink key={s} href={href(s)} current={s === status}>
             {EVENT_STATUS_LABELS[s]}
           </PillLink>
