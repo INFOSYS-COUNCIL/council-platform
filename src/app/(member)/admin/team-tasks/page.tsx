@@ -156,10 +156,11 @@ function TaskList({ tasks, today }: { tasks: Task[]; today: string }) {
         <li key={t.id}>
           <Link
             href={`/tasks/${t.id}`}
-            className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-md bg-zinc-50 px-3 py-1.5 text-sm hover:bg-coral-50 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 ${FOCUS_RING}`}
+            className={`block rounded-md bg-zinc-50 px-3 py-1.5 text-sm hover:bg-coral-50 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 ${FOCUS_RING}`}
           >
-            <span className="min-w-0 flex-1 truncate">{t.title}</span>
-            <span className="flex shrink-0 items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            {/* 국 카드는 좁아서 제목을 한 줄 다 쓰고, 마감일·상태는 아랫줄에 둔다 */}
+            <span className="block truncate font-medium">{t.title}</span>
+            <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
               {t.due_date && <span>{formatDate(t.due_date, today)}</span>}
               <TaskStatusBadge status={t.status} />
               {isOverdue(t.due_date, false, today) && <OverdueBadge />}
