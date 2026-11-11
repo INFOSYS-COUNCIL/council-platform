@@ -2,7 +2,7 @@
 -- 실행: npx supabase test db
 -- 모든 계정은 가짜다. 트랜잭션 끝에 rollback되어 DB에 남지 않는다.
 begin;
-select plan(37);
+select plan(40);
 
 -- ---------------------------------------------------------------------
 -- 준비 (postgres 역할), 2026 테스트 학생회
@@ -211,17 +211,43 @@ select throws_ok(
 -- ---------------------------------------------------------------------
 set local request.jwt.claims = '{"sub":"a3000000-0000-0000-0000-000000000001","role":"authenticated"}';
 
-select ok(
-  (select completed_at is not null
-   from public.change_task_status((select id from task_ids where name = 'finance'), 'DONE')),
-  '담당자 M이 / 자기 업무를 DONE으로 바꾸면 / 완료 시각이 기록된다'
+select is(
+  (select status from public.change_task_status((select id from task_ids where name = 'finance'), 'REVIEW')),
+  'REVIEW'::public.task_status,
+  '담당자 국원 M은 / 일을 마치면 / 검토 요청을 보낼 수 있다'
 );
+
+select throws_ok(
+  $$ select public.change_task_status((select id from task_ids where name = 'finance'), 'DONE') $$,
+  '42501', null,
+  '담당자 국원 M은 / 스스로 완료 처리할 수 / 없다'
+);
+
+set local request.jwt.claims = '{"sub":"d3000000-0000-0000-0000-000000000001","role":"authenticated"}';
+
+select ok(
+  (select completed_at is not null and status = 'DONE'
+   from public.change_task_status((select id from task_ids where name = 'finance'), 'DONE')),
+  '재무국 국장 D가 / 검토 요청을 승인하면 / 완료되고 완료 시각이 기록된다'
+);
+
+set local request.jwt.claims = '{"sub":"a3000000-0000-0000-0000-000000000001","role":"authenticated"}';
+
+select throws_ok(
+  $$ select public.change_task_status((select id from task_ids where name = 'finance'), 'IN_PROGRESS') $$,
+  '42501', null,
+  '담당자 국원 M은 / 완료된 업무를 / 되돌릴 수 없다'
+);
+
+set local request.jwt.claims = '{"sub":"d3000000-0000-0000-0000-000000000001","role":"authenticated"}';
 
 select ok(
   (select completed_at is null and status = 'IN_PROGRESS'
    from public.change_task_status((select id from task_ids where name = 'finance'), 'IN_PROGRESS')),
-  '담당자 M이 / DONE 업무를 다시 진행 중으로 바꾸면 / 완료 시각이 지워진다'
+  '국장 D가 / 완료 업무를 다시 진행 중으로 돌리면 / 완료 시각이 지워진다'
 );
+
+set local request.jwt.claims = '{"sub":"a3000000-0000-0000-0000-000000000001","role":"authenticated"}';
 
 select throws_ok(
   $$ select public.update_task((select id from task_ids where name = 'finance'), '담당자가 바꾼 제목',
