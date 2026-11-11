@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -19,12 +18,12 @@ const ROLE_LABELS = {
 
 export default function MePage() {
   return (
-    <main className="mx-auto max-w-xl space-y-6 px-4 py-10">
+    <div className="max-w-xl space-y-6">
       <PageHeader title="내 계정" />
       <Suspense fallback={<p>계정 정보를 불러오는 중…</p>}>
         <AccountDetails />
       </Suspense>
-    </main>
+    </div>
   );
 }
 
@@ -56,10 +55,6 @@ async function AccountDetails() {
 
   return (
     <div className="space-y-6">
-      {/* 내 계정은 사이드바 밖 화면이라 돌아갈 길을 따로 둔다. 일반 학생은 내 건의로 */}
-      <SecondaryLinkButton href={memberships.length > 0 ? "/dashboard" : "/suggestions"}>
-        ← {memberships.length > 0 ? "대시보드로 돌아가기" : "내 건의로 돌아가기"}
-      </SecondaryLinkButton>
       <dl className="space-y-4 rounded-lg border border-zinc-200 bg-surface p-4 dark:border-zinc-800">
         <div className="space-y-1">
           <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">이메일</dt>

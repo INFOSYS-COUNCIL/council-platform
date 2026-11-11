@@ -51,3 +51,15 @@ export async function setItemActive(_previous: ActionState, data: FormData): Pro
   refresh();
   return actionSuccess(active === "true" ? "직책을 다시 사용합니다." : "직책을 비활성화했습니다.");
 }
+
+// 삭제: 아무도 쓰지 않는 항목만 지워진다. 쓰는 곳이 있으면 DB 함수가 사용 중지하라고 알린다.
+export async function deleteItem(_previous: ActionState, data: FormData): Promise<ActionState> {
+  await requireMember(ROUTE.href, ROUTE.roles);
+  const id = String(data.get("id") ?? "");
+  if (!id) return actionFailure("대상을 확인해 주세요.");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_position", { p_position_id: id });
+  if (error) return actionFailure(rpcErrorMessage(error));
+  refresh();
+  return actionSuccess("직책을(를) 삭제했습니다.");
+}

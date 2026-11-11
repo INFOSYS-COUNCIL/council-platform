@@ -1141,6 +1141,9 @@ isOneToOne: false
 "delete_dashboard_link":
 { Args: { "p_link_id": string }; Returns: undefined
                            },
+"delete_department":
+{ Args: { "p_department_id": string }; Returns: undefined
+                           },
 "delete_event_resource":
 { Args: { "p_resource_id": string }; Returns: string
                            },
@@ -1149,6 +1152,9 @@ isOneToOne: false
                            },
 "delete_meeting_template":
 { Args: { "p_template_id": string }; Returns: undefined
+                           },
+"delete_position":
+{ Args: { "p_position_id": string }; Returns: undefined
                            },
 "delete_schedule":
 { Args: { "p_schedule_id": string }; Returns: undefined
