@@ -131,7 +131,8 @@ export async function changeTaskStatus(_prev: ActionState, formData: FormData): 
   const status = text(formData, "status") as TaskStatus;
   if (!TASK_STATUS_ORDER.includes(status)) return actionFailure("상태를 선택해 주세요.");
   const { error } = await supabase.rpc("change_task_status", { p_task_id: taskId, p_status: status });
-  return done(error, "상태를 바꿨습니다.");
+  const message = status === "REVIEW" ? "국장에게 검토를 요청했습니다." : status === "DONE" ? "완료 처리했습니다." : "상태를 바꿨습니다.";
+  return done(error, message);
 }
 
 export async function setTaskVisibility(_prev: ActionState, formData: FormData): Promise<ActionState> {

@@ -67,6 +67,9 @@ const ACTIVITY_LABELS: Record<string, string> = {
   MANAGER_CHANGE: "관리 책임자를 바꿨습니다",
   ARCHIVE: "업무를 보관했습니다",
   RESTORE: "업무를 복원했습니다",
+  REVIEW_REQUEST: "검토를 요청했습니다",
+  REVIEW_APPROVE: "검토를 승인해 완료했습니다",
+  REVIEW_RETURN: "다시 하도록 돌려보냈습니다",
   DELETE: "업무를 지웠습니다",
 };
 
@@ -135,7 +138,9 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
 
   // 관리 ⋯ 메뉴: 상태·정보·공개 모드·관리 책임자·보관·삭제를 한곳에 모은다(화면에는 내용만 둔다)
   const manageItems: ManageItem[] = [];
-  if (!archived && (canManage || isAssignee)) {
+  // 담당자(관리 권한 없음)는 완료로 바꾸지 못하고, 완료된 업무를 되돌리지 못한다(국장 승인 필요). DB 함수가 다시 검사한다.
+  const statusOptions = canManage ? TASK_STATUS_ORDER : TASK_STATUS_ORDER.filter((st) => st !== "DONE");
+  if (!archived && (canManage || (isAssignee && task.status !== "DONE"))) {
     manageItems.push({
       key: "status",
       label: "상태 바꾸기",
@@ -146,7 +151,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
             label="상태"
             name="status"
             defaultValue={task.status}
-            options={TASK_STATUS_ORDER.map((st) => ({ value: st, label: TASK_STATUS_LABELS[st] }))}
+            options={statusOptions.map((st) => ({ value: st, label: TASK_STATUS_LABELS[st] }))}
           />
         </ActionForm>
       ),
@@ -270,6 +275,36 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         <Alert tone="info">보관된 업무입니다. 복원하기 전에는 내용을 바꿀 수 없습니다.</Alert>
       )}
 
+      {/* 검토·승인: 국원은 일을 마치면 검토 요청을 보내고, 국장(관리 권한자)이 승인하거나 돌려보낸다 */}
+      {!archived && task.status === "REVIEW" && canManage && (
+        <div className="space-y-3 rounded-lg border border-coral-300 bg-coral-50 p-4 dark:border-coral-800 dark:bg-coral-900/20">
+          <p className="font-semibold">검토 요청이 왔습니다</p>
+          <p className="text-sm text-zinc-700 dark:text-zinc-300">내용을 확인한 뒤 승인하면 완료됩니다. 고칠 점이 있으면 다시 하도록 돌려보내 주세요.</p>
+          <div className="flex flex-wrap gap-2">
+            <ActionForm action={changeTaskStatus} submitLabel="승인 (완료 처리)">
+              {hidden}
+              <input type="hidden" name="status" value="DONE" />
+            </ActionForm>
+            <ActionForm action={changeTaskStatus} submitLabel="다시 하기" variant="secondary">
+              {hidden}
+              <input type="hidden" name="status" value="IN_PROGRESS" />
+            </ActionForm>
+          </div>
+        </div>
+      )}
+      {!archived && isAssignee && !canManage && (task.status === "TODO" || task.status === "IN_PROGRESS") && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="text-sm">일을 마쳤다면 국장에게 검토를 요청하세요. 국장이 승인하면 완료됩니다.</p>
+          <ActionForm action={changeTaskStatus} submitLabel="검토 요청 보내기">
+            {hidden}
+            <input type="hidden" name="status" value="REVIEW" />
+          </ActionForm>
+        </div>
+      )}
+      {!archived && isAssignee && !canManage && task.status === "REVIEW" && (
+        <Alert tone="info">국장의 검토를 기다리는 중입니다. 승인되면 완료로 바뀝니다.</Alert>
+      )}
+
       <InfoList>
         <Info label="담당 국">{task.department?.name}</Info>
         <Info label="담당자">
@@ -285,6 +320,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
           {task.completed_at ? new Date(task.completed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}
         </Info>
       </InfoList>
+
 
       <Section
         title="설명"
