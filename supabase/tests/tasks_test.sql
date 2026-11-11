@@ -342,7 +342,7 @@ select results_eq(
   $$ select action from public.activity_logs
      where resource_type = 'TASK' and resource_id = (select id from task_ids where name = 'finance')
      order by id $$,
-  $$ values ('CREATE'), ('ACL_ADD'), ('STATUS_CHANGE'), ('REOPEN'), ('DESCRIPTION_UPDATE'),
+  $$ values ('CREATE'), ('ACL_ADD'), ('REVIEW_REQUEST'), ('REVIEW_APPROVE'), ('REOPEN'), ('DESCRIPTION_UPDATE'),
             ('ARCHIVE'), ('RESTORE'), ('MANAGER_CHANGE'), ('MANAGER_CHANGE') $$,
   '회장단 E는 / 업무의 변경 이력을 / 순서대로 볼 수 있다'
 );
