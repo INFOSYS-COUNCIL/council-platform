@@ -191,8 +191,13 @@ function NavLink({
   collapsed: boolean;
 }) {
   return (
+    // prefetch={false}: 좁은 화면에서 메뉴를 열면 링크 10개가 한꺼번에 보이며 동시에 미리 불러온다.
+    // 로그인 토큰이 만료된 뒤(휴대폰에서 탭을 오래 두었다 다시 연 경우)라면 그 요청들이 같은
+    // refresh token으로 동시에 갱신을 시도하고, 실패한 응답이 로그인 쿠키를 지워 로그인 화면으로
+    // 튕긴다. 미리 불러오지 않으면 누른 화면 하나만 요청하므로 갱신도 한 번만 일어난다.
     <Link
       href={item.href}
+      prefetch={false}
       aria-current={current ? "page" : undefined}
       title={collapsed ? item.label : undefined}
       className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm ${FOCUS} ${
