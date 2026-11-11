@@ -40,7 +40,7 @@ async function AccountDetails() {
     supabase
       .from("memberships")
       .select(
-        "id, role, term:terms(name), department:departments(name), position:positions(name)",
+        "id, role, term:terms(name), department:departments(name), position:positions(name), approved:approved_council_accounts(student_no)",
       )
       .eq("user_id", userId)
       .eq("is_active", true),
@@ -59,6 +59,11 @@ async function AccountDetails() {
         <div className="space-y-1">
           <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">이메일</dt>
           <dd className="break-all">{profile.email}</dd>
+        </div>
+        <div className="space-y-1">
+          <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">학번</dt>
+          {/* 학번은 승인 명단에만 있다. 일반 학생은 등록된 학번이 없다 */}
+          <dd>{memberships.find((m) => m.approved?.student_no)?.approved?.student_no ?? "등록되지 않음"}</dd>
         </div>
         <div className="space-y-1">
           <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">이름</dt>
