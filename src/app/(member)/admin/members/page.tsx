@@ -17,7 +17,6 @@ export const metadata: Metadata = {
 };
 
 const ROUTE = ADMIN_ROUTES.members;
-const columns = ["이름", "부서", "역할", "직책", "관리"];
 
 // 현재 기수 활성 구성원 목록(기획서 부록 C.3). 회장단은 역할·부서·직책 변경과 종료,
 // 국장은 자기 국만 보고 자기 국 국원만 종료한다. 실제 권한은 RPC가 다시 검사한다.
@@ -37,10 +36,22 @@ async function MembersContent() {
   const supabase = await createClient();
   const isExecutive = membership.role === "EXECUTIVE";
   const director = isExecutive ? null : { departmentId: membership.departmentId };
-  const [members, organisation] = await Promise.all([
+  const [members, organisation, studentNos] = await Promise.all([
     readMembers(supabase, membership.termId, director),
     readOrganisation(supabase, membership.termId),
+    // 회장단은 구성원 모두의 학번·연락처(이메일)를 본다. 학번은 승인 명단에 있고 RLS가 회장단에게만 기수 전체를 돌려준다
+    isExecutive
+      ? supabase
+          .from("approved_council_accounts")
+          .select("activated_user_id, student_no")
+          .eq("term_id", membership.termId)
+          .not("activated_user_id", "is", null)
+      : null,
   ]);
+  const studentNoOf = new Map((studentNos?.data ?? []).map((a) => [a.activated_user_id, a.student_no]));
+  const columns = isExecutive
+    ? ["이름", "학번", "연락처", "부서", "역할", "직책", "관리"]
+    : ["이름", "부서", "역할", "직책", "관리"];
 
   if (members.error || !organisation) {
     return <Alert>구성원을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</Alert>;
@@ -83,6 +94,14 @@ async function MembersContent() {
                   {m.name}
                   {isMe && <span className="ml-1 text-xs font-normal text-zinc-600 dark:text-zinc-400">(나)</span>}
                 </th>
+                {isExecutive && (
+                  <>
+                    <td className="whitespace-nowrap px-3 py-2 tabular-nums">{studentNoOf.get(m.user_id) ?? "—"}</td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {m.profile?.email ? <a href={`mailto:${m.profile.email}`} className="underline">{m.profile.email}</a> : "—"}
+                    </td>
+                  </>
+                )}
                 <td className="whitespace-nowrap px-3 py-2">{departmentName ?? "—"}</td>
                 <td className="whitespace-nowrap px-3 py-2">{ROLE_LABELS[m.role]}</td>
                 <td className="whitespace-nowrap px-3 py-2">{positionById.get(m.position_id ?? "")?.name ?? "—"}</td>

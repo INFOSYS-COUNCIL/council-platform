@@ -1,11 +1,12 @@
 import { Suspense, type ReactNode } from "react";
 import { ADMIN_ROLES } from "@/lib/admin/routes";
 import { getActiveMembership } from "@/lib/auth/session";
-import { ROLE_LABELS } from "@/lib/auth/roles";
+import { ROLE_LABELS, type MemberRole } from "@/lib/auth/roles";
 import { getPlatformName } from "@/lib/site";
 import { Sidebar, SidebarFallback, type NavGroup, type NavIcon } from "./sidebar";
 
-type NavItem = { href: string; label: string; icon: NavIcon; memberOnly: boolean };
+// roles: 이 Role에게만 보인다(없으면 memberOnly만 본다)
+type NavItem = { href: string; label: string; icon: NavIcon; memberOnly: boolean; roles?: readonly MemberRole[] };
 
 // 학생회 구성원 화면의 공통 틀(왼쪽 사이드바). 공용 파일이므로 리드가 관리한다.
 // 로그인·권한 확인은 여기서 하지 않는다. 레이아웃은 같은 그룹 안에서 이동할 때
@@ -18,7 +19,9 @@ const NAV_GROUPS = [
     items: [
       { href: "/dashboard", label: "대시보드", icon: "home", memberOnly: true },
       { href: "/tasks", label: "업무", icon: "tasks", memberOnly: true },
+      { href: "/team-tasks", label: "업무 현황", icon: "chart", memberOnly: true, roles: ["EXECUTIVE", "DIRECTOR"] },
       { href: "/schedule", label: "일정", icon: "calendar", memberOnly: true },
+      { href: "/org", label: "조직도", icon: "org", memberOnly: true },
     ],
   },
   {
@@ -71,7 +74,7 @@ async function MemberSidebar() {
   const groups = NAV_GROUPS.map((group) => ({
     label: group.label,
     items: group.items
-      .filter((item) => membership || !item.memberOnly)
+      .filter((item) => (membership || !item.memberOnly) && (!("roles" in item) || (membership && (item.roles as readonly MemberRole[]).includes(membership.role))))
       .map(({ href, label, icon }) => ({ href, label, icon })),
   })).filter((group) => group.items.length > 0);
 
