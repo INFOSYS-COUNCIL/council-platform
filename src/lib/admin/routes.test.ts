@@ -2,9 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ADMIN_ROLES, adminRoutesFor } from "./routes";
 
 describe("adminRoutesFor", () => {
-  it("회장단은 관리 화면 8개를 모두 본다", () => {
+  it("회장단은 관리 화면 7개를 모두 본다", () => {
     expect(adminRoutesFor("EXECUTIVE").map((r) => r.href)).toEqual([
-      "/admin/team-tasks",
       "/admin/members",
       "/admin/approved-accounts",
       "/admin/settings",
@@ -15,9 +14,8 @@ describe("adminRoutesFor", () => {
     ]);
   });
 
-  it("국장은 업무 현황, 구성원, 승인 명단만 본다", () => {
+  it("국장은 구성원, 승인 명단만 본다", () => {
     expect(adminRoutesFor("DIRECTOR").map((r) => r.href)).toEqual([
-      "/admin/team-tasks",
       "/admin/members",
       "/admin/approved-accounts",
     ]);

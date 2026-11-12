@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/events", destination: "/schedule", permanent: false },
       { source: "/events/:path*", destination: "/schedule", permanent: false },
+      { source: "/admin/team-tasks", destination: "/team-tasks", permanent: true },
     ];
   },
   partialPrefetching: true,

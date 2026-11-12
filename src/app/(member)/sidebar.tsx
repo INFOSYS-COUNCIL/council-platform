@@ -14,7 +14,8 @@ export type NavIcon =
   | "tasks"
   | "calendar"
   | "doc"
-  | "flag"
+  | "chart"
+  | "org"
   | "inbox"
   | "chat"
   | "globe"
@@ -241,7 +242,15 @@ const ICON_PATHS: Record<NavIcon | "menu" | "close", ReactNode> = {
       <path d="M9 2.5v3h3M5.5 8.5h5M5.5 11h3.5" />
     </>
   ),
-  flag: <path d="M3.5 14V2.5M3.5 3h8l-1.75 2.75L11.5 8.5h-8" />,
+  chart: <path d="M2.5 13.5h11M4.5 11V7.5M8 11V4M11.5 11V9" />,
+  org: (
+    <>
+      <rect x="6" y="2" width="4" height="3" rx=".5" />
+      <rect x="2" y="11" width="4" height="3" rx=".5" />
+      <rect x="10" y="11" width="4" height="3" rx=".5" />
+      <path d="M8 5v3M4 11V8h8v3" />
+    </>
+  ),
   globe: (
     <>
       <circle cx="8" cy="8" r="5.5" />

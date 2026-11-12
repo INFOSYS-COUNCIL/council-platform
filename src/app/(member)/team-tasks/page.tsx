@@ -5,7 +5,6 @@ import { Alert } from "@/components/ui/alert";
 import { OverdueBadge, TaskStatusBadge } from "@/components/ui/badge";
 import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
-import { ADMIN_ROUTES } from "@/lib/admin/routes";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { requireMember } from "@/lib/auth/session";
 import { formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
@@ -15,10 +14,11 @@ import { buildOrgChart, type OrgGroup, type OrgPerson } from "@/lib/tasks/org-ch
 import type { TaskStatus } from "@/lib/tasks/labels";
 
 export const metadata: Metadata = {
-  title: "조직도·업무 현황",
+  title: "업무 현황",
 };
 
-const ROUTE = ADMIN_ROUTES.teamTasks;
+// 업무 공간 > 업무 현황 (관리에서 옮겨 왔다). 사이드바도 같은 Role에게만 보인다
+const TEAM_TASKS_ROLES = ["EXECUTIVE", "DIRECTOR"] as const;
 
 type Task = {
   id: string;
@@ -34,7 +34,7 @@ type Task = {
 export default function TeamTasksPage() {
   return (
     <div className="min-w-0 space-y-6">
-      <PageHeader title="조직도·업무 현황" description="누가 어떤 업무를 맡고 있는지 조직도로 봅니다. 이름을 누르면 끝나지 않은 업무가 펼쳐집니다." />
+      <PageHeader title="업무 현황" description="누가 어떤 업무를 맡고 있는지 조직도로 봅니다. 이름을 누르면 끝나지 않은 업무가 펼쳐집니다." />
       <Suspense fallback={<p role="status">불러오는 중…</p>}>
         <TeamTasksContent />
       </Suspense>
@@ -43,7 +43,7 @@ export default function TeamTasksPage() {
 }
 
 async function TeamTasksContent() {
-  const membership = await requireMember(ROUTE.href, ROUTE.roles);
+  const membership = await requireMember("/team-tasks", TEAM_TASKS_ROLES);
   const supabase = await createClient();
   const [org, tasksResult] = await Promise.all([
     getTermOrgOptions(membership.termId),

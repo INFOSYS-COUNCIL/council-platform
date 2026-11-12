@@ -975,6 +975,11 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"council_org_chart":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "department_name": string,"department_sort": number,"name": string,"position_name": string,"position_sort": number,"role": Database["public"]['Enums']["member_role"]
+            }[]
+                           },
 "create_dashboard_link":
 { Args: { "p_description"?: string,"p_name": string,"p_sort_order"?: number,"p_url": string }; Returns: {
               "created_at": string,

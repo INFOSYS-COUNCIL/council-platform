@@ -5,12 +5,6 @@ import type { MemberRole } from "@/lib/auth/roles";
 // 메뉴에서 숨기는 것은 편의이고, 실제 권한은 RPC와 RLS가 다시 검사한다.
 // group: 관리 메뉴 첫 줄에 보이는 묶음 이름. 같은 묶음의 화면은 둘째 줄 탭으로 오간다.
 export const ADMIN_ROUTES = {
-  teamTasks: {
-    href: "/admin/team-tasks",
-    label: "조직도·업무 현황",
-    group: "업무 현황",
-    roles: ["EXECUTIVE", "DIRECTOR"],
-  },
   members: {
     href: "/admin/members",
     label: "활동 중인 구성원",
