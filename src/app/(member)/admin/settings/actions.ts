@@ -24,5 +24,5 @@ export async function saveCouncilName(_prev: ActionState, formData: FormData): P
   const { error: generationError } = await supabase.rpc("set_council_generation", { p_generation: generation as number });
   if (generationError) return actionFailure(rpcErrorMessage(generationError));
   updateTag(SITE_SETTINGS_TAG);
-  return actionSuccess(`이제 "${name} 운영 플랫폼"으로 보입니다.`);
+  return actionSuccess(`이제 "${name}"(으)로 보입니다.`);
 }

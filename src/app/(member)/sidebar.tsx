@@ -108,8 +108,9 @@ export function Sidebar({
         <Icon name={collapsed ? "expand" : "collapse"} />
       </button>
       <div className="flex h-14 items-center justify-between gap-2 px-4 md:h-auto md:px-3 md:pt-4 md:pb-2">
+        {/* 로고를 누르면 첫 화면으로 */}
         <Link
-          href="/dashboard"
+          href="/"
           className={`flex min-w-0 items-center gap-2.5 rounded-md px-1 py-1 ${FOCUS}`}
         >
           <span

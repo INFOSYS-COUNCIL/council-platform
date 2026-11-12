@@ -4,7 +4,7 @@ import { ROLE_LABELS } from "@/lib/auth/roles";
 // 업무 없이 사람만 보이는 조직도. 업무 공간 > 조직도와 첫 화면이 함께 쓴다.
 export function OrgChart({ executives, departments }: { executives: ChartPerson[]; departments: ChartGroup[] }) {
   if (executives.length === 0 && departments.length === 0) {
-    return <p className="text-sm text-zinc-600 dark:text-zinc-400">아직 등록된 구성원이 없습니다.</p>;
+    return <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">아직 등록된 구성원이 없습니다.</p>;
   }
   return (
     <div className="space-y-6">
