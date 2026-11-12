@@ -28,7 +28,7 @@ export default function LoginPage({
               IS
             </span>
             <h1 className="text-xl font-semibold tracking-tight">
-              <Suspense fallback="운영 플랫폼">
+              <Suspense fallback="학생회">
                 <PlatformName />
               </Suspense>{" "}
               로그인

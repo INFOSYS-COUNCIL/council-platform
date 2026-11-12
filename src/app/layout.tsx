@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// 탭 제목은 "<화면> | <학생회 이름> 운영 플랫폼". 각 page는 화면 이름만 적는다.
+// 탭 제목은 "<화면> | <학생회 이름>". 각 page는 화면 이름만 적는다.
 export async function generateMetadata(): Promise<Metadata> {
   const name = await getPlatformName();
   return { title: { default: name, template: `%s | ${name}` } };

@@ -15,7 +15,7 @@ const ROUTE = ADMIN_ROUTES.settings;
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
-      <PageHeader title="학생회 이름" description="첫 화면, 사이드바, 탭 제목에 “<이름> 운영 플랫폼”으로, 대시보드에 “제 <기수>대 정보시스템학과 학생회 ‘<이름>’”으로 보입니다." />
+      <PageHeader title="학생회 이름" description="첫 화면, 사이드바, 탭 제목에 이름 그대로, 대시보드에 “제 <기수>대 정보시스템학과 학생회 ‘<이름>’”으로 보입니다." />
       <Suspense fallback={<p role="status">불러오는 중…</p>}>
         <SettingsForm />
       </Suspense>
@@ -28,7 +28,7 @@ async function SettingsForm() {
   const { name, generation } = await getCouncilProfile();
   return (
     <ActionForm action={saveCouncilName} submitLabel="저장" className="max-w-md space-y-3">
-      <TextField label="학생회 이름" name="council_name" required maxLength={30} defaultValue={name} hint="예: 가온 → 가온 운영 플랫폼" />
+      <TextField label="학생회 이름" name="council_name" required maxLength={30} defaultValue={name} hint="예: 가온" />
       <TextField
         label="기수"
         name="council_generation"

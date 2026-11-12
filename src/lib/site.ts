@@ -29,6 +29,7 @@ export function councilTagline({ name, generation }: { name: string; generation:
   return `${generation ? `제 ${generation}대 ` : ""}정보시스템학과 학생회 '${name}'`;
 }
 
+// 화면·탭에 쓰는 이름. 2차 QA로 "운영 플랫폼"을 빼고 학생회 이름만 쓴다
 export async function getPlatformName(): Promise<string> {
-  return `${await getCouncilName()} 운영 플랫폼`;
+  return getCouncilName();
 }
