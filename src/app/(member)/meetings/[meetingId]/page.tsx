@@ -13,9 +13,10 @@ import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
-import { MEETING_SCOPE_LABELS, MEETING_STATUS_HELP, MEETING_STATUS_LABELS } from "@/lib/meetings/labels";
+import { MEETING_SCOPE_LABELS, MEETING_STATUS_HELP, MEETING_STATUS_LABELS, type MeetingScope } from "@/lib/meetings/labels";
+import { markdownFileName } from "@/lib/meetings/export";
 import { fetchMeetingState } from "@/lib/meetings/queries";
-import { getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
+import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import {
   addMeetingEditor,
@@ -25,6 +26,7 @@ import {
   setMeetingAuthor,
   updateMeeting,
 } from "../actions";
+import { MeetingScopeFields } from "../scope-fields";
 import { MeetingEditor } from "./meeting-editor";
 
 export const metadata: Metadata = {
@@ -86,6 +88,8 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
     : `선택한 국만 · ${rulesResult.data
         .map((r) => org.departments.find((d) => d.id === r.department_id)?.name ?? "비활성 부서")
         .join(", ")}`;
+  const currentScope: MeetingScope = (groupRule?.role_group as MeetingScope | undefined) ?? "DEPARTMENTS";
+  const currentDepartmentIds = groupRule ? [] : rulesResult.data.flatMap((r) => (r.department_id ? [r.department_id] : []));
   const hidden = <input type="hidden" name="meeting_id" value={meeting.id} />;
   const candidates = memberSelectOptions(org.members.filter((m) => !editorIds.includes(m.userId)));
 
@@ -101,6 +105,12 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
             {hidden}
             <TextField label="제목" name="title" required maxLength={100} defaultValue={meeting.title} />
             <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={isoToSeoulLocal(meeting.meeting_at)} hint="한국 시간" />
+            <input type="hidden" name="orig_scope" value={`${currentScope}:${[...currentDepartmentIds].sort().join(",")}`} />
+            <MeetingScopeFields
+              departments={departmentSelectOptions(org.departments)}
+              defaultScope={currentScope}
+              defaultDepartmentIds={currentDepartmentIds}
+            />
           </ActionForm>
         ),
       },
@@ -121,7 +131,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
           <ActionForm action={changeMeetingStatus} submitLabel="보관하기">
             {hidden}
             <input type="hidden" name="status" value="ARCHIVED" />
-            <p className="text-sm">보관하면 보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;보관함보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;으로 옮겨지고 본문이 잠겨 읽기만 할 수 있습니다.</p>
+            <p className="text-sm">보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 본문이 잠겨 읽기만 할 수 있습니다.</p>
           </ActionForm>
         ),
       },
@@ -195,6 +205,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
           initialSeq={state.lastSeq}
           canEdit={canEdit}
           user={{ id: me, name: nameOf(me) }}
+          fileName={markdownFileName(meeting.meeting_at, meeting.title)}
         />
       </Section>
 

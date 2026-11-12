@@ -94,7 +94,23 @@ export async function updateMeeting(_prev: ActionState, formData: FormData): Pro
     p_title: text(formData, "title"),
     p_meeting_at: meetingAt,
   });
-  return done(error, "회의 정보를 저장했습니다.");
+  if (error) return actionFailure(rpcErrorMessage(error));
+
+  // 열람 범위 칸이 있는 폼(상세 화면)에서 범위가 바뀌었을 때만
+  if (formData.has("scope")) {
+    const scope = text(formData, "scope") as MeetingScope;
+    const departmentIds = scope === "DEPARTMENTS" ? ids(formData, "department_ids") : [];
+    if (!MEETING_SCOPES.includes(scope)) return actionFailure("열람 범위를 하나 선택해 주세요.");
+    if (`${scope}:${[...departmentIds].sort().join(",")}` !== text(formData, "orig_scope")) {
+      const { error: scopeError } = await supabase.rpc("set_meeting_scope", {
+        p_meeting_id: meetingId,
+        p_scope: scope,
+        p_department_ids: departmentIds,
+      });
+      if (scopeError) return actionFailure(rpcErrorMessage(scopeError));
+    }
+  }
+  return done(null, "회의 정보를 저장했습니다.");
 }
 
 export async function setMeetingAuthor(_prev: ActionState, formData: FormData): Promise<ActionState> {
