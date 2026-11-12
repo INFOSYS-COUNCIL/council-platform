@@ -5,7 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { SuggestionStatusBadge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
+import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -21,7 +21,6 @@ export default function PublicSuggestionsPage() {
       <PageHeader
         title="모두의 건의"
         description="학생들이 전체 공개로 남긴 건의와 학생회 답변입니다. 작성자 이름은 보이지 않습니다."
-        actions={<LinkButton href="/suggestions/new">건의하기</LinkButton>}
       />
       <Suspense fallback={<Skeleton className="h-48" />}>
         <PublicSuggestions />

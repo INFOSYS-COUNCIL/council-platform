@@ -9,7 +9,8 @@ import { ManageMenu } from "@/components/ui/manage-menu";
 import { SelectField, TextareaField } from "@/components/ui/form-field";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
-import { requireMember } from "@/lib/auth/session";
+import { getCurrentUserId, requireMember } from "@/lib/auth/session";
+import { isSuggestionHandler } from "@/lib/suggestions/handler";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import { SUGGESTION_STATUS_LABELS, SUGGESTION_STATUS_ORDER } from "@/lib/suggestions/labels";
@@ -59,8 +60,8 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
   ]);
 
   if (error) return <Alert>불러오지 못했습니다. 새로고침해 주세요.</Alert>;
-  // 배정되지 않은 건의는 RLS가 돌려주지 않는다
-  if (!s) notFound();
+  // 배정되지 않은 건의는 RLS가 돌려주지 않는다. 전체 공개 건의는 돌려주므로 처리 담당인지 다시 본다
+  if (!s || !isSuggestionHandler(membership, (await getCurrentUserId())!, s)) notFound();
 
   const author = identity?.data?.[0];
   const closed = s.withdrawn_at !== null;
@@ -156,7 +157,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
                 <p className="mt-2 whitespace-pre-wrap">{m.body}</p>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   {m.writer?.display_name?.trim() || m.writer?.email} ·{" "}
-                  {new Date(m.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
+                  {new Date(m.updated_at ?? m.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
                   {m.updated_at && " · 수정됨"}
                 </p>
               </li>

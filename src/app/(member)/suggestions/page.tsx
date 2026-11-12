@@ -9,6 +9,7 @@ import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { SUGGESTION_VISIBILITY } from "@/lib/suggestions/labels";
 
 export const metadata: Metadata = {
   title: "내 건의",
@@ -21,11 +22,14 @@ export default function MySuggestionsPage() {
       <PageHeader
         title="내 건의"
         description="학생회에 남긴 건의와 처리 상태를 확인합니다."
-        actions={<LinkButton href="/suggestions/new">건의하기</LinkButton>}
       />
       <Suspense fallback={<Skeleton className="h-48" />}>
         <MySuggestions />
       </Suspense>
+      {/* 건의하기는 이 화면에만 둔다. 목록 박스와 같은 폭으로 바로 아래에 */}
+      <LinkButton href="/suggestions/new" className="min-h-14 w-full text-base">
+        건의하기
+      </LinkButton>
     </div>
   );
 }
@@ -55,7 +59,7 @@ async function MySuggestions() {
             <span className="min-w-0">
               <span className="block truncate font-medium">{s.title}</span>
               <span className="block text-sm text-zinc-600 dark:text-zinc-400">
-                {new Date(s.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 제출 · {s.visibility === "PUBLIC" ? "전체 공개" : "학생회만"}
+                {new Date(s.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 제출 · {SUGGESTION_VISIBILITY[s.visibility === "PUBLIC" ? "PUBLIC" : "COUNCIL"].label}
               </span>
             </span>
             <SuggestionStatusBadge status={s.status} />
