@@ -5,8 +5,6 @@ import { TASK_STATUS_ORDER, type TaskStatus } from "./labels";
 
 export const TASK_TABS = {
   mine: "내 업무",
-  dept: "소속 국 업무",
-  shared: "공유받은 업무",
   all: "전체 업무", // 회장단만
   archived: "보관함",
 } as const;
@@ -28,9 +26,7 @@ function first(value: string | string[] | undefined): string | undefined {
 
 export function parseTaskListParams(raw: Raw, isExecutive: boolean): TaskListParams {
   const tabRaw = first(raw.tab);
-  const allowed: TaskTab[] = isExecutive
-    ? ["mine", "all", "archived"]
-    : ["mine", "dept", "shared", "archived"];
+  const allowed: TaskTab[] = isExecutive ? ["mine", "all", "archived"] : ["mine", "archived"];
   const tab = allowed.find((t) => t === tabRaw) ?? "mine";
 
   const statusRaw = first(raw.status);

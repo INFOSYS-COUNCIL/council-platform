@@ -26,6 +26,13 @@ export function formatDate(
   return `${prefix}${m}월 ${d}일 (${weekday})`;
 }
 
+// "YYYY-MM-DD"에 날짜 수를 더한다(시간대와 무관한 달력 계산)
+export function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 // 마감일이 오늘보다 앞이고 아직 완료되지 않았으면 기한 초과
 export function isOverdue(
   dueDate: string | null | undefined,

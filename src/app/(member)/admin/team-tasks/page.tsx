@@ -26,7 +26,7 @@ type Task = {
   status: TaskStatus;
   due_date: string | null;
   assignee_id: string | null;
-  department_id: string;
+  department_id: string | null;
 };
 
 // 조직도처럼 회장단 → 국(국장 → 국원)을 보여 주고, 사람마다 끝나지 않은 업무를 펼쳐 볼 수 있게 한다.

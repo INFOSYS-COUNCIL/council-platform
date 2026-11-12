@@ -22,6 +22,11 @@ const TONES = {
 
 export type BadgeTone = keyof typeof TONES;
 
+// 거르기 버튼처럼 배지가 아닌 곳에도 같은 색을 쓴다
+export function badgeToneClass(tone: BadgeTone): string {
+  return TONES[tone];
+}
+
 const DOTS: Record<BadgeTone, string> = {
   neutral: "bg-zinc-400",
   strong: "bg-coral-500",

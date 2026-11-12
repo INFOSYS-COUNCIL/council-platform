@@ -62,6 +62,7 @@ export async function createTask(_prev: ActionState, formData: FormData): Promis
   const fields = readTaskFields(formData);
   const departmentId = text(formData, "department_id");
   const visibility = text(formData, "visibility_mode") as VisibilityMode;
+  // "NONE" = 담당국 없음(회장단·생성자·담당자·관리 책임자·열람 대상만 본다)
   if (!departmentId) fields.errors.department_id = "담당 국을 선택해 주세요.";
   if (visibility !== "DEFAULT" && visibility !== "RESTRICTED") {
     fields.errors.visibility_mode = "공개 모드를 선택해 주세요.";
@@ -73,7 +74,7 @@ export async function createTask(_prev: ActionState, formData: FormData): Promis
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_task", {
     p_term_id: membership.termId,
-    p_department_id: departmentId,
+    p_department_id: (departmentId === "NONE" ? null : departmentId) as string,
     p_title: fields.title,
     p_description: text(formData, "description"),
     p_assignee_id: fields.assigneeId ?? undefined,
@@ -100,21 +101,48 @@ function done(error: { code?: string; message?: string } | null, message: string
   return actionSuccess(message);
 }
 
-export async function updateTask(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { taskId, supabase } = await taskContext(formData);
-  const fields = readTaskFields(formData);
-  const firstError = Object.values(fields.errors)[0];
-  if (firstError) return actionFailure(firstError);
 
-  const { error } = await supabase.rpc("update_task", {
-    p_task_id: taskId,
-    p_title: fields.title,
-    p_assignee_id: fields.assigneeId as string, // null이면 담당자 없음
-    p_priority: fields.priority,
-    p_start_date: fields.startDate as string,
-    p_due_date: fields.dueDate as string,
-  });
-  return done(error, "업무 정보를 저장했습니다.");
+// ⋯ 메뉴의 '수정' 하나로 상태·정보·공개 모드·관리 책임자를 함께 고친다.
+// 폼에 있는 칸만, 처음 값(orig_*)과 달라진 것만 각 DB 함수로 보낸다. 관리 책임자는 맨 마지막(내 권한이 바뀔 수 있다).
+export async function editTask(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { taskId, supabase } = await taskContext(formData);
+  const changed = (name: string) => formData.has(name) && text(formData, name) !== text(formData, `orig_${name}`);
+
+  if (formData.has("title")) {
+    const fields = readTaskFields(formData);
+    const firstError = Object.values(fields.errors)[0];
+    if (firstError) return actionFailure(firstError);
+    if (["title", "assignee_id", "priority", "start_date", "due_date"].some(changed)) {
+      const { error } = await supabase.rpc("update_task", {
+        p_task_id: taskId,
+        p_title: fields.title,
+        p_assignee_id: fields.assigneeId as string, // null이면 담당자 없음
+        p_priority: fields.priority,
+        p_start_date: fields.startDate as string,
+        p_due_date: fields.dueDate as string,
+      });
+      if (error) return actionFailure(rpcErrorMessage(error));
+    }
+  }
+  if (changed("status")) {
+    const status = text(formData, "status") as TaskStatus;
+    if (!TASK_STATUS_ORDER.includes(status)) return actionFailure("상태를 선택해 주세요.");
+    const { error } = await supabase.rpc("change_task_status", { p_task_id: taskId, p_status: status });
+    if (error) return actionFailure(rpcErrorMessage(error));
+  }
+  if (changed("visibility_mode")) {
+    const mode = text(formData, "visibility_mode") as VisibilityMode;
+    if (mode !== "DEFAULT" && mode !== "RESTRICTED") return actionFailure("공개 모드를 선택해 주세요.");
+    const { error } = await supabase.rpc("set_task_visibility", { p_task_id: taskId, p_mode: mode });
+    if (error) return actionFailure(rpcErrorMessage(error));
+  }
+  if (changed("manager_id")) {
+    const managerId = text(formData, "manager_id");
+    if (!managerId) return actionFailure("관리 책임자를 선택해 주세요.");
+    const { error } = await supabase.rpc("set_task_manager", { p_task_id: taskId, p_manager_id: managerId });
+    if (error) return actionFailure(rpcErrorMessage(error));
+  }
+  return done(null, "저장했습니다.");
 }
 
 export async function updateTaskDescription(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -135,13 +163,6 @@ export async function changeTaskStatus(_prev: ActionState, formData: FormData): 
   return done(error, message);
 }
 
-export async function setTaskVisibility(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { taskId, supabase } = await taskContext(formData);
-  const mode = text(formData, "visibility_mode") as VisibilityMode;
-  if (mode !== "DEFAULT" && mode !== "RESTRICTED") return actionFailure("공개 모드를 선택해 주세요.");
-  const { error } = await supabase.rpc("set_task_visibility", { p_task_id: taskId, p_mode: mode });
-  return done(error, "공개 모드를 바꿨습니다.");
-}
 
 // 열람 대상 값은 "DEPARTMENT:<id>", "USER:<id>", "ROLE_GROUP:<그룹>" 하나로 받는다.
 export async function addTaskAccessRule(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -158,13 +179,6 @@ export async function removeTaskAccessRule(_prev: ActionState, formData: FormDat
   return done(error, "열람 대상을 뺐습니다.");
 }
 
-export async function setTaskManager(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { taskId, supabase } = await taskContext(formData);
-  const managerId = text(formData, "manager_id");
-  if (!managerId) return actionFailure("관리 책임자를 선택해 주세요.");
-  const { error } = await supabase.rpc("set_task_manager", { p_task_id: taskId, p_manager_id: managerId });
-  return done(error, "관리 책임자를 바꿨습니다.");
-}
 
 export async function archiveTask(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { taskId, supabase } = await taskContext(formData);

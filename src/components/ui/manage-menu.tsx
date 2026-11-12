@@ -6,7 +6,8 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 // 누르면 버튼 바로 옆에 작은 메뉴가 뜨고, 할 일(수정·삭제 등)을 고르면 그 폼이 창으로 열린다.
 // 메뉴는 화면 기준(fixed)으로 띄워 가로 스크롤 표 등에 잘리지 않게 한다. 바깥 클릭·Esc·스크롤로 닫힌다.
 // 폼은 서버 페이지에서 만들어 content로 넘긴다(ActionForm 등).
-export type ManageItem = { key: string; label: string; danger?: boolean; content: ReactNode };
+// wide: 칸이 많은 수정 폼은 대화상자를 넓게 연다
+export type ManageItem = { key: string; label: string; danger?: boolean; wide?: boolean; content: ReactNode };
 
 const MENU_WIDTH = 176; // w-44
 
@@ -129,7 +130,7 @@ export function ManageMenu({
         ref={dialogRef}
         aria-labelledby={`${id}-title`}
         onClose={() => buttonRef.current?.focus()}
-        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-xl border border-zinc-200 bg-surface p-5 text-foreground shadow-xl backdrop:bg-zinc-950/40 dark:border-zinc-800"
+        className={`m-auto ${current?.wide ? "w-[min(52rem,calc(100vw-2rem))]" : "w-[min(30rem,calc(100vw-2rem))]"} rounded-xl border border-zinc-200 bg-surface p-5 text-foreground shadow-xl backdrop:bg-zinc-950/40 dark:border-zinc-800`}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">

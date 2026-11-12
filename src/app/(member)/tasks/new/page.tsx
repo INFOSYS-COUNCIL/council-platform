@@ -32,7 +32,7 @@ async function NewTaskContent() {
 
   return (
     <NewTaskForm
-      departments={departmentSelectOptions(departments)}
+      departments={[...departmentSelectOptions(departments), { value: "NONE", label: "담당국 없음" }]}
       members={memberSelectOptions(members)}
       // 국장은 자기 국 업무를 만드는 경우가 대부분이라 미리 고른다 (D-3)
       defaultDepartmentId={membership.departmentId ?? ""}
