@@ -6,7 +6,7 @@ import { timeLabel, type ScheduleTime } from "@/lib/schedules/week";
 import { createSchedule, deleteSchedule, updateSchedule } from "./actions";
 import { ScheduleFields, type ScheduleInitial } from "./schedule-fields";
 
-// /schedule과 행사 상세의 일정 구역이 함께 쓰는 목록·입력 폼
+// /schedule의 일정 목록·입력 폼
 
 export type ScheduleRow = ScheduleTime & {
   id: string;
@@ -79,10 +79,9 @@ export function ScheduleItem({ s, canManage, prefix }: { s: ScheduleRow; canMana
   );
 }
 
-export function NewScheduleForm({ eventId, defaultDate }: { eventId?: string; defaultDate: string }) {
+export function NewScheduleForm({ defaultDate }: { defaultDate: string }) {
   return (
     <ActionForm action={createSchedule} submitLabel="일정 추가">
-      {eventId && <input type="hidden" name="event_id" value={eventId} />}
       <ScheduleFields defaultDate={defaultDate} />
     </ActionForm>
   );

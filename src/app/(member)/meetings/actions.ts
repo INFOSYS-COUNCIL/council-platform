@@ -34,7 +34,6 @@ export async function createMeeting(_prev: ActionState, formData: FormData): Pro
   const departmentIds = ids(formData, "department_ids");
   const authorId = text(formData, "author_id");
   const templateId = text(formData, "template_id");
-  const eventId = text(formData, "event_id");
 
   const errors: FieldErrors = {};
   if (title.length < 1 || title.length > 100) errors.title = "제목은 1~100자로 입력해 주세요.";
@@ -68,7 +67,6 @@ export async function createMeeting(_prev: ActionState, formData: FormData): Pro
     p_department_ids: scope === "DEPARTMENTS" ? departmentIds : [],
     p_state: initial.state,
     p_state_vector: initial.vector,
-    p_event_id: eventId || undefined,
     p_template_id: templateId || undefined,
   });
   if (error) return actionFailure(rpcErrorMessage(error));

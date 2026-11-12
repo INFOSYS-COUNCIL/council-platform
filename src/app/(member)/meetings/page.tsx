@@ -6,11 +6,10 @@ import { Alert } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
-import { SelectField, TextField } from "@/components/ui/form-field";
+import { TextField } from "@/components/ui/form-field";
 import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { pageNumber, Pagination, PillLink } from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
 import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
@@ -28,7 +27,6 @@ export const metadata: Metadata = {
 };
 
 const PER_PAGE = 20;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function MeetingsPage(props: PageProps<"/meetings">) {
   return (
@@ -48,27 +46,24 @@ async function MeetingsContent({
   const raw = await searchParams;
   // 보관한 회의록은 "보관" 탭에서만 보인다(기획서 6.8절)
   const status: MeetingStatus = MEETING_STATUS_ORDER.find((s) => s === raw.status) ?? "DRAFT";
-  const eventId = typeof raw.event === "string" && UUID.test(raw.event) ? raw.event : "";
   const page = pageNumber(raw.page);
   const href = (s: MeetingStatus, p = 1) =>
-    `/meetings?status=${s}${eventId ? `&event=${eventId}` : ""}${p > 1 ? `&page=${p}` : ""}`;
+    `/meetings?status=${s}${p > 1 ? `&page=${p}` : ""}`;
 
   // 볼 수 있는 회의록만 RLS가 돌려준다. 최근 수정순
   const supabase = await createClient();
   const from = (page - 1) * PER_PAGE;
-  let query = supabase
+  const query = supabase
     .from("meeting_minutes")
-    .select("id, title, meeting_at, updated_at, created_by, author_id, event:events(name)", { count: "exact" })
+    .select("id, title, meeting_at, updated_at, created_by, author_id", { count: "exact" })
     .eq("term_id", membership.termId)
     .eq("status", status);
-  if (eventId) query = query.eq("event_id", eventId);
-  const [{ data: meetings, count, error }, { data: events }] = await Promise.all([
-    query.order("updated_at", { ascending: false }).range(from, from + PER_PAGE - 1),
-    supabase.from("events").select("id, name").eq("term_id", membership.termId).neq("status", "ARCHIVED").order("name"),
-  ]);
+  const { data: meetings, count, error } = await query
+    .order("updated_at", { ascending: false })
+    .range(from, from + PER_PAGE - 1);
 
   const canCreate = MEETING_CREATE_ROLES.includes(membership.role);
-  const newHref = eventId ? `/meetings/new?event=${eventId}` : "/meetings/new";
+  const newHref = "/meetings/new";
   const today = todayInSeoul();
 
   return (
@@ -82,20 +77,6 @@ async function MeetingsContent({
             </PillLink>
           ))}
         </nav>
-        {/* 행사 필터는 GET 폼이라 JavaScript 없이도 동작한다 */}
-        <form action="/meetings" className="flex items-end gap-2">
-          <input type="hidden" name="status" value={status} />
-          <SelectField
-            label="행사"
-            name="event"
-            defaultValue={eventId}
-            placeholder="전체"
-            options={(events ?? []).map((e) => ({ value: e.id, label: e.name }))}
-          />
-          <Button type="submit" variant="secondary">
-            보기
-          </Button>
-        </form>
       </div>
 
       {error ? (
@@ -119,7 +100,6 @@ async function MeetingsContent({
                   <span className="block font-semibold">{m.title}</span>
                   <span className="block text-sm text-zinc-600 dark:text-zinc-400">
                     회의 {formatDateTime(m.meeting_at, today)}
-                    {m.event && ` · ${m.event.name}`}
                   </span>
                 </span>
                 <span className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">

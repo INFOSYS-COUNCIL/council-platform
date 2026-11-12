@@ -14,34 +14,27 @@ export const metadata: Metadata = {
   title: "회의록 만들기",
 };
 
-export default function NewMeetingPage(props: PageProps<"/meetings/new">) {
+export default function NewMeetingPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="회의록 만들기" />
       <Suspense fallback={<Skeleton />}>
-        <NewMeetingContent searchParams={props.searchParams} />
+        <NewMeetingContent />
       </Suspense>
     </div>
   );
 }
 
-async function NewMeetingContent({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+async function NewMeetingContent() {
   const membership = await requireMember("/meetings/new", MEETING_CREATE_ROLES);
   const me = (await getCurrentUserId())!;
-  const { event } = await searchParams;
   const supabase = await createClient();
-  const [org, templates, events] = await Promise.all([
+  const [org, templates] = await Promise.all([
     getTermOrgOptions(membership.termId),
     supabase.from("meeting_templates").select("id, name").eq("term_id", membership.termId).eq("is_active", true).order("name"),
-    supabase.from("events").select("id, name").eq("term_id", membership.termId).neq("status", "ARCHIVED").order("name"),
   ]);
-  if (templates.error || events.error) return <Alert>불러오지 못했습니다. 새로고침해 주세요.</Alert>;
+  if (templates.error) return <Alert>불러오지 못했습니다. 새로고침해 주세요.</Alert>;
 
-  const eventOptions = events.data.map((e) => ({ value: e.id, label: e.name }));
   return (
     <NewMeetingForm
       me={me}
@@ -49,8 +42,6 @@ async function NewMeetingContent({
       members={memberSelectOptions(org.members)}
       departments={departmentSelectOptions(org.departments)}
       templates={templates.data.map((t) => ({ value: t.id, label: t.name }))}
-      events={eventOptions}
-      defaultEventId={eventOptions.some((e) => e.value === event) ? String(event) : ""}
     />
   );
 }

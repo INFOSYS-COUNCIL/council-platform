@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
@@ -8,7 +7,7 @@ import { Badge, MeetingStatusBadge } from "@/components/ui/badge";
 import { DialogButton } from "@/components/ui/dialog-button";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextField } from "@/components/ui/form-field";
-import { FOCUS_RING, SecondaryLinkButton } from "@/components/ui/link-button";
+import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
@@ -179,15 +178,6 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
       <Section title="개요">
         <InfoList>
           <Info label="회의 일시">{formatDateTime(meeting.meeting_at, today)}</Info>
-          <Info label="행사">
-            {meeting.event ? (
-              <Link href={`/events/${meeting.event.id}`} className={`underline ${FOCUS_RING}`}>
-                {meeting.event.name}
-              </Link>
-            ) : (
-              "없음"
-            )}
-          </Info>
           <Info label="대표 작성자">{nameOf(meeting.author_id)}</Info>
           <Info label="열람 범위">{scopeLabel}</Info>
           {meeting.confirmed_at && <Info label="최종 확정한 때">{formatDateTime(meeting.confirmed_at, today)}</Info>}
