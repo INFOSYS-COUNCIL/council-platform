@@ -1388,6 +1388,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"set_meeting_scope":
+{ Args: { "p_department_ids"?: (string)[],"p_meeting_id": string,"p_scope": string }; Returns: undefined
+                           },
 "set_meeting_template_active":
 { Args: { "p_active": boolean,"p_template_id": string }; Returns: {
               "blocks": NonNullable<Json>,

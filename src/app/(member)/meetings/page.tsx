@@ -47,10 +47,12 @@ async function MeetingsContent({
   // 보관한 회의록은 "보관" 탭에서만 보인다(기획서 6.8절)
   const status: MeetingStatus = MEETING_STATUS_ORDER.find((s) => s === raw.status) ?? "DRAFT";
   const page = pageNumber(raw.page);
-  const href = (s: MeetingStatus, p = 1) =>
-    `/meetings?status=${s}${p > 1 ? `&page=${p}` : ""}`;
+  // 정렬: 회의 날짜 최신순(기본) / 오래된순
+  const sort: "desc" | "asc" = raw.sort === "asc" ? "asc" : "desc";
+  const href = (s: MeetingStatus, p = 1, o = sort) =>
+    `/meetings?status=${s}${o === "asc" ? "&sort=asc" : ""}${p > 1 ? `&page=${p}` : ""}`;
 
-  // 볼 수 있는 회의록만 RLS가 돌려준다. 최근 수정순
+  // 볼 수 있는 회의록만 RLS가 돌려준다
   const supabase = await createClient();
   const from = (page - 1) * PER_PAGE;
   const query = supabase
@@ -59,6 +61,7 @@ async function MeetingsContent({
     .eq("term_id", membership.termId)
     .eq("status", status);
   const { data: meetings, count, error } = await query
+    .order("meeting_at", { ascending: sort === "asc" })
     .order("updated_at", { ascending: false })
     .range(from, from + PER_PAGE - 1);
 
@@ -76,6 +79,10 @@ async function MeetingsContent({
               {MEETING_STATUS_LABELS[s]}
             </PillLink>
           ))}
+        </nav>
+        <nav aria-label="정렬" className="flex flex-wrap gap-2 text-sm">
+          <PillLink href={href(status, 1, "desc")} current={sort === "desc"}>최신 날짜순</PillLink>
+          <PillLink href={href(status, 1, "asc")} current={sort === "asc"}>오래된 날짜순</PillLink>
         </nav>
       </div>
 
@@ -154,7 +161,7 @@ function meetingItems(
           <ActionForm action={changeMeetingStatus} submitLabel="보관하기">
             {hidden}
             <input type="hidden" name="status" value="ARCHIVED" />
-            <p className="text-sm">보관하면 보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;보관함보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 읽기만 할 수 있습니다.quot;으로 옮겨지고 본문이 잠겨 읽기만 할 수 있습니다.</p>
+            <p className="text-sm">보관하면 목록의 &quot;보관됨&quot;으로 옮겨지고 본문이 잠겨 읽기만 할 수 있습니다.</p>
           </ActionForm>
         ),
       },

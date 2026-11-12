@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { applyAwarenessUpdate, Awareness, encodeAwarenessUpdate, removeAwarenessStates } from "y-protocols/awareness";
 import * as Y from "yjs";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { rpcErrorMessage } from "@/lib/actions/result";
 import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
 import { fromBytea, MEETING_FRAGMENT, toBytea } from "@/lib/meetings/labels";
@@ -32,12 +33,14 @@ export function CollabEditor({
   initialSeq,
   canEdit,
   user,
+  fileName,
 }: {
   meetingId: string;
   initialState: string;
   initialSeq: number;
   canEdit: boolean;
   user: { id: string; name: string };
+  fileName: string; // md로 저장할 때 이름
 }) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -186,8 +189,21 @@ export function CollabEditor({
           ? `저장 중… · 미저장 ${status.unsaved}개`
           : "저장 완료";
 
+  // 지금 화면의 본문을 Markdown 파일로 내려받는다(표·색 등 일부 서식은 빠질 수 있다)
+  const saveMarkdown = () => {
+    const url = URL.createObjectURL(new Blob([editor.blocksToMarkdownLossy(editor.document)], { type: "text/markdown;charset=utf-8" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: fileName });
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button type="button" variant="secondary" onClick={saveMarkdown}>
+          md로 저장
+        </Button>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <p aria-live="polite" className="text-zinc-600 dark:text-zinc-400">
           접속 중 {online.length}명{online.length > 0 && `: ${online.join(", ")}`}
