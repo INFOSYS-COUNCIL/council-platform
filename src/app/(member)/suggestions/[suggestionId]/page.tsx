@@ -81,7 +81,7 @@ async function SuggestionDetail({ params }: { params: Promise<{ suggestionId: st
               <li key={a.id} className="rounded-md border-l-4 border-coral-500 bg-coral-50 p-3 dark:bg-zinc-900">
                 <p className="whitespace-pre-wrap">{a.body}</p>
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                  {new Date(a.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
+                  {new Date(a.updated_at ?? a.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
                   {a.updated_at && " · 수정됨"}
                 </p>
               </li>

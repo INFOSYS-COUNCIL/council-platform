@@ -11,7 +11,8 @@ import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { pageNumber, Pagination, PillLink } from "@/components/ui/pagination";
 import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
-import { requireMember } from "@/lib/auth/session";
+import { getCurrentUserId, requireMember } from "@/lib/auth/session";
+import { handlerFilter } from "@/lib/suggestions/handler";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
 
 const PER_PAGE = 20;
 
-// 회장단은 기수 전체, 국장은 자기 국에 배정된 건, 국원은 직접 배정된 건만 RLS가 돌려준다(D-11).
+// 회장단은 기수 전체, 국장은 자기 국에 배정된 건, 국원은 직접 배정된 건만 보인다(D-11).
 export default function CouncilSuggestionsPage(props: PageProps<"/council/suggestions">) {
   return (
     <div className="space-y-6">
@@ -61,6 +62,9 @@ async function CouncilSuggestions({
     .select("id, title, status, created_at, withdrawn_at, assigned_department_id, assigned_user_id, department:departments(name)", { count: "exact" })
     .eq("term_id", membership.termId);
   if (status) query = query.eq("status", status);
+  // 전체 공개 건의는 RLS가 누구에게나 돌려주므로 처리 담당 건만 남긴다
+  const scope = handlerFilter(membership, (await getCurrentUserId())!);
+  if (scope) query = query.or(scope);
   const from = (page - 1) * PER_PAGE;
   const isExecutive = membership.role === "EXECUTIVE";
   // 삭제: 회장단 또는 맡은 국의 국장(DB 함수가 다시 검사)

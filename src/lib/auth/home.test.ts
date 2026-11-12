@@ -6,7 +6,7 @@ describe("homePathFor", () => {
     expect(homePathFor(true)).toBe("/dashboard");
   });
 
-  it("소속이 없는 일반 학생은 내 계정 화면으로 보낸다", () => {
-    expect(homePathFor(false)).toBe("/me");
+  it("소속이 없는 일반 학생은 내 건의 화면으로 보낸다", () => {
+    expect(homePathFor(false)).toBe("/suggestions");
   });
 });

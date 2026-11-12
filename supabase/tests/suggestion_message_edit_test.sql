@@ -2,7 +2,7 @@
 -- 실행: npx supabase test db
 -- 모든 계정은 가짜다. 트랜잭션 끝에 rollback되어 DB에 남지 않는다.
 begin;
-select plan(7);
+select plan(8);
 
 -- E: 회장단 / D: 재무국 국장 / D2: 홍보국 국장 / S: 건의를 쓴 학생
 insert into auth.users (id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data)
@@ -58,6 +58,11 @@ select throws_ok(
 select lives_ok(
   $$ select public.update_suggestion_message((select id from ids where name = 'e_msg'), '국장이 고친 메모') $$,
   '맡은 국의 국장은 / 회장단이 쓴 메모도 / 고칠 수 있다 (3차 피드백)'
+);
+select is(
+  (select writer_id from public.suggestion_messages where id = (select id from ids where name = 'e_msg')),
+  'd8000000-0000-0000-0000-000000000001'::uuid,
+  '남의 메모를 고치면 / 쓴 사람이 / 고친 사람으로 바뀐다 (2차 QA)'
 );
 
 set local request.jwt.claims = '{"sub":"d8000000-0000-0000-0000-000000000002","role":"authenticated"}';
