@@ -70,6 +70,7 @@ async function DashboardContent() {
       .from("meeting_minutes")
       .select("id, title, status, updated_at")
       .eq("term_id", membership.termId)
+      .eq("kind", "MEETING")
       .neq("status", "ARCHIVED")
       .order("updated_at", { ascending: false })
       .limit(5),

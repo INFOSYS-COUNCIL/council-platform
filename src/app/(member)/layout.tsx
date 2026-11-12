@@ -28,6 +28,7 @@ const NAV_GROUPS = [
     label: "기록",
     items: [
       { href: "/meetings", label: "회의록", icon: "doc", memberOnly: true },
+      { href: "/pages", label: "페이지", icon: "pages", memberOnly: true },
     ],
   },
   {

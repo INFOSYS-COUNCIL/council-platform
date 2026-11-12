@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
@@ -61,6 +61,8 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
   }
   const meeting = meetingResult.data;
   if (!meeting) notFound();
+  // 페이지는 같은 표에 있다(kind = 'PAGE'). 페이지 화면으로 보낸다
+  if (meeting.kind === "PAGE") redirect(`/pages/${meeting.id}`);
 
   let state;
   try {
