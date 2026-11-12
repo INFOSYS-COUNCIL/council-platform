@@ -18,16 +18,12 @@ export function NewMeetingForm({
   members,
   departments,
   templates,
-  events,
-  defaultEventId,
 }: {
   me: string;
   defaultMeetingAt: string;
   members: SelectOption[];
   departments: SelectOption[];
   templates: SelectOption[];
-  events: SelectOption[];
-  defaultEventId: string;
 }) {
   const [state, formAction] = useActionState(createMeeting, initialActionState);
   const [scope, setScope] = useState<MeetingScope>("ALL_COUNCIL");
@@ -40,14 +36,6 @@ export function NewMeetingForm({
         <DateTimePicker label="회의 일시" name="meeting_at" required defaultValue={defaultMeetingAt} hint="한국 시간" error={errors.meeting_at} />
         <SelectField label="템플릿" name="template_id" options={templates} placeholder="빈 문서로 시작" error={errors.template_id} />
       </div>
-      <SelectField
-        label="행사"
-        name="event_id"
-        options={events}
-        placeholder="연결하지 않음"
-        defaultValue={defaultEventId}
-        hint="행사 회의록은 그 행사를 볼 수 있는 사람만 볼 수 있습니다."
-      />
 
       <fieldset className="space-y-2" aria-describedby="scope-hint">
         <legend className="text-sm font-medium">

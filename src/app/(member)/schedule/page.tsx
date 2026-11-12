@@ -3,11 +3,13 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Section, Skeleton } from "@/components/ui/detail";
+import { TaskStatusBadge } from "@/components/ui/badge";
 import { FOCUS_RING } from "@/components/ui/link-button";
+import { PillLink } from "@/components/ui/pagination";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, todayInSeoul } from "@/lib/dates";
-import { fetchSchedules } from "@/lib/schedules/queries";
+import { fetchSchedules, fetchTaskSchedules } from "@/lib/schedules/queries";
 import { scheduleColor } from "@/lib/schedules/colors";
 import { addMonths, groupByDay, isMultiDay, monthGrid, weekBars } from "@/lib/schedules/week";
 import { NewScheduleForm, ScheduleItem } from "./schedule-parts";
@@ -22,8 +24,9 @@ const WEEKDAY_HEADERS = ["월", "화", "수", "목", "금", "토", "일"];
 // 한 주에 보여 줄 여러 날 일정 막대 줄 수. 넘치는 것은 날짜 칸의 +N으로 센다
 const MAX_LANES = 3;
 
-// 달력(월 보기). 날짜를 누르면 그 날 일정과 추가 폼이 아래에 나온다.
-// 주소: /schedule?month=YYYY-MM&date=YYYY-MM-DD. 볼 수 있는 일정만 RLS가 돌려준다.
+// 달력(월 보기). 전체 일정(행사 같은 일정)과 업무 일정(업무 시작일~마감일) 두 가지로 본다.
+// 날짜를 누르면 그 날 일정이 아래에 나온다. 새 일정 추가는 버튼을 눌러야 폼이 열린다.
+// 주소: /schedule?view=tasks&month=YYYY-MM&date=YYYY-MM-DD. 볼 수 있는 일정·업무만 RLS가 돌려준다.
 export default function SchedulePage(props: PageProps<"/schedule">) {
   return (
     <Suspense fallback={<Skeleton />}>
@@ -39,13 +42,23 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
   const today = todayInSeoul();
   const selected = typeof params.date === "string" && DATE.test(params.date) ? params.date : today;
   const month = typeof params.month === "string" && MONTH.test(params.month) ? params.month : selected.slice(0, 7);
+  const view = params.view === "tasks" ? "tasks" : "all";
   const days = monthGrid(month);
   const weeks = Array.from({ length: days.length / 7 }, (_, w) => days.slice(w * 7, w * 7 + 7));
 
-  const { data, error } = await fetchSchedules(membership.termId, days[0], days[days.length - 1]);
+  const range = [membership.termId, days[0], days[days.length - 1]] as const;
+  const [schedules, tasks] = await Promise.all([
+    view === "all" ? fetchSchedules(...range) : null,
+    view === "tasks" ? fetchTaskSchedules(...range) : null,
+  ]);
+  const error = schedules?.error ?? tasks?.error;
+  const data = (schedules?.data ?? tasks?.data ?? []) as { id: string; title: string; color?: string | null; is_all_day: boolean; start_date: string | null; end_date: string | null; starts_at: string | null; ends_at: string | null }[];
 
-  const byDay = groupByDay(data ?? [], days);
+  const byDay = groupByDay(data, days);
   const selectedItems = byDay.get(selected) ?? [];
+  const selectedSchedules = (schedules?.data ?? []).filter((x) => selectedItems.some((y) => y.id === x.id));
+  const selectedTasks = (tasks?.data ?? []).filter((x) => selectedItems.some((y) => y.id === x.id));
+  const q = (extra: string) => `/schedule?${view === "tasks" ? "view=tasks&" : ""}${extra}`;
   const canCreate = membership.role !== "MEMBER";
   const isExecutive = membership.role === "EXECUTIVE";
   const [year, monthNo] = month.split("-").map(Number);
@@ -58,6 +71,10 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
   return (
     <div className="space-y-6">
       <PageHeader title="일정" />
+      <nav aria-label="일정 종류" className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-800">
+        <PillLink href={`/schedule?month=${month}&date=${selected}`} current={view === "all"}>전체 일정</PillLink>
+        <PillLink href={`/schedule?view=tasks&month=${month}&date=${selected}`} current={view === "tasks"}>업무 일정</PillLink>
+      </nav>
       {/* 월 제목 바로 밑에 달력을 붙인다. 불러오지 못해도 달력 틀은 보여 준다. */}
       <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -65,9 +82,9 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
           {year}년 {monthNo}월
         </h2>
         <nav aria-label="달 이동" className="flex gap-2">
-          {navLink(`/schedule?month=${addMonths(month, -1)}`, "←", "지난달")}
-          {navLink(`/schedule?date=${today}`, "오늘")}
-          {navLink(`/schedule?month=${addMonths(month, 1)}`, "→", "다음 달")}
+          {navLink(q(`month=${addMonths(month, -1)}`), "←", "지난달")}
+          {navLink(q(`date=${today}`), "오늘")}
+          {navLink(q(`month=${addMonths(month, 1)}`), "→", "다음 달")}
         </nav>
       </div>
 
@@ -81,7 +98,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
           {/* 주마다 한 줄. 여러 날 일정은 이어진 막대(겹치면 아래 줄), 하루 일정은 그 날 칸 안에 */}
           <ol>
             {weeks.map((week) => {
-              const { bars, lanes } = weekBars(data ?? [], week);
+              const { bars, lanes } = weekBars(data, week);
               const shownLanes = Math.min(lanes, MAX_LANES);
               return (
                 <li
@@ -101,7 +118,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
                     return (
                       <Link
                         key={day}
-                        href={`/schedule?month=${month}&date=${day}`}
+                        href={q(`month=${month}&date=${day}`)}
                         scroll={false}
                         aria-current={isSelected ? "date" : undefined}
                         aria-label={`${formatDate(day, today)}${isToday ? " 오늘" : ""}, 일정 ${items.length}개`}
@@ -163,21 +180,45 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
 
       <Section title={`${formatDate(selected, today)}${selected === today ? " · 오늘" : ""}`}>
         {selectedItems.length === 0 ? (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">일정 없음</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{view === "tasks" ? "업무 없음" : "일정 없음"}</p>
         ) : (
           <ul className="space-y-2">
-            {selectedItems.map((s) => (
+            {selectedSchedules.map((s) => (
               <ScheduleItem key={s.id} s={s} canManage={isExecutive || (membership.role === "DIRECTOR" && s.created_by === me)} />
+            ))}
+            {selectedTasks.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/tasks/${t.id}`}
+                  className={`flex items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800 ${FOCUS_RING}`}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{t.title}</span>
+                    <span className="block text-sm text-zinc-600 dark:text-zinc-400">
+                      {t.start_date === t.end_date ? formatDate(t.start_date!, today) : `${formatDate(t.start_date!, today)} ~ ${formatDate(t.end_date!, today)}`}
+                    </span>
+                  </span>
+                  <TaskStatusBadge status={t.status} />
+                </Link>
+              </li>
             ))}
           </ul>
         )}
+        {view === "all" && canCreate && (
+          // 버튼을 눌러야 폼이 열린다
+          <details className="mt-4 group">
+            <summary
+              className={`inline-flex min-h-9 cursor-pointer list-none items-center rounded-md bg-coral-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-coral-800 dark:bg-coral-400 dark:text-zinc-950 dark:hover:bg-coral-300 [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+            >
+              <span className="group-open:hidden">+ 새 일정 추가</span>
+              <span className="hidden group-open:inline">닫기</span>
+            </summary>
+            <div className="mt-3">
+              <NewScheduleForm key={selected} defaultDate={selected} />
+            </div>
+          </details>
+        )}
       </Section>
-
-      {canCreate && (
-        <Section title="새 일정 추가">
-          <NewScheduleForm key={selected} defaultDate={selected} />
-        </Section>
-      )}
     </div>
   );
 }

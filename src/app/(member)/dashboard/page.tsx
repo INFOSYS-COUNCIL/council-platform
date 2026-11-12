@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, formatDateTime, isOverdue, todayInSeoul } from "@/lib/dates";
 import { fetchWeekSchedules } from "@/lib/schedules/queries";
-import { addDays, groupByDay, mondayOf, timeLabel, weekDays } from "@/lib/schedules/week";
+import { groupByDay, mondayOf, timeLabel, weekDays } from "@/lib/schedules/week";
 import { councilTagline, getCouncilProfile } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 // 위젯은 기획서 3.1절·부록 C.3 제안값. 모든 위젯은 RLS로 볼 수 있는 자료만 보여 준다.
-// 배치(1차 사용 피드백): 바로가기 → 보드(마감 임박 → 내 업무 → 이번 주 일정 → 처리할 건의 → 최근 회의록 → 진행 중 행사).
+// 배치: 바로가기 → 보드(내 업무 → 이번 주 일정 → 처리할 건의 → 최근 회의록). 마감 임박·기한 초과는 업무 화면 맨 위에 모은다(2차 QA).
 // 칸 제목 옆 숫자가 요약 숫자를 대신한다. 학생회 규모에 맞게 통계·차트는 두지 않는다.
 export default async function DashboardPage() {
   const profile = await getCouncilProfile();
@@ -53,33 +53,18 @@ async function DashboardContent() {
   const today = todayInSeoul();
   const supabase = await createClient();
 
-  const [mine, dueSoon, week, events, links, meetings, suggestions] = await Promise.all([
+  const [mine, week, links, meetings, suggestions] = await Promise.all([
     supabase
       .from("tasks")
       .select(TASK_FIELDS, { count: "exact" })
       .eq("term_id", membership.termId)
-      .eq("assignee_id", me)
+      // 내 업무 = 담당자 또는 관리 책임자 (업무 화면과 같은 기준)
+      .or(`assignee_id.eq.${me},manager_id.eq.${me}`)
       .neq("status", "DONE")
       .is("archived_at", null)
       .order("due_date", { ascending: true, nullsFirst: false })
       .limit(5),
-    supabase
-      .from("tasks")
-      .select(TASK_FIELDS, { count: "exact" })
-      .eq("term_id", membership.termId)
-      .neq("status", "DONE")
-      .is("archived_at", null)
-      .lte("due_date", addDays(today, 3))
-      .order("due_date")
-      .limit(8),
     fetchWeekSchedules(membership.termId, mondayOf(today)),
-    supabase
-      .from("events")
-      .select("id, name, starts_at")
-      .eq("term_id", membership.termId)
-      .eq("status", "ACTIVE")
-      .order("starts_at", { ascending: true, nullsFirst: false })
-      .limit(5),
     supabase.from("dashboard_links").select("id, name, url, description").eq("is_active", true).order("sort_order").order("name"),
     supabase
       .from("meeting_minutes")
@@ -103,7 +88,6 @@ async function DashboardContent() {
   const byDay = groupByDay(week.data ?? [], days);
   const upcomingDays = days.filter((d) => byDay.get(d)!.length > 0);
   const upcomingCount = upcomingDays.reduce((n, d) => n + byDay.get(d)!.length, 0);
-  const overdueCount = dueSoon.data?.filter((t) => isOverdue(t.due_date, false, today)).length ?? 0;
 
   return (
     <div className="space-y-5">
@@ -128,23 +112,8 @@ async function DashboardContent() {
         </nav>
       )}
 
-      {/* 보드: 칸마다 제목·개수, 항목 카드, 아래에 이동 링크. 마감 임박을 맨 앞에 둔다. */}
+      {/* 보드: 칸마다 제목·개수, 항목 카드, 아래에 이동 링크 */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Column
-          title="마감 임박·기한 초과"
-          dot="bg-red-500"
-          count={dueSoon.count}
-          note={overdueCount > 0 ? `기한 초과 ${overdueCount}건` : undefined}
-          failed={!!dueSoon.error}
-          empty={dueSoon.data?.length === 0}
-          emptyText="3일 안에 마감인 업무가 없습니다."
-          footer={{ href: "/tasks?tab=all", label: "전체 업무 보기" }}
-        >
-          {dueSoon.data?.map((t) => (
-            <TaskLine key={t.id} task={t} today={today} />
-          ))}
-        </Column>
-
         <Column
           title="내 업무"
           dot="bg-coral-500"
@@ -234,23 +203,6 @@ async function DashboardContent() {
           ))}
         </Column>
 
-        <Column
-          title="진행 중 행사"
-          dot="bg-green-500"
-          failed={!!events.error}
-          empty={events.data?.length === 0}
-          emptyText="진행 중인 행사가 없습니다."
-          footer={{ href: "/events", label: "행사 전체 보기" }}
-        >
-          {events.data?.map((e) => (
-            <Card
-              key={e.id}
-              href={`/events/${e.id}`}
-              title={e.name}
-              meta={e.starts_at ? <span>{formatDateTime(e.starts_at, today)}</span> : null}
-            />
-          ))}
-        </Column>
       </div>
     </div>
   );
