@@ -51,7 +51,7 @@ export function MemberActions({
   const [positionId, setPositionId] = useState(member.position_id ?? "");
 
   const items: { mode: Mode; label: string; danger?: boolean }[] = [
-    ...(canChangeRole ? [{ mode: "role" as const, label: "역할·부서·직책 변경" }] : []),
+    ...(canChangeRole ? [{ mode: "role" as const, label: "수정" }] : []),
     ...(canEnd ? [{ mode: "end" as const, label: "소속 종료", danger: true }] : []),
   ];
   if (items.length === 0) return null;

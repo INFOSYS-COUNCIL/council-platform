@@ -66,7 +66,7 @@ async function TemplatesContent({
                 items={[
                   {
                     key: "edit",
-                    label: "이름·본문 수정",
+                    label: "수정",
                     content: (
                       <div className="space-y-3">
                         <p className="text-sm">아래 편집 화면에서 이름과 본문을 고칩니다.</p>

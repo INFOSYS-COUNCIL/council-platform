@@ -158,7 +158,7 @@ function meetingItems(
     items.push(
       {
         key: "edit",
-        label: "제목·회의 일시 수정",
+        label: "수정",
         content: (
           <ActionForm action={updateMeeting} submitLabel="저장">
             {hidden}

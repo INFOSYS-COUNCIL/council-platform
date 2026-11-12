@@ -50,7 +50,7 @@ function OrgRow({ label, item, update, setActive, remove }: { label: string; ite
       items={[
         {
           key: "edit",
-          label: "이름·순서 수정",
+          label: "수정",
           content: <form action={updateAction} className="space-y-3">
             <input type="hidden" name="id" value={item.id} />
             <TextField id={`name-${item.id}`} label={`${label} 이름`} name="name" defaultValue={item.name} required maxLength={100} error={updateState.status === "error" ? updateState.fieldErrors?.name : undefined} />

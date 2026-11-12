@@ -14,7 +14,7 @@ export const SUGGESTION_STATUS_ORDER: readonly SuggestionStatus[] = ["RECEIVED",
 
 // 건의 공개 범위. 작성자 신원과 내부 메모는 어느 쪽이든 공개되지 않는다
 export const SUGGESTION_VISIBILITY = {
-  COUNCIL: { label: "학생회만", description: "나와 학생회만 볼 수 있습니다." },
+  COUNCIL: { label: "비공개", description: "나와 학생회만 볼 수 있습니다." },
   PUBLIC: { label: "전체 공개", description: "로그인한 학생 누구나 제목·내용과 학생회 답변을 볼 수 있습니다. 작성자 이름은 공개되지 않습니다." },
 } as const;
 export type SuggestionVisibility = keyof typeof SUGGESTION_VISIBILITY;

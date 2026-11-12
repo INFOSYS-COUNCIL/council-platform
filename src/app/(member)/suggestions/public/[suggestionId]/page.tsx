@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { SuggestionStatusBadge } from "@/components/ui/badge";
 import { Section, Skeleton } from "@/components/ui/detail";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { SUGGESTION_STATUS_LABELS } from "@/lib/suggestions/labels";
 
 export const metadata: Metadata = {
   title: "공개 건의",
@@ -55,7 +54,7 @@ async function PublicSuggestion({ params }: { params: Promise<{ suggestionId: st
       <PageHeader
         title={s.title}
         description={`${new Date(s.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} · 작성자 비공개`}
-        actions={<Badge tone="neutral">{SUGGESTION_STATUS_LABELS[s.status]}</Badge>}
+        actions={<SuggestionStatusBadge status={s.status} />}
       />
       <p>
         <SecondaryLinkButton href="/suggestions/public">← 모두의 건의</SecondaryLinkButton>
