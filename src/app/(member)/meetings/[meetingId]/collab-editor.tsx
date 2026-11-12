@@ -16,6 +16,7 @@ import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu }
 import { fromBytea, MEETING_FRAGMENT, toBytea } from "@/lib/meetings/labels";
 import { meetingSchema } from "@/lib/meetings/schema";
 import { createClient } from "@/lib/supabase/client";
+import { createPageFromEditor } from "../../pages/actions";
 import { MeetingSync, PULL_PAGE, REMOTE, type SyncStatus } from "./sync";
 
 // 회의록 공동편집기 (기획서 6.1·6.4·6.6절).
@@ -189,6 +190,16 @@ export function CollabEditor({
           ? `저장 중… · 미저장 ${status.unsaved}개`
           : "저장 완료";
 
+  // "/페이지": 새 페이지(전체 공개)를 만들고 id를 돌려준다
+  const newPage = async (title: string) => {
+    const result = await createPageFromEditor(title);
+    if ("error" in result) {
+      setNotice(`페이지를 만들지 못했습니다. ${result.error}`);
+      return null;
+    }
+    return result.id;
+  };
+
   // 지금 화면의 본문을 Markdown 파일로 내려받는다(표·색 등 일부 서식은 빠질 수 있다)
   const saveMarkdown = () => {
     const url = URL.createObjectURL(new Blob([editor.blocksToMarkdownLossy(editor.document)], { type: "text/markdown;charset=utf-8" }));
@@ -221,7 +232,7 @@ export function CollabEditor({
       {notice && <Alert tone="info">{notice}</Alert>}
       <div className="min-h-64 rounded-md border border-zinc-200 bg-white py-4 dark:border-zinc-800 dark:bg-zinc-900">
         <BlockNoteView editor={editor} editable={editable} slashMenu={false}>
-          <MeetingSlashMenu editor={editor} />
+          <MeetingSlashMenu editor={editor} onNewPage={newPage} />
         </BlockNoteView>
       </div>
     </div>

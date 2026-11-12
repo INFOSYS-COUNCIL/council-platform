@@ -33,7 +33,14 @@ export const MEETING_DICTIONARY = {
 };
 
 // BlockNoteView 안에 넣는다. BlockNoteView에는 slashMenu={false}를 준다.
-export function MeetingSlashMenu({ editor }: { editor: MeetingEditorInstance }) {
+// onNewPage: "/페이지"를 고르면 새 페이지를 만들고 그 id를 돌려준다(실패하면 null). 편집기가 그 자리에 링크를 넣는다
+export function MeetingSlashMenu({
+  editor,
+  onNewPage,
+}: {
+  editor: MeetingEditorInstance;
+  onNewPage?: (title: string) => Promise<string | null>;
+}) {
   return (
     <SuggestionMenuController
       triggerCharacter="/"
@@ -62,6 +69,23 @@ export function MeetingSlashMenu({ editor }: { editor: MeetingEditorInstance }) 
                 }
               },
             },
+            ...(onNewPage
+              ? [
+                  {
+                    title: "페이지",
+                    subtext: "새 페이지를 만들고 여기에 링크 넣기",
+                    aliases: ["페이지", "page", "문서"],
+                    group: "기본 블록",
+                    icon: <span aria-hidden="true">📄</span>,
+                    onItemClick: async () => {
+                      const title = window.prompt("새 페이지 제목", "새 페이지")?.trim();
+                      if (!title) return;
+                      const id = await onNewPage(title);
+                      if (id) editor.insertInlineContent([{ type: "link", href: `/pages/${id}`, content: `📄 ${title}` }, " "]);
+                    },
+                  },
+                ]
+              : []),
           ],
           query,
         )

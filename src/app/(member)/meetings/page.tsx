@@ -59,6 +59,7 @@ async function MeetingsContent({
     .from("meeting_minutes")
     .select("id, title, meeting_at, updated_at, created_by, author_id", { count: "exact" })
     .eq("term_id", membership.termId)
+    .eq("kind", "MEETING")
     .eq("status", status);
   const { data: meetings, count, error } = await query
     .order("meeting_at", { ascending: sort === "asc" })

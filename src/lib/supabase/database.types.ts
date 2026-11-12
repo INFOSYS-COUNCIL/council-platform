@@ -213,14 +213,14 @@ isOneToOne: false
                   ]
                 },"meeting_access_rules": {
                   Row: {
-                    "created_at": string,"department_id": string | null,"granted_by": string,"id": string,"meeting_id": string,"role_group": Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"term_id": string
+                    "created_at": string,"department_id": string | null,"granted_by": string,"id": string,"meeting_id": string,"role_group": Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"term_id": string,"user_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"department_id"?: string | null,"granted_by": string,"id"?: string,"meeting_id": string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"term_id": string
+                    "created_at"?: string,"department_id"?: string | null,"granted_by": string,"id"?: string,"meeting_id": string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type": Database["public"]['Enums']["acl_subject_type"],"term_id": string,"user_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"department_id"?: string | null,"granted_by"?: string,"id"?: string,"meeting_id"?: string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type"?: Database["public"]['Enums']["acl_subject_type"],"term_id"?: string
+                    "created_at"?: string,"department_id"?: string | null,"granted_by"?: string,"id"?: string,"meeting_id"?: string,"role_group"?: Database["public"]['Enums']["acl_role_group"] | null,"subject_type"?: Database["public"]['Enums']["acl_subject_type"],"term_id"?: string,"user_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -238,6 +238,12 @@ isOneToOne: false
     },{
       foreignKeyName: "meeting_access_rules_granted_by_fkey"
       columns: ["granted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "meeting_access_rules_user_id_fkey"
+      columns: ["user_id"]
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
@@ -323,14 +329,14 @@ isOneToOne: false
                   ]
                 },"meeting_minutes": {
                   Row: {
-                    "author_id": string,"confirmed_at": string | null,"confirmed_by": string | null,"crdt_seq": number,"created_at": string,"created_by": string,"event_id": string | null,"id": string,"meeting_at": string,"status": Database["public"]['Enums']["meeting_status"],"template_id": string | null,"term_id": string,"title": string,"updated_at": string
+                    "author_id": string,"confirmed_at": string | null,"confirmed_by": string | null,"crdt_seq": number,"created_at": string,"created_by": string,"event_id": string | null,"id": string,"kind": string,"meeting_at": string,"status": Database["public"]['Enums']["meeting_status"],"tags": (string)[],"template_id": string | null,"term_id": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id": string,"confirmed_at"?: string | null,"confirmed_by"?: string | null,"crdt_seq"?: number,"created_at"?: string,"created_by": string,"event_id"?: string | null,"id"?: string,"meeting_at": string,"status"?: Database["public"]['Enums']["meeting_status"],"template_id"?: string | null,"term_id": string,"title": string,"updated_at"?: string
+                    "author_id": string,"confirmed_at"?: string | null,"confirmed_by"?: string | null,"crdt_seq"?: number,"created_at"?: string,"created_by": string,"event_id"?: string | null,"id"?: string,"kind"?: string,"meeting_at": string,"status"?: Database["public"]['Enums']["meeting_status"],"tags"?: (string)[],"template_id"?: string | null,"term_id": string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "author_id"?: string,"confirmed_at"?: string | null,"confirmed_by"?: string | null,"crdt_seq"?: number,"created_at"?: string,"created_by"?: string,"event_id"?: string | null,"id"?: string,"meeting_at"?: string,"status"?: Database["public"]['Enums']["meeting_status"],"template_id"?: string | null,"term_id"?: string,"title"?: string,"updated_at"?: string
+                    "author_id"?: string,"confirmed_at"?: string | null,"confirmed_by"?: string | null,"crdt_seq"?: number,"created_at"?: string,"created_by"?: string,"event_id"?: string | null,"id"?: string,"kind"?: string,"meeting_at"?: string,"status"?: Database["public"]['Enums']["meeting_status"],"tags"?: (string)[],"template_id"?: string | null,"term_id"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -890,8 +896,10 @@ isOneToOne: false
 "created_by": string,
 "event_id": string | null,
 "id": string,
+"kind": string,
 "meeting_at": string,
 "status": Database["public"]['Enums']["meeting_status"],
+"tags": (string)[],
 "template_id": string | null,
 "term_id": string,
 "title": string,
@@ -962,8 +970,10 @@ isOneToOne: false
 "created_by": string,
 "event_id": string | null,
 "id": string,
+"kind": string,
 "meeting_at": string,
 "status": Database["public"]['Enums']["meeting_status"],
+"tags": (string)[],
 "template_id": string | null,
 "term_id": string,
 "title": string,
@@ -1044,8 +1054,10 @@ isOneToOne: false
 "created_by": string,
 "event_id": string | null,
 "id": string,
+"kind": string,
 "meeting_at": string,
 "status": Database["public"]['Enums']["meeting_status"],
+"tags": (string)[],
 "template_id": string | null,
 "term_id": string,
 "title": string,
@@ -1071,6 +1083,31 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "meeting_templates"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"create_page":
+{ Args: { "p_department_ids"?: (string)[],"p_scope"?: string,"p_state": string,"p_state_vector": string,"p_tags"?: (string)[],"p_term_id": string,"p_title": string,"p_user_ids"?: (string)[] }; Returns: {
+              "author_id": string,
+"confirmed_at": string | null,
+"confirmed_by": string | null,
+"crdt_seq": number,
+"created_at": string,
+"created_by": string,
+"event_id": string | null,
+"id": string,
+"kind": string,
+"meeting_at": string,
+"status": Database["public"]['Enums']["meeting_status"],
+"tags": (string)[],
+"template_id": string | null,
+"term_id": string,
+"title": string,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "meeting_minutes"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -1157,6 +1194,9 @@ isOneToOne: false
                            },
 "delete_meeting_template":
 { Args: { "p_template_id": string }; Returns: undefined
+                           },
+"delete_page":
+{ Args: { "p_page_id": string }; Returns: undefined
                            },
 "delete_position":
 { Args: { "p_position_id": string }; Returns: undefined
@@ -1380,8 +1420,10 @@ isOneToOne: false
 "created_by": string,
 "event_id": string | null,
 "id": string,
+"kind": string,
 "meeting_at": string,
 "status": Database["public"]['Enums']["meeting_status"],
+"tags": (string)[],
 "template_id": string | null,
 "term_id": string,
 "title": string,
@@ -1575,8 +1617,10 @@ isOneToOne: false
 "created_by": string,
 "event_id": string | null,
 "id": string,
+"kind": string,
 "meeting_at": string,
 "status": Database["public"]['Enums']["meeting_status"],
+"tags": (string)[],
 "template_id": string | null,
 "term_id": string,
 "title": string,
@@ -1602,6 +1646,31 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "meeting_templates"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_page":
+{ Args: { "p_department_ids"?: (string)[],"p_page_id": string,"p_scope": string,"p_tags": (string)[],"p_title": string,"p_user_ids"?: (string)[] }; Returns: {
+              "author_id": string,
+"confirmed_at": string | null,
+"confirmed_by": string | null,
+"crdt_seq": number,
+"created_at": string,
+"created_by": string,
+"event_id": string | null,
+"id": string,
+"kind": string,
+"meeting_at": string,
+"status": Database["public"]['Enums']["meeting_status"],
+"tags": (string)[],
+"template_id": string | null,
+"term_id": string,
+"title": string,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "meeting_minutes"
         isOneToOne: true
         isSetofReturn: false
       } },
