@@ -39,11 +39,9 @@ import {
   archiveTask,
   deleteTask,
   changeTaskStatus,
+  editTask,
   removeTaskAccessRule,
   restoreTask,
-  setTaskManager,
-  setTaskVisibility,
-  updateTask,
   updateTaskDescription,
 } from "../actions";
 
@@ -122,9 +120,8 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
   const isExecutive = membership.role === "EXECUTIVE";
   const canManage =
     isExecutive ||
-    (membership.role === "DIRECTOR" &&
-      ((task.visibility_mode === "DEFAULT" && task.department_id === membership.departmentId) ||
-        task.manager_id === me));
+    task.manager_id === me ||
+    (membership.role === "DIRECTOR" && task.visibility_mode === "DEFAULT" && task.department_id === membership.departmentId);
   const isAssignee = task.assignee_id === me;
   const archived = task.archived_at !== null;
   const today = todayInSeoul();
@@ -140,76 +137,69 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
   const manageItems: ManageItem[] = [];
   // 담당자(관리 권한 없음)는 완료로 바꾸지 못하고, 완료된 업무를 되돌리지 못한다(국장 승인 필요). DB 함수가 다시 검사한다.
   const statusOptions = canManage ? TASK_STATUS_ORDER : TASK_STATUS_ORDER.filter((st) => st !== "DONE");
-  if (!archived && (canManage || (isAssignee && task.status !== "DONE"))) {
+  const canStatus = !archived && (canManage || (isAssignee && task.status !== "DONE"));
+  const canEditInfo = !archived && canManage;
+  const canManager = !archived && (isExecutive || task.manager_id === me);
+  // 바뀐 칸만 저장하도록 처음 값을 함께 보낸다
+  const orig = (name: string, value: string | null) => <input type="hidden" name={`orig_${name}`} value={value ?? ""} />;
+  if (canStatus || canEditInfo || canManager) {
     manageItems.push({
-      key: "status",
-      label: "상태 바꾸기",
+      key: "edit",
+      label: "수정",
+      wide: true,
       content: (
-        <ActionForm action={changeTaskStatus} submitLabel="상태 바꾸기">
+        <ActionForm action={editTask} submitLabel="저장">
           {hidden}
-          <SelectField
-            label="상태"
-            name="status"
-            defaultValue={task.status}
-            options={statusOptions.map((st) => ({ value: st, label: TASK_STATUS_LABELS[st] }))}
-          />
-        </ActionForm>
-      ),
-    });
-  }
-  if (!archived && canManage) {
-    manageItems.push(
-      {
-        key: "edit",
-        label: "제목·담당자·일정 수정",
-        content: (
-          <ActionForm action={updateTask} submitLabel="저장">
-            {hidden}
-            <TextField label="제목" name="title" required maxLength={100} defaultValue={task.title} />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <SelectField label="담당자" name="assignee_id" options={memberOptions} placeholder="담당자 없음" defaultValue={task.assignee_id ?? ""} />
-              <SelectField
-                label="우선순위"
-                name="priority"
-                defaultValue={task.priority}
-                options={TASK_PRIORITY_ORDER.map((pr) => ({ value: pr, label: TASK_PRIORITY_LABELS[pr] }))}
-              />
-              <DateTimePicker withTime={false} label="시작일" name="start_date" defaultValue={task.start_date ?? ""} />
-              <DateTimePicker withTime={false} label="마감일" name="due_date" defaultValue={task.due_date ?? ""} />
-            </div>
-          </ActionForm>
-        ),
-      },
-      {
-        key: "visibility",
-        label: "공개 모드 바꾸기",
-        content: (
-          <ActionForm
-            action={setTaskVisibility}
-            submitLabel="공개 모드 바꾸기"
-            confirmMessage="공개 모드를 바꾸면 이 업무를 볼 수 있는 사람이 달라집니다. 바꿀까요?"
-          >
-            {hidden}
-            <SelectField
-              label="공개 모드"
-              name="visibility_mode"
-              defaultValue={task.visibility_mode}
-              options={(["DEFAULT", "RESTRICTED"] as const).map((m) => ({ value: m, label: VISIBILITY_LABELS[m].label }))}
-              hint="제한 공개는 회장단이나 관리 책임자만 고를 수 있습니다."
-            />
-          </ActionForm>
-        ),
-      },
-    );
-  }
-  if (!archived && (isExecutive || task.manager_id === me)) {
-    manageItems.push({
-      key: "manager",
-      label: "관리 책임자 바꾸기",
-      content: (
-        <ActionForm action={setTaskManager} submitLabel="관리 책임자 바꾸기">
-          {hidden}
-          <SelectField label="관리 책임자" name="manager_id" options={managerOptions} defaultValue={task.manager_id} hint="국장이나 회장단만 맡을 수 있습니다." />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {canEditInfo && (
+              <div className="sm:col-span-2 lg:col-span-3">
+                {orig("title", task.title)}
+                <TextField label="제목" name="title" required maxLength={100} defaultValue={task.title} />
+              </div>
+            )}
+            {canStatus && (
+              <>
+                {orig("status", task.status)}
+                <SelectField
+                  label="상태"
+                  name="status"
+                  defaultValue={task.status}
+                  options={statusOptions.map((st) => ({ value: st, label: TASK_STATUS_LABELS[st] }))}
+                />
+              </>
+            )}
+            {canEditInfo && (
+              <>
+                {orig("assignee_id", task.assignee_id)}
+                {orig("priority", task.priority)}
+                {orig("start_date", task.start_date)}
+                {orig("due_date", task.due_date)}
+                {orig("visibility_mode", task.visibility_mode)}
+                <SelectField label="담당자" name="assignee_id" options={memberOptions} placeholder="담당자 없음" defaultValue={task.assignee_id ?? ""} />
+                <SelectField
+                  label="우선순위"
+                  name="priority"
+                  defaultValue={task.priority}
+                  options={TASK_PRIORITY_ORDER.map((pr) => ({ value: pr, label: TASK_PRIORITY_LABELS[pr] }))}
+                />
+                <DateTimePicker withTime={false} label="시작일" name="start_date" defaultValue={task.start_date ?? ""} />
+                <DateTimePicker withTime={false} label="마감일" name="due_date" defaultValue={task.due_date ?? ""} />
+                <SelectField
+                  label="공개 모드"
+                  name="visibility_mode"
+                  defaultValue={task.visibility_mode}
+                  options={(["DEFAULT", "RESTRICTED"] as const).map((m) => ({ value: m, label: VISIBILITY_LABELS[m].label }))}
+                  hint="제한 공개는 회장단이나 관리 책임자만 고를 수 있습니다."
+                />
+              </>
+            )}
+            {canManager && (
+              <>
+                {orig("manager_id", task.manager_id)}
+                <SelectField label="관리 책임자" name="manager_id" options={managerOptions} defaultValue={task.manager_id} hint="국장이나 회장단만 맡을 수 있습니다." />
+              </>
+            )}
+          </div>
         </ActionForm>
       ),
     });

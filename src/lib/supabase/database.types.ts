@@ -645,14 +645,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "archived_at": string | null,"archived_by": string | null,"assignee_id": string | null,"completed_at": string | null,"created_at": string,"creator_id": string,"department_id": string,"description": string,"due_date": string | null,"id": string,"manager_id": string,"priority": Database["public"]['Enums']["task_priority"],"start_date": string | null,"status": Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at": string,"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+                    "archived_at": string | null,"archived_by": string | null,"assignee_id": string | null,"completed_at": string | null,"created_at": string,"creator_id": string,"department_id": string | null,"description": string,"due_date": string | null,"id": string,"manager_id": string,"priority": Database["public"]['Enums']["task_priority"],"start_date": string | null,"status": Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at": string,"visibility_mode": Database["public"]['Enums']["visibility_mode"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id": string,"department_id": string,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id": string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
+                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id": string,"department_id"?: string | null,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id": string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
                   }
                   Update: {
-                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id"?: string,"department_id"?: string,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id"?: string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
+                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id"?: string,"department_id"?: string | null,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id"?: string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
                   }
                   Relationships: [
                     {
@@ -815,7 +815,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,
@@ -933,7 +933,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,
@@ -1116,7 +1116,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,
@@ -1256,7 +1256,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,
@@ -1428,7 +1428,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,
@@ -1455,7 +1455,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,
@@ -1660,7 +1660,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,
@@ -1687,7 +1687,7 @@ isOneToOne: false
 "completed_at": string | null,
 "created_at": string,
 "creator_id": string,
-"department_id": string,
+"department_id": string | null,
 "description": string,
 "due_date": string | null,
 "id": string,

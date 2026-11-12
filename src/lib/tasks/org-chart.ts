@@ -4,7 +4,7 @@ import type { TermOrgOptions } from "@/lib/org/options";
 // 관리 > 조직도·업무 현황: 사람을 회장단 / 국(국장 → 국원)으로 묶고, 각자 맡은 업무를 붙인다.
 // 회장단은 회장단·모든 국을, 국장은 자기 국만 본다. 업무 자체는 RLS가 볼 수 있는 것만 돌려준다.
 
-export type OrgTask = { id: string; assignee_id: string | null; department_id: string };
+export type OrgTask = { id: string; assignee_id: string | null; department_id: string | null };
 export type OrgPerson<T> = { userId: string; name: string; role: MemberRole; tasks: T[] };
 export type OrgGroup<T> = { key: string; title: string; people: OrgPerson<T>[]; unassigned: T[] };
 

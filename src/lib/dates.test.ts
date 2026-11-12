@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatDateTime, isOverdue, isoToSeoulLocal, seoulLocalToIso, todayInSeoul } from "./dates";
+import { addDays, formatDate, formatDateTime, isOverdue, isoToSeoulLocal, seoulLocalToIso, todayInSeoul } from "./dates";
 
 describe("todayInSeoul", () => {
   it("UTC 저녁이면 한국은 이미 다음 날이다", () => {
@@ -47,5 +47,12 @@ describe("한국 시간 일시 변환", () => {
     expect(isoToSeoulLocal("2026-11-12T09:30:00Z")).toBe("2026-11-12T18:30");
     expect(isoToSeoulLocal("2026-11-12T15:00:00Z")).toBe("2026-11-13T00:00");
     expect(formatDateTime("2026-11-12T09:30:00Z", "2026-11-09")).toBe("11월 12일 (목) 18:30");
+  });
+});
+
+describe("addDays", () => {
+  it("달·해를 넘긴다", () => {
+    expect(addDays("2026-12-30", 3)).toBe("2027-01-02");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
   });
 });
