@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Badge, SuggestionStatusBadge } from "@/components/ui/badge";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { ManageMenu } from "@/components/ui/manage-menu";
 import { SelectField, TextareaField } from "@/components/ui/form-field";
@@ -71,7 +71,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
 
   return (
     <div className="space-y-8">
-      <PageHeader title={s.title} actions={<Badge tone="neutral">{SUGGESTION_STATUS_LABELS[s.status]}</Badge>} />
+      <PageHeader title={s.title} actions={<SuggestionStatusBadge status={s.status} />} />
       <p>
         <SecondaryLinkButton href="/council/suggestions">
           ← 건의 처리 목록

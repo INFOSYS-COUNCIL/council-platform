@@ -63,7 +63,7 @@ export function AccountActions({
   const pending = account.is_active && !activated;
   const items: { mode: Mode; label: string; danger?: boolean }[] = [
     ...(ended && account.is_active ? [{ mode: "reactivate" as const, label: "학생회 권한 다시 주기" }] : []),
-    ...(pending ? [{ mode: "update" as const, label: "승인 정보 수정" }] : []),
+    ...(pending ? [{ mode: "update" as const, label: "수정" }] : []),
     ...(account.is_active ? [{ mode: "studentNo" as const, label: "학번 정정" }] : []),
     ...(pending ? [{ mode: "cancel" as const, label: "등록 취소" }] : []),
     ...(!activated ? [{ mode: "delete" as const, label: "명단에서 삭제", danger: true }] : []),

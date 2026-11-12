@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { Badge, OverdueBadge, TaskStatusBadge } from "@/components/ui/badge";
+import { MeetingStatusBadge, OverdueBadge, SuggestionStatusBadge, TaskStatusBadge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/detail";
 import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, formatDateTime, isOverdue, todayInSeoul } from "@/lib/dates";
-import { MEETING_STATUS_LABELS } from "@/lib/meetings/labels";
 import { fetchWeekSchedules } from "@/lib/schedules/queries";
 import { addDays, groupByDay, mondayOf, timeLabel, weekDays } from "@/lib/schedules/week";
-import { SUGGESTION_STATUS_LABELS } from "@/lib/suggestions/labels";
+import { councilTagline, getCouncilProfile } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -20,10 +19,11 @@ export const metadata: Metadata = {
 // 위젯은 기획서 3.1절·부록 C.3 제안값. 모든 위젯은 RLS로 볼 수 있는 자료만 보여 준다.
 // 배치(1차 사용 피드백): 바로가기 → 보드(마감 임박 → 내 업무 → 이번 주 일정 → 처리할 건의 → 최근 회의록 → 진행 중 행사).
 // 칸 제목 옆 숫자가 요약 숫자를 대신한다. 학생회 규모에 맞게 통계·차트는 두지 않는다.
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const profile = await getCouncilProfile();
   return (
     <div className="space-y-6">
-      <PageHeader title="대시보드" description="마감이 가까운 업무부터 내 업무, 이번 주 일정, 처리할 건의를 한눈에 봅니다." />
+      <PageHeader title="대시보드" description={councilTagline(profile)} />
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContent />
       </Suspense>
@@ -204,7 +204,7 @@ async function DashboardContent() {
               meta={
                 <>
                   {s.department && <span>{s.department.name}</span>}
-                  <Badge tone={s.status === "IN_REVIEW" ? "strong" : "neutral"}>{SUGGESTION_STATUS_LABELS[s.status]}</Badge>
+                  <SuggestionStatusBadge status={s.status} />
                 </>
               }
             />
@@ -227,7 +227,7 @@ async function DashboardContent() {
               meta={
                 <>
                   <span>{formatDateTime(m.updated_at, today)}</span>
-                  <Badge tone="neutral">{MEETING_STATUS_LABELS[m.status]}</Badge>
+                  <MeetingStatusBadge status={m.status} />
                 </>
               }
             />

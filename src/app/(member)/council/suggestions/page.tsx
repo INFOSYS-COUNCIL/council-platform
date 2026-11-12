@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { SuggestionStatusBadge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SelectField } from "@/components/ui/form-field";
@@ -96,7 +96,7 @@ async function CouncilSuggestions({
                     {new Date(s.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} · {s.department?.name ?? "미배정"}
                   </span>
                 </span>
-                <Badge tone={s.status === "RECEIVED" ? "strong" : "neutral"}>{SUGGESTION_STATUS_LABELS[s.status]}</Badge>
+                <SuggestionStatusBadge status={s.status} />
               </Link>
               {/* 답변·메모 수정은 상세 화면에서 */}
               <ManageMenu title="건의 처리" subtitle={s.title} items={suggestionItems(s, org, canDelete(s))} />

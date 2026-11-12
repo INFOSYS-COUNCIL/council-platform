@@ -13,9 +13,16 @@ export async function saveCouncilName(_prev: ActionState, formData: FormData): P
   await requireMember(ROUTE.href, ROUTE.roles);
   const name = String(formData.get("council_name") ?? "").trim();
   if (name.length < 1 || name.length > 30) return actionFailure("학생회 이름은 1~30자로 입력해 주세요.");
+  const rawGeneration = String(formData.get("council_generation") ?? "").trim();
+  const generation = rawGeneration === "" ? null : Number(rawGeneration);
+  if (generation !== null && (!Number.isInteger(generation) || generation < 1 || generation > 999)) {
+    return actionFailure("기수는 1~999 사이의 숫자로 입력해 주세요.");
+  }
   const supabase = await createClient();
   const { error } = await supabase.rpc("set_council_name", { p_name: name });
   if (error) return actionFailure(rpcErrorMessage(error));
+  const { error: generationError } = await supabase.rpc("set_council_generation", { p_generation: generation as number });
+  if (generationError) return actionFailure(rpcErrorMessage(generationError));
   updateTag(SITE_SETTINGS_TAG);
   return actionSuccess(`이제 "${name} 운영 플랫폼"으로 보입니다.`);
 }

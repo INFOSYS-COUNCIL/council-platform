@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Badge, MeetingStatusBadge } from "@/components/ui/badge";
 import { DialogButton } from "@/components/ui/dialog-button";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextField } from "@/components/ui/form-field";
@@ -96,7 +96,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
     manageItems.push(
       {
         key: "edit",
-        label: "제목·회의 일시 수정",
+        label: "수정",
         content: (
           <ActionForm action={updateMeeting} submitLabel="저장">
             {hidden}
@@ -162,7 +162,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
         title={meeting.title}
         actions={
           <span className="flex items-center gap-1">
-            <Badge tone="neutral">{MEETING_STATUS_LABELS[meeting.status]}</Badge>
+            <MeetingStatusBadge status={meeting.status} />
             <ManageMenu title="회의록 관리" subtitle={meeting.title} items={manageItems} />
           </span>
         }

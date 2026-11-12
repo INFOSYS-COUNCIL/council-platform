@@ -509,14 +509,14 @@ isOneToOne: false
                   ]
                 },"site_settings": {
                   Row: {
-                    "council_name": string,"id": boolean,"updated_at": string
+                    "council_generation": number | null,"council_name": string,"id": boolean,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "council_name"?: string,"id"?: boolean,"updated_at"?: string
+                    "council_generation"?: number | null,"council_name"?: string,"id"?: boolean,"updated_at"?: string
                   }
                   Update: {
-                    "council_name"?: string,"id"?: boolean,"updated_at"?: string
+                    "council_generation"?: number | null,"council_name"?: string,"id"?: boolean,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -1299,9 +1299,23 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"set_council_generation":
+{ Args: { "p_generation": number }; Returns: {
+              "council_generation": number | null,
+"council_name": string,
+"id": boolean,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "site_settings"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "set_council_name":
 { Args: { "p_name": string }; Returns: {
-              "council_name": string,
+              "council_generation": number | null,
+"council_name": string,
 "id": boolean,
 "updated_at": string
             }

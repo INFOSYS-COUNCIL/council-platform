@@ -3,13 +3,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { SuggestionStatusBadge } from "@/components/ui/badge";
 import { Section, Skeleton } from "@/components/ui/detail";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { SUGGESTION_STATUS_LABELS } from "@/lib/suggestions/labels";
 import { withdrawSuggestion } from "../actions";
 
 export const metadata: Metadata = {
@@ -58,7 +57,7 @@ async function SuggestionDetail({ params }: { params: Promise<{ suggestionId: st
       <PageHeader
         title={s.title}
         description={`${new Date(s.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 제출`}
-        actions={<Badge tone={s.status === "RESOLVED" ? "strong" : "neutral"}>{SUGGESTION_STATUS_LABELS[s.status]}</Badge>}
+        actions={<SuggestionStatusBadge status={s.status} />}
       />
       <p>
         <SecondaryLinkButton href="/suggestions">
