@@ -3,7 +3,25 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
   
-  "public": {
+  "graphql_public": {
+          Tables: {
+            [_ in never]: never
+          }
+          Views: {
+            [_ in never]: never
+          }
+          Functions: {
+            "graphql":
+{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
+                           }
+          }
+          Enums: {
+            [_ in never]: never
+          }
+          CompositeTypes: {
+            [_ in never]: never
+          }
+        },"public": {
           Tables: {
             "activity_logs": {
                   Row: {
@@ -447,6 +465,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"notifications": {
+                  Row: {
+                    "created_at": string,"id": string,"kind": string,"read_at": string | null,"suggestion_id": string | null,"task_id": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"kind": string,"read_at"?: string | null,"suggestion_id"?: string | null,"task_id"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"kind"?: string,"read_at"?: string | null,"suggestion_id"?: string | null,"task_id"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notifications_suggestion_id_fkey"
+      columns: ["suggestion_id"]
+isOneToOne: false
+      referencedRelation: "suggestions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"positions": {
                   Row: {
                     "created_at": string,"id": string,"is_active": boolean,"name": string,"sort_order": number,"term_id": string
@@ -555,17 +605,23 @@ isOneToOne: true
                   ]
                 },"suggestion_messages": {
                   Row: {
-                    "body": string,"created_at": string,"id": string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"updated_at": string | null,"writer_id": string
+                    "approved_at": string | null,"approved_by": string | null,"body": string,"created_at": string,"id": string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"updated_at": string | null,"writer_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "body": string,"created_at"?: string,"id"?: string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"updated_at"?: string | null,"writer_id": string
+                    "approved_at"?: string | null,"approved_by"?: string | null,"body": string,"created_at"?: string,"id"?: string,"message_type": Database["public"]['Enums']["suggestion_message_type"],"suggestion_id": string,"updated_at"?: string | null,"writer_id": string
                   }
                   Update: {
-                    "body"?: string,"created_at"?: string,"id"?: string,"message_type"?: Database["public"]['Enums']["suggestion_message_type"],"suggestion_id"?: string,"updated_at"?: string | null,"writer_id"?: string
+                    "approved_at"?: string | null,"approved_by"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"message_type"?: Database["public"]['Enums']["suggestion_message_type"],"suggestion_id"?: string,"updated_at"?: string | null,"writer_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "suggestion_messages_approved_by_fkey"
+      columns: ["approved_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "suggestion_messages_suggestion_id_fkey"
       columns: ["suggestion_id"]
 isOneToOne: false
@@ -651,14 +707,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "archived_at": string | null,"archived_by": string | null,"assignee_id": string | null,"completed_at": string | null,"created_at": string,"creator_id": string,"department_id": string | null,"description": string,"due_date": string | null,"id": string,"manager_id": string,"priority": Database["public"]['Enums']["task_priority"],"start_date": string | null,"status": Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at": string,"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+                    "archived_at": string | null,"archived_by": string | null,"assignee_id": string | null,"completed_at": string | null,"created_at": string,"creator_id": string,"department_id": string | null,"description": string,"due_date": string | null,"id": string,"manager_id": string,"page_id": string | null,"priority": Database["public"]['Enums']["task_priority"],"start_date": string | null,"status": Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at": string,"visibility_mode": Database["public"]['Enums']["visibility_mode"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id": string,"department_id"?: string | null,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id": string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
+                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id": string,"department_id"?: string | null,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id": string,"page_id"?: string | null,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id": string,"title": string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
                   }
                   Update: {
-                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id"?: string,"department_id"?: string | null,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id"?: string,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
+                    "archived_at"?: string | null,"archived_by"?: string | null,"assignee_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"creator_id"?: string,"department_id"?: string | null,"description"?: string,"due_date"?: string | null,"id"?: string,"manager_id"?: string,"page_id"?: string | null,"priority"?: Database["public"]['Enums']["task_priority"],"start_date"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"term_id"?: string,"title"?: string,"updated_at"?: string,"visibility_mode"?: Database["public"]['Enums']["visibility_mode"]
                   }
                   Relationships: [
                     {
@@ -690,6 +746,12 @@ isOneToOne: false
       columns: ["manager_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_page_id_fkey"
+      columns: ["page_id"]
+isOneToOne: true
+      referencedRelation: "meeting_minutes"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "tasks_term_id_fkey"
@@ -781,7 +843,9 @@ isOneToOne: false
                            },
 "add_suggestion_message":
 { Args: { "p_body": string,"p_suggestion_id": string,"p_type": Database["public"]['Enums']["suggestion_message_type"] }; Returns: {
-              "body": string,
+              "approved_at": string | null,
+"approved_by": string | null,
+"body": string,
 "created_at": string,
 "id": string,
 "message_type": Database["public"]['Enums']["suggestion_message_type"],
@@ -813,6 +877,24 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"approve_suggestion_message":
+{ Args: { "p_message_id": string }; Returns: {
+              "approved_at": string | null,
+"approved_by": string | null,
+"body": string,
+"created_at": string,
+"id": string,
+"message_type": Database["public"]['Enums']["suggestion_message_type"],
+"suggestion_id": string,
+"updated_at": string | null,
+"writer_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "suggestion_messages"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "archive_task":
 { Args: { "p_task_id": string }; Returns: {
               "archived_at": string | null,
@@ -826,6 +908,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -946,6 +1029,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -1163,6 +1247,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -1177,6 +1262,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"create_task_page":
+{ Args: { "p_state": string,"p_state_vector": string,"p_task_id": string }; Returns: string
+                           },
 "delete_approved_account":
 { Args: { "p_account_id": string }; Returns: undefined
                            },
@@ -1234,6 +1322,9 @@ isOneToOne: false
       } },
 "hook_before_user_created":
 { Args: { "event": Json }; Returns: Json
+                           },
+"mark_notifications_read":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "membership_responsibilities":
 { Args: { "p_membership_id": string }; Returns: {
@@ -1306,6 +1397,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -1483,6 +1575,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -1510,6 +1603,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -1715,7 +1809,9 @@ isOneToOne: false
       } },
 "update_suggestion_message":
 { Args: { "p_body": string,"p_message_id": string }; Returns: {
-              "body": string,
+              "approved_at": string | null,
+"approved_by": string | null,
+"body": string,
 "created_at": string,
 "id": string,
 "message_type": Database["public"]['Enums']["suggestion_message_type"],
@@ -1742,6 +1838,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -1769,6 +1866,7 @@ isOneToOne: false
 "due_date": string | null,
 "id": string,
 "manager_id": string,
+"page_id": string | null,
 "priority": Database["public"]['Enums']["task_priority"],
 "start_date": string | null,
 "status": Database["public"]['Enums']["task_status"],
@@ -1902,7 +2000,11 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "public": {
+  "graphql_public": {
+          Enums: {
+            
+          }
+        },"public": {
           Enums: {
             "acl_role_group": ["ALL_COUNCIL", "DIRECTORS", "EXECUTIVES"],"acl_subject_type": ["DEPARTMENT", "USER", "ROLE_GROUP"],"event_resource_type": ["UPLOAD", "EXTERNAL_LINK"],"event_status": ["PLANNING", "ACTIVE", "COMPLETED", "ARCHIVED"],"event_visibility": ["ALL_COUNCIL", "RESTRICTED"],"meeting_status": ["DRAFT", "CONFIRMED", "ARCHIVED"],"member_role": ["MEMBER", "DIRECTOR", "EXECUTIVE"],"suggestion_message_type": ["AUTHOR_VISIBLE", "INTERNAL"],"suggestion_status": ["RECEIVED", "IN_REVIEW", "RESOLVED", "CLOSED"],"task_priority": ["LOW", "NORMAL", "HIGH"],"task_status": ["TODO", "IN_PROGRESS", "REVIEW", "DONE"],"term_status": ["DRAFT", "ACTIVE", "CLOSED"],"visibility_mode": ["DEFAULT", "RESTRICTED"]
           }

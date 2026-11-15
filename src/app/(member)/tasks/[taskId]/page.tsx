@@ -19,6 +19,8 @@ import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
+import { markdownFileName } from "@/lib/meetings/export";
+import { fetchMeetingState } from "@/lib/meetings/queries";
 import {
   aclRuleLabel,
   aclSubjectOptions,
@@ -42,8 +44,10 @@ import {
   editTask,
   removeTaskAccessRule,
   restoreTask,
+  startTaskPage,
   updateTaskDescription,
 } from "../actions";
+import { MeetingEditor } from "../../meetings/[meetingId]/meeting-editor";
 
 export const metadata: Metadata = {
   title: "업무 상세",
@@ -57,6 +61,7 @@ const ACTIVITY_LABELS: Record<string, string> = {
   UPDATE: "제목·우선순위·일정을 바꿨습니다",
   ASSIGNEE_CHANGE: "담당자를 바꿨습니다",
   DESCRIPTION_UPDATE: "설명을 바꿨습니다",
+  PAGE_CREATE: "업무 글을 시작했습니다",
   STATUS_CHANGE: "상태를 바꿨습니다",
   REOPEN: "완료된 업무를 다시 열었습니다",
   VISIBILITY_CHANGE: "공개 모드를 바꿨습니다",
@@ -132,6 +137,10 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
   const memberOptions = memberSelectOptions(org.members);
   const managerOptions = memberSelectOptions(org.members.filter((m) => m.role !== "MEMBER"));
   const hidden = <input type="hidden" name="task_id" value={task.id} />;
+  const canWrite = !archived && (canManage || isAssignee);
+
+  // 업무 글(연결된 페이지) 본문. 업무를 볼 수 있으면 페이지도 볼 수 있다(DB 규칙). 못 읽으면 안내만 한다
+  const pageState = task.page_id ? await fetchMeetingState(supabase, task.page_id).catch(() => null) : null;
 
   // 관리 ⋯ 메뉴: 상태·정보·공개 모드·관리 책임자·보관·삭제를 한곳에 모은다(화면에는 내용만 둔다)
   const manageItems: ManageItem[] = [];
@@ -327,6 +336,45 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         }
       >
         <p className="whitespace-pre-wrap">{task.description || "설명이 없습니다."}</p>
+      </Section>
+
+      {/* 업무 글: 담당자가 실제 결과물(공지글 본문, 구글폼 링크 등)을 쓰고, 국장·회장단이 보고 검토한다 */}
+      <Section
+        title="업무 글"
+        action={
+          task.page_id && (
+            <SecondaryLinkButton href={`/pages/${task.page_id}`}>페이지로 크게 보기</SecondaryLinkButton>
+          )
+        }
+      >
+        {!task.page_id ? (
+          canWrite ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-zinc-300 p-4 dark:border-zinc-700">
+              <p className="text-sm">공지글 본문, 구글폼 링크처럼 이 업무의 결과물을 여기에 씁니다. 다 쓰면 검토 요청을 보내 주세요.</p>
+              <ActionForm action={startTaskPage} submitLabel="업무 글 쓰기 시작">
+                {hidden}
+              </ActionForm>
+            </div>
+          ) : (
+            <p className="text-sm">아직 작성된 업무 글이 없습니다.</p>
+          )
+        ) : !pageState ? (
+          <Alert>업무 글을 불러오지 못했습니다. 새로고침해 주세요.</Alert>
+        ) : (
+          <>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              쓰는 대로 자동 저장되고, 이 업무를 볼 수 있는 사람과 함께 고칠 수 있습니다. 기록 &gt; 페이지에도 보입니다.
+            </p>
+            <MeetingEditor
+              meetingId={task.page_id}
+              initialState={pageState.state}
+              initialSeq={pageState.lastSeq}
+              canEdit={!archived}
+              user={{ id: me, name: org.members.find((m) => m.userId === me)?.name ?? "나" }}
+              fileName={markdownFileName(task.created_at, task.title)}
+            />
+          </>
+        )}
       </Section>
 
       <Section

@@ -1,21 +1,23 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { OrgChart } from "@/components/org/org-chart";
+import { SectionPager } from "@/components/section-pager";
 import { SunsetScene } from "@/components/sunset-scene";
 import { getActiveMembership, getCurrentUserId } from "@/lib/auth/session";
 import { getPublicOrgChart } from "@/lib/org/public-chart";
 import { getCouncilProfile } from "@/lib/site";
 
 // 첫 화면(2차 QA): 노을 위에 학생회 이름을 크게, 그 아래 "제 N대 정보시스템학과 학생회"와 회장단(직책 순).
-// 스크롤하면 조직도(업무 없이), 그 아래 건의하기 안내. 오른쪽 위에는 로그인 / 대시보드 버튼.
+// 스크롤하면 건의하기 안내(학생회가 아닌 학생의 주 목적이라 먼저), 그 아래 조직도(3차 QA).
+// 세 구역은 각각 화면을 꽉 채우고, 조금만 스크롤해도 다음 구역으로 붙는다(scroll-snap). 오른쪽 위에는 로그인 / 대시보드 버튼.
 // 로고는 임시 "IS". 바꿀 때는 이 파일과 sidebar.tsx·login/page.tsx의 IS 표시를 함께 바꾼다.
 const PILL =
   "inline-flex min-h-10 items-center justify-center rounded-full px-5 py-2 text-sm font-semibold shadow-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col">
-      <section className="relative isolate flex min-h-svh flex-col overflow-hidden">
+    <SectionPager className="h-svh snap-y snap-mandatory overflow-y-auto motion-reduce:snap-none">
+      <section className="relative isolate flex min-h-svh snap-start flex-col overflow-hidden">
         <SunsetScene className="absolute inset-0 -z-10 size-full" />
         <header className="flex justify-end p-4 sm:p-6">
           <Suspense fallback={<span className="min-h-10" />}>
@@ -36,25 +38,14 @@ export default function Home() {
           </div>
         </div>
         <a
-          href="#org"
+          href="#suggest"
           className="mx-auto mb-6 text-sm font-medium text-zinc-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600"
         >
-          조직도 보기 ↓
+          건의하기 ↓
         </a>
       </section>
 
-      <section id="org" aria-labelledby="org-title" className="bg-background px-4 py-16 sm:px-8">
-        <div className="mx-auto max-w-5xl space-y-8">
-          <h2 id="org-title" className="text-center text-2xl font-bold tracking-tight">
-            조직도
-          </h2>
-          <Suspense fallback={<p role="status" className="text-center">불러오는 중…</p>}>
-            <PublicOrg />
-          </Suspense>
-        </div>
-      </section>
-
-      <section aria-labelledby="suggest-title" className="bg-coral-50 px-4 py-16 sm:px-8 dark:bg-zinc-900">
+      <section id="suggest" aria-labelledby="suggest-title" className="flex min-h-svh snap-start flex-col justify-center bg-coral-50 px-4 py-16 sm:px-8 dark:bg-zinc-900">
         <div className="mx-auto max-w-2xl space-y-4 text-center">
           <h2 id="suggest-title" className="text-2xl font-bold tracking-tight">
             학생회에 건의하기
@@ -67,9 +58,25 @@ export default function Home() {
           <Link href="/suggestions/new" className={`${PILL} min-h-12 bg-coral-700 px-8 text-base text-white hover:bg-coral-800`}>
             건의하기
           </Link>
+          <p>
+            <a href="#org" className="text-sm font-medium text-zinc-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-zinc-300">
+              조직도 보기 ↓
+            </a>
+          </p>
         </div>
       </section>
-    </main>
+
+      <section id="org" aria-labelledby="org-title" className="flex min-h-svh snap-start flex-col justify-center bg-background px-4 py-16 sm:px-8">
+        <div className="mx-auto w-full max-w-5xl space-y-8">
+          <h2 id="org-title" className="text-center text-2xl font-bold tracking-tight">
+            조직도
+          </h2>
+          <Suspense fallback={<p role="status" className="text-center">불러오는 중…</p>}>
+            <PublicOrg />
+          </Suspense>
+        </div>
+      </section>
+    </SectionPager>
   );
 }
 

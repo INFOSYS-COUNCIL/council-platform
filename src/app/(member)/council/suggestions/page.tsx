@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { pageNumber, Pagination, PillLink } from "@/components/ui/pagination";
 import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
-import { handlerFilter } from "@/lib/suggestions/handler";
+import { handlerFilter, SUGGESTION_HANDLER_ROLES } from "@/lib/suggestions/handler";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -45,7 +45,7 @@ async function CouncilSuggestions({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const membership = await requireMember("/council/suggestions");
+  const membership = await requireMember("/council/suggestions", SUGGESTION_HANDLER_ROLES);
   const raw = await searchParams;
   const status: SuggestionStatus | null = SUGGESTION_STATUS_ORDER.find((s) => s === raw.status) ?? null;
   const page = pageNumber(raw.page);
@@ -162,7 +162,7 @@ function suggestionItems(
         <ActionForm action={assignSuggestion} submitLabel="배정 저장">
           {hidden}
           <SelectField label="담당 부서" name="department_id" placeholder="미배정" options={departmentSelectOptions(org.departments)} defaultValue={s.assigned_department_id ?? ""} />
-          <SelectField label="담당자" name="user_id" placeholder="부서 국장이 처리" options={memberSelectOptions(org.members)} defaultValue={s.assigned_user_id ?? ""} />
+          <SelectField label="담당자" name="user_id" placeholder="부서 국장이 처리" options={memberSelectOptions(org.members.filter((m) => m.role !== "MEMBER"))} defaultValue={s.assigned_user_id ?? ""} />
         </ActionForm>
       ),
     });

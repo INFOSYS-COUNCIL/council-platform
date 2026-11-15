@@ -29,7 +29,7 @@ grant select, insert on ids to authenticated;
 
 set local role authenticated;
 
--- 건의: 학생이 쓰고 회장단이 재무국에 배정, 국원 M을 담당자로
+-- 건의: 학생이 쓰고 회장단이 재무국에 배정(국원은 건의 담당자가 될 수 없다, 3차 QA)
 set local request.jwt.claims = '{"sub":"bb000000-0000-0000-0000-000000000001","role":"authenticated"}';
 insert into ids select 's', public.submit_suggestion('지울 건의', '내용', gen_random_uuid());
 
@@ -37,21 +37,20 @@ set local request.jwt.claims = '{"sub":"eb000000-0000-0000-0000-000000000001","r
 select public.assign_suggestion(
   (select id from ids where name = 's'),
   (select id from public.departments where term_id = '00000000-0000-0000-0000-000000000001' and name = '재무국'),
-  'ab000000-0000-0000-0000-000000000001'
+  null
 );
+insert into ids select 'm_msg', (public.add_suggestion_message((select id from ids where name = 's'), 'INTERNAL', '회장단 메모')).id;
 
 set local request.jwt.claims = '{"sub":"ab000000-0000-0000-0000-000000000001","role":"authenticated"}';
-insert into ids select 'm_msg', (public.add_suggestion_message((select id from ids where name = 's'), 'INTERNAL', '국원 메모')).id;
-
 select throws_ok(
-  $$ select public.update_suggestion_message((select id from ids where name = 'm_msg'), '고침') $$,
+  $$ select public.add_suggestion_message((select id from ids where name = 's'), 'INTERNAL', '국원 메모') $$,
   '42501', null,
-  '담당자인 국원은 / 자기가 쓴 메모도 / 고칠 수 없다'
+  '배정된 국의 국원은 / 건의에 메모를 / 남길 수 없다'
 );
 select throws_ok(
   $$ select public.delete_suggestion((select id from ids where name = 's')) $$,
   '42501', null,
-  '담당자인 국원은 / 건의를 / 지울 수 없다'
+  '배정된 국의 국원은 / 건의를 / 지울 수 없다'
 );
 
 set local request.jwt.claims = '{"sub":"db000000-0000-0000-0000-000000000002","role":"authenticated"}';
@@ -64,7 +63,7 @@ select throws_ok(
 set local request.jwt.claims = '{"sub":"db000000-0000-0000-0000-000000000001","role":"authenticated"}';
 select lives_ok(
   $$ select public.update_suggestion_message((select id from ids where name = 'm_msg'), '국장이 고침') $$,
-  '맡은 국의 국장은 / 국원이 쓴 메모를 / 고칠 수 있다'
+  '맡은 국의 국장은 / 회장단이 쓴 메모를 / 고칠 수 있다'
 );
 select lives_ok(
   $$ select public.delete_suggestion((select id from ids where name = 's')) $$,

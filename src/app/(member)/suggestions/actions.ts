@@ -73,7 +73,14 @@ export async function addSuggestionMessage(_prev: ActionState, formData: FormDat
     p_type: type,
     p_body: text(formData, "body"),
   });
-  return done(error, type === "AUTHOR_VISIBLE" ? "작성자에게 답변을 남겼습니다." : "내부 메모를 남겼습니다.");
+  return done(error, type === "AUTHOR_VISIBLE" ? "답변을 남겼습니다. 승인하면 작성자에게 보입니다." : "내부 메모를 남겼습니다.");
+}
+
+// 작성자 답변 승인: 회장단이나 맡은 국의 국장(DB 함수가 검사). 승인해야 작성자에게 보인다
+export async function approveSuggestionMessage(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { supabase } = await handlerContext(formData);
+  const { error } = await supabase.rpc("approve_suggestion_message", { p_message_id: text(formData, "message_id") });
+  return done(error, "답변을 승인했습니다. 이제 작성자에게 보입니다.");
 }
 
 export async function changeSuggestionStatus(_prev: ActionState, formData: FormData): Promise<ActionState> {

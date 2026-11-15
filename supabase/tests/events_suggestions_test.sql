@@ -213,7 +213,7 @@ select is(
 
 select throws_ok(
   $$ select public.change_suggestion_status((select id from ids where name = 'sug'), 'RESOLVED') $$,
-  '55000', '답변 완료로 바꾸기 전에 작성자에게 보이는 답변을 먼저 남겨 주세요.',
+  '55000', '답변 완료로 바꾸기 전에 작성자 답변을 남기고 승인해 주세요.',
   '국장 D2의 / 공개 답변 없는 처리 완료가 / 거부된다 (D-10)'
 );
 
@@ -224,7 +224,8 @@ select throws_ok(
 );
 
 select public.add_suggestion_message((select id from ids where name = 'sug'), 'INTERNAL', '예산 확인 필요');
-select public.add_suggestion_message((select id from ids where name = 'sug'), 'AUTHOR_VISIBLE', '다음 달에 교체하겠습니다.');
+-- 작성자 답변은 승인해야 작성자에게 보인다(3차 QA)
+select public.approve_suggestion_message((public.add_suggestion_message((select id from ids where name = 'sug'), 'AUTHOR_VISIBLE', '다음 달에 교체하겠습니다.')).id);
 select public.change_suggestion_status((select id from ids where name = 'sug'), 'RESOLVED');
 
 set local request.jwt.claims = '{"sub":"a4000000-0000-0000-0000-000000000002","role":"authenticated"}';
