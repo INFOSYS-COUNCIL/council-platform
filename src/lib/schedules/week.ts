@@ -1,6 +1,6 @@
 import { isoToSeoulLocal } from "@/lib/dates";
 
-// 일정 화면의 한 주(월~일, 한국 날짜) 계산. 날짜는 "YYYY-MM-DD" 문자열로 다룬다.
+// 일정 화면의 한 주(일~토, 한국 날짜) 계산. 날짜는 "YYYY-MM-DD" 문자열로 다룬다.
 
 export function isCalendarDate(value: unknown): value is string {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -14,21 +14,20 @@ function addDays(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function mondayOf(date: string): string {
-  const day = new Date(`${date}T00:00:00Z`).getUTCDay(); // 0=일
-  return addDays(date, day === 0 ? -6 : 1 - day);
+export function sundayOf(date: string): string {
+  return addDays(date, -new Date(`${date}T00:00:00Z`).getUTCDay());
 }
 
-export function weekDays(monday: string): string[] {
-  return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+export function weekDays(sunday: string): string[] {
+  return Array.from({ length: 7 }, (_, i) => addDays(sunday, i));
 }
 
 export { addDays };
 
-// 달력 한 장: "YYYY-MM"이 들어 있는 6주(42일), 월요일부터
+// 달력 한 장: "YYYY-MM"이 들어 있는 6주(42일), 일요일부터
 export function monthGrid(month: string): string[] {
-  const monday = mondayOf(`${month}-01`);
-  return Array.from({ length: 42 }, (_, i) => addDays(monday, i));
+  const sunday = sundayOf(`${month}-01`);
+  return Array.from({ length: 42 }, (_, i) => addDays(sunday, i));
 }
 
 // "YYYY-MM"에 달 수를 더한다
@@ -76,7 +75,7 @@ export function timeLabel(s: ScheduleTime): string {
 
 // 여러 날에 걸친 일정(시작일 ≠ 종료일)을 한 주 안에서 이어진 막대로 놓는다.
 // 겹치지 않게 줄(lane)을 나눈다: 먼저 시작하는 것, 같은 날이면 긴 것부터 비어 있는 가장 위 줄에 둔다.
-// col은 그 주에서 0(월)~6(일), span은 그 주 안에서 걸친 날 수. 주를 넘어가면 다음 주에 다시 놓인다.
+// col은 그 주에서 0(일)~6(토), span은 그 주 안에서 걸친 날 수. 주를 넘어가면 다음 주에 다시 놓인다.
 export type WeekBar<T> = { item: T; col: number; span: number; lane: number; fromPrev: boolean; toNext: boolean; };
 
 export function isMultiDay(s: ScheduleTime): boolean {

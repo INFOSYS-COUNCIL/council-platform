@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, groupByDay, isCalendarDate, monthGrid, mondayOf, timeLabel, weekBars, weekDays } from "./week";
+import { addMonths, groupByDay, isCalendarDate, monthGrid, sundayOf, timeLabel, weekBars, weekDays } from "./week";
 
 describe("isCalendarDate", () => {
   it.each(["2026-11-15", "2028-02-29"])("실제 날짜 %s를 받는다", (value) => {
@@ -10,16 +10,16 @@ describe("isCalendarDate", () => {
   });
 });
 
-describe("mondayOf / weekDays", () => {
-  it("일요일은 그 주의 월요일(6일 전)로, 월요일은 그대로", () => {
-    expect(mondayOf("2026-11-15")).toBe("2026-11-09"); // 일
-    expect(mondayOf("2026-11-09")).toBe("2026-11-09"); // 월
-    expect(mondayOf("2026-01-01")).toBe("2025-12-29"); // 해 넘김
+describe("sundayOf / weekDays", () => {
+  it("일요일은 그대로, 다른 요일은 그 주의 일요일로", () => {
+    expect(sundayOf("2026-11-15")).toBe("2026-11-15"); // 일
+    expect(sundayOf("2026-11-09")).toBe("2026-11-08"); // 월
+    expect(sundayOf("2026-01-01")).toBe("2025-12-28"); // 해 넘김
   });
 
-  it("월~일 7일", () => {
-    expect(weekDays("2026-11-09")).toEqual([
-      "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15",
+  it("일~토 7일", () => {
+    expect(weekDays("2026-11-08")).toEqual([
+      "2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14",
     ]);
   });
 });
@@ -44,11 +44,11 @@ describe("groupByDay", () => {
 });
 
 describe("monthGrid / addMonths", () => {
-  it("그 달 1일이 든 주의 월요일부터 42일", () => {
+  it("그 달 1일이 든 주의 일요일부터 42일", () => {
     const grid = monthGrid("2026-11"); // 11/1은 일요일
     expect(grid).toHaveLength(42);
-    expect(grid[0]).toBe("2026-10-26");
-    expect(grid[41]).toBe("2026-12-06");
+    expect(grid[0]).toBe("2026-11-01");
+    expect(grid[41]).toBe("2026-12-12");
   });
 
   it("해를 넘겨 달을 옮긴다", () => {

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { OrgChart } from "@/components/org/org-chart";
@@ -10,11 +11,11 @@ const PILL = "inline-flex min-h-12 items-center justify-center gap-3 rounded-ful
 
 export default function Home() {
   return (
-    <SectionPager className="h-svh snap-y snap-proximity overflow-y-auto motion-reduce:snap-none">
-      <section className="flex min-h-svh snap-start flex-col bg-background">
+    <SectionPager className="h-svh overflow-y-auto overscroll-y-contain [overflow-anchor:none]">
+      <section className="flex min-h-svh flex-col bg-background">
         <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-10">
           <Link href="/" aria-label="첫 화면" className="flex items-center gap-2.5 rounded-lg font-bold focus-visible:outline-2 focus-visible:outline-accent">
-            <span aria-hidden="true" className="bg-coral-gradient grid size-9 place-items-center rounded-full text-xs text-zinc-950">IS</span>
+            <Image src="/council-logo.png" alt="" width={36} height={36} className="size-9 rounded-full object-cover" />
             <Suspense fallback="학생회"><CouncilName /></Suspense>
           </Link>
           <nav aria-label="첫 화면 메뉴" className="flex items-center gap-4 text-sm sm:gap-7">
@@ -45,7 +46,7 @@ export default function Home() {
           </svg>
         </div>
       </section>
-      <section id="suggest" aria-labelledby="suggest-title" className="flex min-h-svh snap-start items-center bg-[#2a1a15] px-5 py-20 text-[#fff8f0] sm:px-10">
+      <section id="suggest" aria-labelledby="suggest-title" className="flex min-h-svh items-center bg-[#2a1a15] px-5 py-20 text-[#fff8f0] sm:px-10">
         <div className="mx-auto w-full max-w-6xl space-y-12">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <h2 id="suggest-title" className="text-3xl font-bold tracking-tight sm:text-5xl">건의는 세 단계면 끝나요</h2>
@@ -70,7 +71,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section id="org" aria-labelledby="org-title" className="flex min-h-svh snap-start flex-col justify-center bg-background px-5 py-20 sm:px-10">
+      <section id="org" aria-labelledby="org-title" className="flex min-h-svh flex-col justify-center bg-background px-5 py-20 sm:px-10">
         <div className="mx-auto w-full max-w-5xl space-y-10">
           <h2 id="org-title" className="text-center text-3xl font-bold tracking-tight">조직도</h2>
           <Suspense fallback={<p role="status" className="text-center">불러오는 중…</p>}><PublicOrg /></Suspense>

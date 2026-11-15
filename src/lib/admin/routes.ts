@@ -19,7 +19,7 @@ export const ADMIN_ROUTES = {
   },
   settings: {
     href: "/admin/settings",
-    label: "학생회 이름",
+    label: "학생회 설정",
     group: "조직 설정",
     roles: ["EXECUTIVE"],
   },

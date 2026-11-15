@@ -25,7 +25,7 @@ type Task = {
   title: string;
   status: TaskStatus;
   due_date: string | null;
-  assignee_id: string | null;
+  assignees: { user_id: string }[];
   department_id: string | null;
 };
 
@@ -49,7 +49,7 @@ async function TeamTasksContent() {
     getTermOrgOptions(membership.termId),
     supabase
       .from("tasks")
-      .select("id, title, status, due_date, assignee_id, department_id")
+      .select("id, title, status, due_date, assignees:task_assignees(user_id), department_id")
       .eq("term_id", membership.termId)
       .neq("status", "DONE")
       .is("archived_at", null)
@@ -88,7 +88,7 @@ async function TeamTasksContent() {
 }
 
 function GroupCard({ group, today, headingId }: { group: OrgGroup<Task>; today: string; headingId: string }) {
-  const total = group.people.reduce((n, p) => n + p.tasks.length, 0) + group.unassigned.length;
+  const total = new Set([...group.people.flatMap((person) => person.tasks), ...group.unassigned].map((task) => task.id)).size;
   return (
     <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">

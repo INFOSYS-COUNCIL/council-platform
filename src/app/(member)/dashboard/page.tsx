@@ -41,7 +41,7 @@ function DashboardSkeleton() {
   );
 }
 
-const TASK_FIELDS = "id, title, status, due_date, department:departments(name)";
+const TASK_FIELDS = "id, title, status, due_date, department:departments(name), mine:task_assignees()";
 const OPEN_SUGGESTION_STATUSES = ["RECEIVED", "IN_REVIEW"] as const;
 
 const NOTIFICATION_TEXT = {
@@ -51,17 +51,6 @@ const NOTIFICATION_TEXT = {
 } as const;
 
 // 알림은 회장단·국장에게만 온다(새 업무·새 건의·건의 배정). 제목은 RLS로 볼 수 있을 때만 붙인다.
-function Notifications({ items, count, failed }: { items: NotificationItem[]; count: number | null; failed: boolean }) {
-  return (
-    <div id="notifications">
-      <Column title="알림" count={count} failed={failed} empty={items.length === 0} emptyText="새 알림이 없습니다." action={<NotificationBell items={items} unreadCount={count ?? 0} />}>
-        {items.slice(0, 3).map((item) => (
-          <Card key={item.id} href={item.href ?? "/dashboard"} title={item.text} meta={<>{item.unread && <span className="font-semibold text-accent">새 알림</span>}{item.when}</>} />
-        ))}
-      </Column>
-    </div>
-  );
-}
 
 async function DashboardContent() {
   const membership = await requireMember("/dashboard");
@@ -78,7 +67,8 @@ async function DashboardContent() {
       .select(TASK_FIELDS, { count: "exact" })
       .eq("term_id", membership.termId)
       // 내 업무 = 담당자 또는 관리 책임자 (업무 화면과 같은 기준)
-      .or(`assignee_id.eq.${me},manager_id.eq.${me}`)
+      .eq("mine.user_id", me)
+      .or(`mine.not.is.null,manager_id.eq.${me}`)
       .neq("status", "DONE")
       .is("archived_at", null)
       .order("due_date", { ascending: true, nullsFirst: false })
@@ -133,20 +123,21 @@ async function DashboardContent() {
     <div className="space-y-6">
       <div className="space-y-2">
         <p className="text-sm text-muted">{new Date(`${today}T12:00:00+09:00`).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", weekday: "long" })}</p>
-        <PageHeader title="대시보드" />
+        <PageHeader title="대시보드" actions={!isMember && <NotificationBell items={notificationItems} unreadCount={unread?.count ?? 0} />} />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-2 xl:grid-cols-4" aria-label="업무 요약">
         {[
           { label: "마감 지난 업무 (전체)", count: overdue.error ? null : overdue.count, href: "/tasks", danger: (overdue.count ?? 0) > 0 },
           { label: "내 업무", count: mine.error ? null : mine.count, href: "/tasks?tab=mine", danger: false },
           ...(suggestions ? [{ label: "처리할 건의", count: suggestions.error ? null : suggestions.count, href: "/council/suggestions", danger: false }] : []),
-          ...(!isMember ? [{ label: "새 알림", count: unread?.error ? null : unread?.count ?? null, href: "#notifications", danger: false }] : []),
+          ...(!isMember ? [{ label: "새 알림", count: unread?.error ? null : unread?.count ?? null, href: "/dashboard", danger: false }] : []),
         ].map((item) => (
           <Link key={item.label} href={item.href} className={`shrink-0 rounded-full border px-3 py-2 text-sm md:rounded-xl md:p-4 ${FOCUS_RING} ${item.danger ? "border-transparent bg-danger-bg text-danger" : "border-zinc-200 bg-surface dark:border-zinc-800"}`}>
             <span className="md:block md:text-muted">{item.label}</span>{" "}<span className="font-semibold tabular-nums md:mt-1 md:block md:text-2xl">{item.count ?? "—"}</span>
           </Link>
         ))}
       </div>
+      {(notifications?.error || unread?.error) && <p role="alert" className="text-sm text-danger">알림을 불러오지 못했습니다. 새로고침해 주세요.</p>}
       {links.data && links.data.length > 0 && <nav aria-label="바로가기" className="flex flex-wrap gap-2">{links.data.map((link) => <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className={`rounded-full border border-zinc-200 bg-surface px-3 py-2 text-sm dark:border-zinc-800 ${FOCUS_RING}`}>{link.name} <span aria-hidden="true">↗</span><span className="sr-only">(새 창)</span></a>)}</nav>}
       <div className="grid items-start gap-5 md:grid-cols-2">
         <div className="order-2 space-y-5 md:order-1">
@@ -158,10 +149,10 @@ async function DashboardContent() {
           </Column>}
         </div>
         <div className="order-1 space-y-5 md:order-2">
-          <Column title="앞으로 7일 일정" count={upcomingCount} failed={!!week.error} empty={upcomingDays.length === 0} emptyText="앞으로 7일 동안 일정이 없습니다." action={<Link href="/schedule" className={`text-sm text-muted ${FOCUS_RING}`}>달력</Link>}>
+          <Column title="내 일정" count={upcomingCount} failed={!!week.error} empty={upcomingDays.length === 0} emptyText="앞으로 7일 동안 일정이 없습니다." action={<Link href="/schedule" className={`text-sm text-muted ${FOCUS_RING}`}>달력</Link>}>
             {upcomingDays.flatMap((day) => byDay.get(day)!.map((schedule) => <Card key={`${day}-${schedule.id}`} href={`/schedule?date=${day}`} title={schedule.title} meta={<><span className={day === today ? "font-semibold text-accent" : ""}>{day === today ? "오늘" : formatDate(day, today)}</span>{timeLabel(schedule)}{schedule.location && ` · ${schedule.location}`}</>} />))}
           </Column>
-          {!isMember && <Notifications items={notificationItems} count={unread?.count ?? null} failed={!!notifications?.error || !!unread?.error} />}
+
         </div>
       </div>
       <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-surface px-5 py-4 text-sm dark:border-zinc-800" aria-label="최근 회의록">
