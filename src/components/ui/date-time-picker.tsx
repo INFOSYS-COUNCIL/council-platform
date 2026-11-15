@@ -11,7 +11,7 @@ import { addMonths, monthGrid } from "@/lib/schedules/week";
 // min을 주면 그보다 앞선 날짜·시각은 고를 수 없다(종료를 시작보다 늦게 고정할 때).
 // value·onChange를 주면 부모가 값을 쥔다(시작·종료를 함께 맞출 때). 안 주면 스스로 값을 쥔다.
 
-const WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const TIMES = Array.from({ length: 36 }, (_, i) => {
   const minutes = 6 * 60 + i * 30; // 06:00 ~ 23:30
   return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;

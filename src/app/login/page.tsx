@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { GoogleLoginButton } from "./google-login-button";
@@ -21,12 +22,7 @@ export default function LoginPage({
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm space-y-6 rounded-2xl bg-white/80 p-6 shadow-[0_20px_60px_-20px_rgb(244_91_79/0.35)] ring-1 ring-white/70 backdrop-blur-md sm:p-8 dark:bg-zinc-900/85 dark:ring-zinc-800">
           <div className="space-y-3">
-            <span
-              aria-hidden="true"
-              className="bg-coral-gradient grid size-10 place-items-center rounded-lg text-sm font-bold text-zinc-950"
-            >
-              IS
-            </span>
+            <Image src="/council-logo.png" alt="" width={40} height={40} className="size-10 shrink-0 rounded-lg object-cover" />
             <h1 className="text-xl font-semibold tracking-tight">
               <Suspense fallback="학생회">
                 <PlatformName />

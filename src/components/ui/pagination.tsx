@@ -37,7 +37,7 @@ export function PillLink({ href, current, children, variant = "tab" }: { href: s
     <Link
       href={href}
       aria-current={current ? "page" : undefined}
-      className={`inline-flex min-h-11 shrink-0 items-center px-3 py-2 text-sm ${FOCUS_RING} ${variant === "tab" ? `border-b-2 ${current ? "border-accent font-semibold text-foreground" : "border-transparent text-muted hover:text-foreground"}` : `rounded-full border ${current
+      className={`inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-3 py-2 text-sm ${FOCUS_RING} ${variant === "tab" ? `border-b-2 ${current ? "border-accent font-semibold text-foreground" : "border-transparent text-muted hover:text-foreground"}` : `rounded-full border ${current
           ? "border-foreground bg-foreground font-semibold text-background"
           : "border-border-input text-muted hover:text-foreground"
         }`}`}

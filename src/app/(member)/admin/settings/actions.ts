@@ -9,6 +9,18 @@ import { createClient } from "@/lib/supabase/server";
 
 const ROUTE = ADMIN_ROUTES.settings;
 
+export async function saveTaskDueSoon(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireMember(ROUTE.href, ROUTE.roles);
+  const raw = String(formData.get("task_due_soon_days") ?? "").trim();
+  const days = Number(raw);
+  if (!/^\d+$/.test(raw) || days > 365) return actionFailure("마감 임박 기준은 0~365일로 입력해 주세요.");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_task_due_soon_days", { p_days: days });
+  if (error) return actionFailure(rpcErrorMessage(error));
+  updateTag(SITE_SETTINGS_TAG);
+  return actionSuccess(`마감 ${days}일 전부터 마감 임박으로 표시합니다.`);
+}
+
 export async function saveCouncilName(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireMember(ROUTE.href, ROUTE.roles);
   const name = String(formData.get("council_name") ?? "").trim();

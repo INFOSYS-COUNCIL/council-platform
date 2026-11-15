@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/badge";
 import { DialogButton } from "@/components/ui/dialog-button";
 import { Info, Section, Skeleton } from "@/components/ui/detail";
-import { SelectField, TextareaField, TextField } from "@/components/ui/form-field";
+import { MultiSelectField, SelectField, TextareaField, TextField } from "@/components/ui/form-field";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
@@ -97,7 +97,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
     supabase
       .from("tasks")
       .select(
-        "*, department:departments(name), assignee:profiles!tasks_assignee_id_fkey(display_name, email), manager:profiles!tasks_manager_id_fkey(display_name, email), creator:profiles!tasks_creator_id_fkey(display_name, email)",
+        "*, department:departments(name), assignees:task_assignees(user_id, profile:profiles(display_name, email)), manager:profiles!tasks_manager_id_fkey(display_name, email), creator:profiles!tasks_creator_id_fkey(display_name, email)",
       )
       .eq("id", taskId)
       .maybeSingle(),
@@ -128,14 +128,17 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
     isExecutive ||
     task.manager_id === me ||
     (membership.role === "DIRECTOR" && task.visibility_mode === "DEFAULT" && task.department_id === membership.departmentId);
-  const isAssignee = task.assignee_id === me;
+  const isAssignee = task.assignees.some((assignee) => assignee.user_id === me);
   const archived = task.archived_at !== null;
   const today = todayInSeoul();
 
   const nameOf = (p: { display_name: string | null; email: string; } | null) =>
     p ? p.display_name?.trim() || p.email : "없음";
   const activeIds = new Set(org.members.map((m) => m.userId));
-  const memberOptions = memberSelectOptions(org.members);
+  const memberOptions = [
+    ...memberSelectOptions(org.members),
+    ...task.assignees.filter((assignee) => !activeIds.has(assignee.user_id)).map((assignee) => ({ value: assignee.user_id, label: `${nameOf(assignee.profile)} (활동 종료)` })),
+  ];
   const managerOptions = memberSelectOptions(org.members.filter((m) => m.role !== "MEMBER"));
   const hidden = <input type="hidden" name="task_id" value={task.id} />;
   const canWrite = !archived && (canManage || isAssignee);
@@ -180,12 +183,12 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
             )}
             {canEditInfo && (
               <>
-                {orig("assignee_id", task.assignee_id)}
+                {orig("assignee_ids", task.assignees.map((assignee) => assignee.user_id).sort().join(","))}
                 {orig("priority", task.priority)}
                 {orig("start_date", task.start_date)}
                 {orig("due_date", task.due_date)}
                 {orig("visibility_mode", task.visibility_mode)}
-                <SelectField label="담당자" name="assignee_id" options={memberOptions} placeholder="담당자 없음" defaultValue={task.assignee_id ?? ""} />
+                <MultiSelectField label="담당자" name="assignee_ids" options={memberOptions} defaultValue={task.assignees.map((assignee) => assignee.user_id)} hint="여러 명을 선택할 수 있습니다." />
                 <SelectField
                   label="우선순위"
                   name="priority"
@@ -258,7 +261,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-zinc-200 pb-6 text-sm dark:border-zinc-800">
         <TaskStatusBadge status={task.status} />
         <TaskPriorityBadge priority={task.priority} />
-        <span><span className="text-muted">담당자 </span>{nameOf(task.assignee)} {task.assignee_id && !activeIds.has(task.assignee_id) && <InactiveAssigneeBadge />}</span>
+        <span><span className="text-muted">담당자 </span>{task.assignees.map((assignee) => nameOf(assignee.profile)).join(", ") || "담당자 없음"} {task.assignees.some((assignee) => !activeIds.has(assignee.user_id)) && <InactiveAssigneeBadge />}</span>
         <span><span className="text-muted">마감 </span>{formatDate(task.due_date, today) || "없음"}</span>
         {isOverdue(task.due_date, task.status === "DONE", today) && <OverdueBadge />}
         {archived && <Badge tone="muted">보관됨</Badge>}

@@ -2,45 +2,70 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-// 첫 화면의 화면 단위 구역 넘기기(3차 QA): 휠을 조금만 굴려도 다음·이전 구역으로 넘어간다.
-// CSS scroll-snap만 쓰면 조금 굴렸을 때 가까운(원래) 구역으로 되돌아가므로 휠만 직접 처리한다.
-// 화면보다 긴 구역(조직도 등)은 그 안을 다 내려 본 뒤에 넘어간다. 터치·키보드는 브라우저 기본 스크롤과 snap에 맡긴다.
+// CSS snap은 비동기 내용·뷰포트 변화에도 움직이므로 실제 입력이 있을 때만 구역을 넘긴다.
+export function sectionTarget(sections: readonly { offsetTop: number; offsetHeight: number }[], top: number, height: number, direction: number, keyboard = false): number | null {
+  if (!sections.length) return null;
+  const index = Math.max(0, sections.findLastIndex((section) => section.offsetTop <= top + 2));
+  const current = sections[index];
+  // 한 화면에서 조금 넘친 여백 때문에 몇 픽셀씩만 움직이지 않게 한다.
+  const edge = Math.max(2, height * 0.08);
+  if (direction > 0 && top + height < current.offsetTop + current.offsetHeight - edge) {
+    return keyboard ? Math.min(top + height * 0.85, current.offsetTop + current.offsetHeight - height) : null;
+  }
+  if (direction < 0 && top > current.offsetTop + edge) {
+    return keyboard ? Math.max(current.offsetTop, top - height * 0.85) : null;
+  }
+  const target = sections[index + direction];
+  if (!target) return keyboard ? direction < 0 ? current.offsetTop : Math.max(current.offsetTop, current.offsetTop + current.offsetHeight - height) : null;
+  return direction > 0 || target.offsetHeight <= height + edge ? target.offsetTop : target.offsetTop + target.offsetHeight - height;
+}
+
 export function SectionPager({ className, children }: { className?: string; children: ReactNode }) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let locked = false;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let consumed = false;
+    let idle: ReturnType<typeof setTimeout>;
+    const move = (direction: number, keyboard = false) => {
+      const top = sectionTarget([...el.children] as HTMLElement[], el.scrollTop, el.clientHeight, direction, keyboard);
+      if (top === null) return false;
+      el.scrollTo({ top, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      return true;
+    };
 
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey) return; // 확대·축소
-      if (locked) return e.preventDefault();
+      clearTimeout(idle);
+      idle = setTimeout(() => { consumed = false; }, 180);
+      if (consumed) return e.preventDefault();
       const dir = Math.sign(e.deltaY);
       if (dir === 0 || Math.abs(e.deltaY) < 4) return;
-      const sections = [...el.children] as HTMLElement[];
-      const top = el.scrollTop;
-      const i = sections.reduce((best, s, k) => (Math.abs(s.offsetTop - top) < Math.abs(sections[best].offsetTop - top) ? k : best), 0);
-      const current = sections[i];
-      // 지금 구역 안에 아직 볼 내용이 남았으면 그대로 스크롤한다
-      if (dir > 0 && top + el.clientHeight < current.offsetTop + current.offsetHeight - 2) return;
-      if (dir < 0 && top > current.offsetTop + 2) return;
-      const target = sections[i + dir];
-      if (!target) return;
+      if (move(dir)) {
+        e.preventDefault();
+        consumed = true;
+      }
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || !["ArrowUp", "ArrowDown"].includes(e.key)) return;
+      if (e.target instanceof Element && e.target.closest("input, textarea, select, button, [contenteditable], [role=dialog]")) return;
       e.preventDefault();
-      locked = true;
-      const to = dir > 0 ? target.offsetTop : Math.max(target.offsetTop, target.offsetTop + target.offsetHeight - el.clientHeight);
-      el.scrollTo({ top: to, behavior: reduce ? "auto" : "smooth" });
-      setTimeout(() => (locked = false), 800);
+      if (!e.repeat) move(e.key === "ArrowDown" ? 1 : -1, true);
     };
 
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      clearTimeout(idle);
+      el.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   return (
-    <main ref={ref} className={className}>
+    <main ref={ref} className={className} tabIndex={0}>
       {children}
     </main>
   );

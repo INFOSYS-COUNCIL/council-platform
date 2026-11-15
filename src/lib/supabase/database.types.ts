@@ -553,14 +553,14 @@ isOneToOne: false
                   ]
                 },"site_settings": {
                   Row: {
-                    "council_generation": number | null,"council_name": string,"id": boolean,"updated_at": string
+                    "council_generation": number | null,"council_name": string,"id": boolean,"task_due_soon_days": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "council_generation"?: number | null,"council_name"?: string,"id"?: boolean,"updated_at"?: string
+                    "council_generation"?: number | null,"council_name"?: string,"id"?: boolean,"task_due_soon_days"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "council_generation"?: number | null,"council_name"?: string,"id"?: boolean,"updated_at"?: string
+                    "council_generation"?: number | null,"council_name"?: string,"id"?: boolean,"task_due_soon_days"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -691,6 +691,32 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "tasks"
       referencedColumns: ["term_id","id"]
+    }
+                  ]
+                },"task_assignees": {
+                  Row: {
+                    "task_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "task_id": string,"user_id": string
+                  }
+                  Update: {
+                    "task_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_assignees_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_assignees_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
     }
                   ]
                 },"tasks": {
@@ -1260,6 +1286,34 @@ isOneToOne: false
 "create_task_page":
 { Args: { "p_state": string,"p_state_vector": string,"p_task_id": string }; Returns: string
                            },
+"create_task_with_assignees":
+{ Args: { "p_assignee_ids"?: (string)[],"p_department_id": string,"p_description"?: string,"p_due_date"?: string,"p_priority"?: Database["public"]['Enums']["task_priority"],"p_start_date"?: string,"p_term_id": string,"p_title": string,"p_visibility_mode"?: Database["public"]['Enums']["visibility_mode"] }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string | null,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"page_id": string | null,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "delete_approved_account":
 { Args: { "p_account_id": string }; Returns: undefined
                            },
@@ -1436,6 +1490,7 @@ isOneToOne: false
               "council_generation": number | null,
 "council_name": string,
 "id": boolean,
+"task_due_soon_days": number,
 "updated_at": string
             }
                           SetofOptions: {
@@ -1449,6 +1504,7 @@ isOneToOne: false
               "council_generation": number | null,
 "council_name": string,
 "id": boolean,
+"task_due_soon_days": number,
 "updated_at": string
             }
                           SetofOptions: {
@@ -1555,6 +1611,48 @@ isOneToOne: false
                           SetofOptions: {
         from: "*"
         to: "positions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_task_assignees":
+{ Args: { "p_task_id": string,"p_user_ids": (string)[] }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string | null,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"page_id": string | null,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"set_task_due_soon_days":
+{ Args: { "p_days": number }; Returns: {
+              "council_generation": number | null,
+"council_name": string,
+"id": boolean,
+"task_due_soon_days": number,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "site_settings"
         isOneToOne: true
         isSetofReturn: false
       } },
@@ -1853,6 +1951,34 @@ isOneToOne: false
       } },
 "update_task_description":
 { Args: { "p_description": string,"p_task_id": string }; Returns: {
+              "archived_at": string | null,
+"archived_by": string | null,
+"assignee_id": string | null,
+"completed_at": string | null,
+"created_at": string,
+"creator_id": string,
+"department_id": string | null,
+"description": string,
+"due_date": string | null,
+"id": string,
+"manager_id": string,
+"page_id": string | null,
+"priority": Database["public"]['Enums']["task_priority"],
+"start_date": string | null,
+"status": Database["public"]['Enums']["task_status"],
+"term_id": string,
+"title": string,
+"updated_at": string,
+"visibility_mode": Database["public"]['Enums']["visibility_mode"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"update_task_with_assignees":
+{ Args: { "p_assignee_ids": (string)[],"p_due_date": string,"p_priority": Database["public"]['Enums']["task_priority"],"p_start_date": string,"p_task_id": string,"p_title": string }; Returns: {
               "archived_at": string | null,
 "archived_by": string | null,
 "assignee_id": string | null,

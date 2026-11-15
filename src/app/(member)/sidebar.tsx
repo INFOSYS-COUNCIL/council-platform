@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore, type ReactNode } from "react";
@@ -115,12 +117,7 @@ export function Sidebar({
           href="/"
           className={`flex min-w-0 items-center gap-2.5 rounded-md px-1 py-1 ${FOCUS}`}
         >
-          <span
-            aria-hidden="true"
-            className="bg-coral-gradient grid size-9 shrink-0 place-items-center rounded-md text-xs font-bold text-zinc-950"
-          >
-            IS
-          </span>
+          <Image src="/council-logo.png" alt="" width={40} height={40} className="size-10 shrink-0 rounded-lg object-cover" />
           <span className={`min-w-0 ${hideWide}`}>
             <span className="block truncate text-sm font-semibold">{platformName}</span>
             {roleLabel && (

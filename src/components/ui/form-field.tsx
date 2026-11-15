@@ -111,6 +111,28 @@ export function TextareaField({
 
 export type SelectOption = { value: string; label: string; };
 
+export function MultiSelectField({ label, name, options, defaultValue = [], hint, error }: FieldProps & {
+  options: readonly SelectOption[];
+  defaultValue?: readonly string[];
+}) {
+  return (
+    <fieldset className="space-y-2" aria-describedby={describedBy(name, hint, error)}>
+      <legend className="text-sm font-medium">{label}</legend>
+      <div className="max-h-48 overflow-y-auto rounded-lg border border-border-input bg-surface p-2">
+        {options.length === 0 && <p className="p-2 text-sm text-muted">선택할 구성원이 없습니다.</p>}
+        {options.map((option) => (
+          <label key={option.value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
+            <input type="checkbox" name={name} value={option.value} defaultChecked={defaultValue.includes(option.value)} className="size-4 accent-accent focus-visible:outline-2 focus-visible:outline-accent" />
+            {option.label}
+          </label>
+        ))}
+      </div>
+      {hint && <p id={`${name}-hint`} className="text-xs text-muted">{hint}</p>}
+      {error && <p id={`${name}-error`} className="text-sm text-danger">{error}</p>}
+    </fieldset>
+  );
+}
+
 export function SelectField({
   label,
   name,

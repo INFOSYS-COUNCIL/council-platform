@@ -8,7 +8,7 @@ import { SelectField } from "@/components/ui/form-field";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
+import { FOCUS_RING, LinkButton, SecondaryLinkButton } from "@/components/ui/link-button";
 import { ManageMenu } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { PillLink } from "@/components/ui/pagination";
@@ -127,7 +127,7 @@ async function PagesContent({ searchParams }: { searchParams: Promise<Record<str
             className={`h-11 w-48 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`}
           />
         </form>
-        <nav aria-label="정렬과 보기" className="flex flex-wrap gap-2 text-sm">
+        <nav aria-label="정렬과 보기" className="flex flex-wrap items-end gap-2 text-sm">
           <form action="/pages" className="flex items-end gap-2">
             {q && <input type="hidden" name="q" value={q} />}
             {tag && <input type="hidden" name="tag" value={tag} />}
@@ -135,9 +135,9 @@ async function PagesContent({ searchParams }: { searchParams: Promise<Record<str
             <SelectField label="정렬" name="sort" defaultValue={sort} options={[{ value: "desc", label: "최신 날짜순" }, { value: "asc", label: "오래된 날짜순" }]} />
             <Button type="submit" variant="secondary">적용</Button>
           </form>
-          <PillLink variant="chip" href={href({ group: !grouped })} current={grouped}>
+          <SecondaryLinkButton href={href({ group: !grouped })} aria-current={grouped ? "true" : undefined} className={grouped ? "bg-foreground! text-background" : ""}>
             태그별로 묶어 보기
-          </PillLink>
+          </SecondaryLinkButton>
         </nav>
       </div>
 

@@ -26,6 +26,7 @@ import {
 // 입력 형태만 확인하고, 실패하면 함수가 돌려준 한국어 이유를 그대로 보여 준다.
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function text(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
@@ -40,8 +41,10 @@ function readTaskFields(formData: FormData) {
   const priority = text(formData, "priority") as TaskPriority;
   const startDate = optional(formData, "start_date");
   const dueDate = optional(formData, "due_date");
+  const assigneeIds = [...new Set(formData.getAll("assignee_ids").map((value) => String(value).trim()))].sort();
 
   const errors: FieldErrors = {};
+  if (assigneeIds.some((id) => !UUID.test(id))) errors.assignee_ids = "담당자 목록을 확인해 주세요.";
   if (title.length < 1 || title.length > 100) errors.title = "제목은 1~100자로 입력해 주세요.";
   if (!TASK_PRIORITY_ORDER.includes(priority)) errors.priority = "우선순위를 선택해 주세요.";
   if (startDate && !DATE.test(startDate)) errors.start_date = "날짜 형식이 올바르지 않습니다.";
@@ -53,7 +56,7 @@ function readTaskFields(formData: FormData) {
     priority,
     startDate,
     dueDate,
-    assigneeId: optional(formData, "assignee_id"),
+    assigneeIds,
     errors,
   };
 }
@@ -73,12 +76,12 @@ export async function createTask(_prev: ActionState, formData: FormData): Promis
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_task", {
+  const { data, error } = await supabase.rpc("create_task_with_assignees", {
     p_term_id: membership.termId,
     p_department_id: (departmentId === "NONE" ? null : departmentId) as string,
     p_title: fields.title,
     p_description: text(formData, "description"),
-    p_assignee_id: fields.assigneeId ?? undefined,
+    p_assignee_ids: fields.assigneeIds,
     p_priority: fields.priority,
     p_start_date: fields.startDate ?? undefined,
     p_due_date: fields.dueDate ?? undefined,
@@ -125,11 +128,11 @@ export async function editTask(_prev: ActionState, formData: FormData): Promise<
     const fields = readTaskFields(formData);
     const firstError = Object.values(fields.errors)[0];
     if (firstError) return actionFailure(firstError);
-    if (["title", "assignee_id", "priority", "start_date", "due_date"].some(changed)) {
-      const { error } = await supabase.rpc("update_task", {
+    if (["title", "priority", "start_date", "due_date"].some(changed) || fields.assigneeIds.join(",") !== text(formData, "orig_assignee_ids")) {
+      const { error } = await supabase.rpc("update_task_with_assignees", {
         p_task_id: taskId,
         p_title: fields.title,
-        p_assignee_id: fields.assigneeId as string, // null이면 담당자 없음
+        p_assignee_ids: fields.assigneeIds,
         p_priority: fields.priority,
         p_start_date: fields.startDate as string,
         p_due_date: fields.dueDate as string,

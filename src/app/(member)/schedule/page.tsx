@@ -12,7 +12,7 @@ import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, todayInSeoul } from "@/lib/dates";
 import { fetchSchedules, fetchTaskSchedules } from "@/lib/schedules/queries";
 import { scheduleColor } from "@/lib/schedules/colors";
-import { addDays, addMonths, groupByDay, isCalendarDate, isMultiDay, mondayOf, monthGrid, weekBars, weekDays } from "@/lib/schedules/week";
+import { addDays, addMonths, groupByDay, isCalendarDate, isMultiDay, sundayOf, monthGrid, weekBars, weekDays } from "@/lib/schedules/week";
 import { NewScheduleForm, ScheduleItem } from "./schedule-parts";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
-const WEEKDAY_HEADERS = ["월", "화", "수", "목", "금", "토", "일"];
+const WEEKDAY_HEADERS = ["일", "월", "화", "수", "목", "금", "토"];
 // 한 주에 보여 줄 여러 날 일정 막대 줄 수. 넘치는 것은 날짜 칸의 +N으로 센다
 const MAX_LANES = 3;
 
@@ -44,7 +44,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
   const month = typeof params.month === "string" && MONTH.test(params.month) ? params.month : selected.slice(0, 7);
   const view = params.view === "tasks" ? "tasks" : "all";
   const mode = params.mode === "month" ? "month" : "week";
-  const days = mode === "month" ? monthGrid(month) : weekDays(mondayOf(selected));
+  const days = mode === "month" ? monthGrid(month) : weekDays(sundayOf(selected));
   const weeks = Array.from({ length: days.length / 7 }, (_, w) => days.slice(w * 7, w * 7 + 7));
 
   const range = [membership.termId, days[0], days[days.length - 1]] as const;

@@ -4,6 +4,7 @@ import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { useActionState } from "react";
 import {
   SelectField,
+  MultiSelectField,
   TextareaField,
   TextField,
   type SelectOption,
@@ -53,12 +54,12 @@ export function NewTaskForm({
           defaultValue={defaultDepartmentId}
           error={errors.department_id}
         />
-        <SelectField
+        <MultiSelectField
           label="담당자"
-          name="assignee_id"
+          name="assignee_ids"
           options={members}
-          placeholder="아직 정하지 않음"
-          error={errors.assignee_id}
+          hint="여러 명을 선택할 수 있습니다. 비워 두면 담당자 없이 만듭니다."
+          error={errors.assignee_ids}
         />
         <SelectField
           label="우선순위"

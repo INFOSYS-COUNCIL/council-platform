@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Pagination, PillLink } from "@/components/ui/pagination";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { addDays, formatDate, isOverdue, todayInSeoul } from "@/lib/dates";
+import { getCouncilProfile } from "@/lib/site";
 import { getTermOrgOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -33,10 +34,9 @@ export const metadata: Metadata = {
   title: "업무",
 };
 
-// 마감까지 이 날수 이하로 남은(또는 지난) 미완료 업무를 맨 위에 빨갛게 모은다
-const SOON_DAYS = 3;
+
 const TASK_SELECT =
-  "id, title, status, priority, due_date, assignee_id, department:departments(name), assignee:profiles!tasks_assignee_id_fkey(display_name, email)";
+  "id, title, status, priority, due_date, assignees:task_assignees(user_id, profile:profiles(display_name, email)), department:departments(name), mine:task_assignees()";
 
 export default function TasksPage(props: PageProps<"/tasks">) {
   return (
@@ -71,13 +71,14 @@ async function TasksContent({
   // 볼 수 있는 업무만 RLS가 돌려준다. 탭은 그 안에서 다시 나누는 표시용 조건이다.
   const supabase = await createClient();
   const today = todayInSeoul();
-  const soon = addDays(today, SOON_DAYS);
+  const { dueSoonDays } = await getCouncilProfile();
+  const soon = addDays(today, dueSoonDays);
   const archived = params.tab === "archived";
   const base = () => {
     let q = supabase.from("tasks").select(TASK_SELECT, { count: "exact" }).eq("term_id", membership.termId);
     q = archived ? q.not("archived_at", "is", null) : q.is("archived_at", null);
     // 내 업무 = 내가 담당자이거나 관리 책임자인 업무
-    if (params.tab === "mine") q = q.or(`assignee_id.eq.${me},manager_id.eq.${me}`);
+    if (params.tab === "mine") q = q.eq("mine.user_id", me).or(`mine.not.is.null,manager_id.eq.${me}`);
     if (params.status) q = q.eq("status", params.status);
     return q;
   };
@@ -100,7 +101,7 @@ async function TasksContent({
 
   type Row = NonNullable<typeof tasks>[number];
   const row = (task: Row, isUrgent: boolean) => {
-    const assigneeName = task.assignee ? task.assignee.display_name?.trim() || task.assignee.email : "담당자 없음";
+    const assigneeName = task.assignees.map((assignee) => assignee.profile?.display_name?.trim() || assignee.profile?.email || "(이름 없음)").join(", ") || "담당자 없음";
     return (
       <li key={task.id}>
         <Link
@@ -123,7 +124,7 @@ async function TasksContent({
             <TaskStatusBadge status={task.status} />
             <TaskPriorityBadge priority={task.priority} />
             {isOverdue(task.due_date, task.status === "DONE", today) && <OverdueBadge />}
-            {task.assignee_id && !activeIds.has(task.assignee_id) && <InactiveAssigneeBadge />}
+            {task.assignees.some((assignee) => !activeIds.has(assignee.user_id)) && <InactiveAssigneeBadge />}
           </span>
         </Link>
       </li>
