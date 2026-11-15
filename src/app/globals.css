@@ -99,6 +99,12 @@ body {
   }
 }
 
+/* 글쓰기 편집기(BlockNote): 편집기 자체 배경을 지우고 감싸는 상자 배경을 쓴다.
+   다크 모드에서는 상자도 투명이라 사이트 배경과 같아진다(4차 피드백) */
+.bn-container[data-color-scheme] .bn-editor {
+  background-color: transparent;
+}
+
 /* 로고·강조에 쓰는 노을 그라데이션(코랄 → 오렌지 → 피치) */
 .bg-coral-gradient {
   background-image: linear-gradient(135deg, #f45b4f, #f7944f 55%, #fbc58a);

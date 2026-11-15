@@ -1,5 +1,6 @@
 import "server-only";
 import type { createClient } from "@/lib/supabase/server";
+import { editStats } from "./edit-stats";
 import { fromBytea } from "./labels";
 import { mergedState } from "./ydoc";
 
@@ -35,4 +36,24 @@ export async function fetchMeetingState(supabase: ServerClient, meetingId: strin
   }
 
   return { ...mergedState(fromBytea(snapshot.state_bytes), updates), lastSeq };
+}
+
+// 편집자별 수정량: 저장된 Update 전체를 보낸 사람별로 센다(읽기 권한은 RLS)
+export async function fetchEditStats(supabase: ServerClient, meetingId: string) {
+  const rows: { actor: string; update: Uint8Array }[] = [];
+  let lastSeq = 0;
+  for (;;) {
+    const { data, error } = await supabase
+      .from("meeting_crdt_updates")
+      .select("sequence_no, actor_id, update_bytes")
+      .eq("meeting_id", meetingId)
+      .gt("sequence_no", lastSeq)
+      .order("sequence_no")
+      .limit(500);
+    if (error) throw new Error("수정량을 불러오지 못했습니다.", { cause: error });
+    for (const r of data) rows.push({ actor: r.actor_id, update: fromBytea(r.update_bytes) });
+    if (data.length > 0) lastSeq = data[data.length - 1].sequence_no;
+    if (data.length < 500) break;
+  }
+  return editStats(rows);
 }

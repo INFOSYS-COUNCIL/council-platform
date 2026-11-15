@@ -21,7 +21,7 @@ export function TemplateEditor({ initialBlocks, onChange }: { initialBlocks: Jso
   return (
     <div
       aria-labelledby="template-body-label"
-      className="min-h-48 rounded-md border border-zinc-300 bg-white py-4 dark:border-zinc-700 dark:bg-zinc-900"
+      className="min-h-48 rounded-md border border-zinc-300 bg-white py-4 dark:border-zinc-700 dark:bg-transparent"
     >
       <BlockNoteView editor={editor} slashMenu={false} onChange={() => onChange(JSON.stringify(editor.document))}>
         <MeetingSlashMenu editor={editor} />

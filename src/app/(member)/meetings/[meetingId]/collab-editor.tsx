@@ -230,7 +230,7 @@ export function CollabEditor({
         </Alert>
       )}
       {notice && <Alert tone="info">{notice}</Alert>}
-      <div className="min-h-64 rounded-md border border-zinc-200 bg-white py-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="min-h-64 rounded-md border border-zinc-200 bg-white py-4 dark:border-zinc-800 dark:bg-transparent">
         <BlockNoteView editor={editor} editable={editable} slashMenu={false}>
           <MeetingSlashMenu editor={editor} onNewPage={newPage} />
         </BlockNoteView>

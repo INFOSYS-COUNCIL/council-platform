@@ -419,7 +419,14 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         ) : logsResult.data.length === 0 ? (
           <p className="text-sm">변경 이력이 없습니다.</p>
         ) : (
-          <ol className="space-y-2 text-sm">
+          // 접었다 펼 수 있게(4차 피드백). 기본은 접힘
+          <details className="group rounded-md border border-zinc-200 dark:border-zinc-800">
+            <summary className="cursor-pointer list-none px-3 py-2 text-sm font-medium select-none hover:bg-zinc-50 dark:hover:bg-zinc-900 [&::-webkit-details-marker]:hidden">
+              <span aria-hidden="true" className="mr-1.5 inline-block transition-transform group-open:rotate-90">▸</span>
+              {logsResult.data.length}건 <span className="group-open:hidden">펼쳐 보기</span>
+              <span className="hidden group-open:inline">접기</span>
+            </summary>
+          <ol className="space-y-2 border-t border-zinc-200 px-3 py-2 text-sm dark:border-zinc-800">
             {logsResult.data.map((log) => (
               <li key={log.id} className="flex flex-wrap gap-x-2">
                 <time className="text-zinc-600 dark:text-zinc-400" dateTime={log.created_at}>
@@ -431,6 +438,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
               </li>
             ))}
           </ol>
+          </details>
         )}
       </Section>
     </div>

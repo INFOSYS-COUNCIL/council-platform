@@ -6,6 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Section, Skeleton } from "@/components/ui/detail";
 import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
+import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDateTime, todayInSeoul } from "@/lib/dates";
@@ -42,7 +43,7 @@ async function PageDetail({ params }: { params: Promise<{ pageId: string }> }) {
 
   const supabase = await createClient();
   const [pageResult, rulesResult, org] = await Promise.all([
-    supabase.from("meeting_minutes").select("id, kind, title, tags, meeting_at, created_by, status").eq("id", pageId).maybeSingle(),
+    supabase.from("meeting_minutes").select("id, kind, title, tags, meeting_at, created_by, status, guide_department_id").eq("id", pageId).maybeSingle(),
     supabase.from("meeting_access_rules").select("subject_type, role_group, department_id, user_id").eq("meeting_id", pageId),
     getTermOrgOptions(membership.termId),
   ]);
@@ -74,10 +75,14 @@ async function PageDetail({ params }: { params: Promise<{ pageId: string }> }) {
         ? userIds.map(nameOf).join(", ")
         : null;
   const canManage = membership.role === "EXECUTIVE" || page.created_by === me;
+  // 국별 가이드: 회장단·그 국 국장·만든 사람만 고친다(나머지는 읽기만). DB의 can_edit_meeting과 같은 규칙
+  const guide = page.guide_department_id;
+  const isGuideWriter = canManage || (membership.role === "DIRECTOR" && membership.departmentId === guide);
+  const canEditBody = page.status === "DRAFT" && (!guide || isGuideWriter);
   const today = todayInSeoul();
   const hidden = <input type="hidden" name="page_id" value={page.id} />;
 
-  const manageItems: ManageItem[] = canManage
+  const manageItems: ManageItem[] = isGuideWriter
     ? [
         {
           key: "edit",
@@ -115,6 +120,11 @@ async function PageDetail({ params }: { params: Promise<{ pageId: string }> }) {
         description={`${formatDateTime(page.meeting_at, today)} · 만든 사람 ${nameOf(page.created_by)} · ${PAGE_SCOPE_LABELS[scope].label}${scopeDetail ? ` (${scopeDetail})` : ""}`}
         actions={<ManageMenu title="페이지 관리" subtitle={page.title} items={manageItems} />}
       />
+      {guide && (
+        <p>
+          <SecondaryLinkButton href="/guides">← 국별 업무 자료 및 가이드라인</SecondaryLinkButton>
+        </p>
+      )}
       {page.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {page.tags.map((t) => (
@@ -130,7 +140,7 @@ async function PageDetail({ params }: { params: Promise<{ pageId: string }> }) {
           meetingId={page.id}
           initialState={state.state}
           initialSeq={state.lastSeq}
-          canEdit={page.status === "DRAFT"}
+          canEdit={canEditBody}
           user={{ id: me, name: nameOf(me) }}
           fileName={markdownFileName(page.meeting_at, page.title)}
         />
