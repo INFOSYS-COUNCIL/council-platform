@@ -3,25 +3,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
   
-  "graphql_public": {
-          Tables: {
-            [_ in never]: never
-          }
-          Views: {
-            [_ in never]: never
-          }
-          Functions: {
-            "graphql":
-{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
-                           }
-          }
-          Enums: {
-            [_ in never]: never
-          }
-          CompositeTypes: {
-            [_ in never]: never
-          }
-        },"public": {
+  "public": {
           Tables: {
             "activity_logs": {
                   Row: {
@@ -2000,11 +1982,7 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "graphql_public": {
-          Enums: {
-            
-          }
-        },"public": {
+  "public": {
           Enums: {
             "acl_role_group": ["ALL_COUNCIL", "DIRECTORS", "EXECUTIVES"],"acl_subject_type": ["DEPARTMENT", "USER", "ROLE_GROUP"],"event_resource_type": ["UPLOAD", "EXTERNAL_LINK"],"event_status": ["PLANNING", "ACTIVE", "COMPLETED", "ARCHIVED"],"event_visibility": ["ALL_COUNCIL", "RESTRICTED"],"meeting_status": ["DRAFT", "CONFIRMED", "ARCHIVED"],"member_role": ["MEMBER", "DIRECTOR", "EXECUTIVE"],"suggestion_message_type": ["AUTHOR_VISIBLE", "INTERNAL"],"suggestion_status": ["RECEIVED", "IN_REVIEW", "RESOLVED", "CLOSED"],"task_priority": ["LOW", "NORMAL", "HIGH"],"task_status": ["TODO", "IN_PROGRESS", "REVIEW", "DONE"],"term_status": ["DRAFT", "ACTIVE", "CLOSED"],"visibility_mode": ["DEFAULT", "RESTRICTED"]
           }
