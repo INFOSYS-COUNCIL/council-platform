@@ -22,7 +22,7 @@ const NAV_GROUPS = [
       { href: "/team-tasks", label: "업무 현황", icon: "chart", memberOnly: true, roles: ["EXECUTIVE", "DIRECTOR"] },
       { href: "/schedule", label: "일정", icon: "calendar", memberOnly: true },
       { href: "/org", label: "조직도", icon: "org", memberOnly: true },
-      { href: "/guides", label: "국별 업무 자료 및 가이드라인", icon: "book", memberOnly: true },
+      { href: "/guides", label: "가이드라인", icon: "book", memberOnly: true },
     ],
   },
   {

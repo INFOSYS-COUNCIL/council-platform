@@ -15,17 +15,17 @@ import { createClient } from "@/lib/supabase/server";
 import { createGuide } from "./actions";
 
 export const metadata: Metadata = {
-  title: "국별 업무 자료 및 가이드라인",
+  title: "가이드라인",
 };
 
-// 업무 공간 > 국별 업무 자료 및 가이드라인(4차 사용 피드백).
+// 업무 공간 > 가이드라인(4차 사용 피드백. 처음 이름은 "국별 업무 자료 및 가이드라인").
 // 노션의 국별 가이드 페이지처럼, 국마다 "이 업무는 이렇게 한다" 페이지를 모아 둔다. 신입 부원이 자기 국 가이드를 읽고 업무를 처리한다.
 // 가이드는 기록 > 페이지와 같은 편집기를 쓴다. 학생회 전체가 읽고, 회장단·그 국 국장·만든 사람이 쓴다(DB가 검사).
 export default function GuidesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="국별 업무 자료 및 가이드라인"
+        title="가이드라인"
         description="국마다 업무를 처리하는 방법과 자료를 모아 둡니다. 행사 이름을 태그로 달면 행사별로 찾기 쉽습니다."
       />
       <Suspense fallback={<Skeleton />}>
@@ -67,7 +67,7 @@ async function GuidesContent() {
             title={d.id === membership.departmentId ? `${d.name} (내 국)` : d.name}
             action={
               canWrite(d.id) && (
-                <DialogButton label="+ 가이드 추가">
+                <DialogButton label="+ 가이드라인 추가">
                   <ActionForm action={createGuide} submitLabel="만들고 쓰기">
                     <input type="hidden" name="department_id" value={d.id} />
                     <TextField label="제목" name="title" required maxLength={100} hint="예: 개강총회 공지글 쓰는 법" />
@@ -78,7 +78,7 @@ async function GuidesContent() {
             }
           >
             {guides.length === 0 ? (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">아직 가이드가 없습니다.</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">아직 가이드라인이 없습니다.</p>
             ) : (
               <ul className="grid gap-2 sm:grid-cols-2">
                 {guides.map((g) => (

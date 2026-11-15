@@ -122,7 +122,7 @@ async function PageDetail({ params }: { params: Promise<{ pageId: string }> }) {
       />
       {guide && (
         <p>
-          <SecondaryLinkButton href="/guides">← 국별 업무 자료 및 가이드라인</SecondaryLinkButton>
+          <SecondaryLinkButton href="/guides">← 가이드라인</SecondaryLinkButton>
         </p>
       )}
       {page.tags.length > 0 && (
