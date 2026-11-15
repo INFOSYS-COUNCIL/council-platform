@@ -1,5 +1,6 @@
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
@@ -12,7 +13,7 @@ import {
   TaskStatusBadge,
 } from "@/components/ui/badge";
 import { DialogButton } from "@/components/ui/dialog-button";
-import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
+import { Info, Section, Skeleton } from "@/components/ui/detail";
 import { SelectField, TextareaField, TextField } from "@/components/ui/form-field";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { ManageMenu, type ManageItem } from "@/components/ui/manage-menu";
@@ -85,7 +86,7 @@ export default function TaskDetailPage(props: PageProps<"/tasks/[taskId]">) {
   );
 }
 
-async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
+async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; }) {
   const { taskId } = await params;
   const membership = await requireMember(`/tasks/${taskId}`);
   if (!UUID.test(taskId)) notFound();
@@ -131,7 +132,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
   const archived = task.archived_at !== null;
   const today = todayInSeoul();
 
-  const nameOf = (p: { display_name: string | null; email: string } | null) =>
+  const nameOf = (p: { display_name: string | null; email: string; } | null) =>
     p ? p.display_name?.trim() || p.email : "없음";
   const activeIds = new Set(org.members.map((m) => m.userId));
   const memberOptions = memberSelectOptions(org.members);
@@ -217,25 +218,25 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
     manageItems.push(
       archived
         ? {
-            key: "restore",
-            label: "보관함에서 꺼내기",
-            content: (
-              <ActionForm action={restoreTask} submitLabel="보관함에서 꺼내기">
-                {hidden}
-                <p className="text-sm">다시 목록에 보이고 수정할 수 있게 됩니다.</p>
-              </ActionForm>
-            ),
-          }
+          key: "restore",
+          label: "보관함에서 꺼내기",
+          content: (
+            <ActionForm action={restoreTask} submitLabel="보관함에서 꺼내기">
+              {hidden}
+              <p className="text-sm">다시 목록에 보이고 수정할 수 있게 됩니다.</p>
+            </ActionForm>
+          ),
+        }
         : {
-            key: "archive",
-            label: "보관함으로 옮기기",
-            content: (
-              <ActionForm action={archiveTask} submitLabel="보관함으로 옮기기">
-                {hidden}
-                <p className="text-sm">끝났거나 더 이상 쓰지 않는 업무를 목록에서 빼 둡니다. 지워지지 않고 보관함에서 다시 꺼낼 수 있습니다.</p>
-              </ActionForm>
-            ),
-          },
+          key: "archive",
+          label: "보관함으로 옮기기",
+          content: (
+            <ActionForm action={archiveTask} submitLabel="보관함으로 옮기기">
+              {hidden}
+              <p className="text-sm">끝났거나 더 이상 쓰지 않는 업무를 목록에서 빼 둡니다. 지워지지 않고 보관함에서 다시 꺼낼 수 있습니다.</p>
+            </ActionForm>
+          ),
+        },
       {
         key: "delete",
         label: "삭제",
@@ -252,24 +253,16 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title={task.title}
-        actions={
-          <span className="flex flex-wrap items-center gap-1">
-            <TaskStatusBadge status={task.status} />
-            <TaskPriorityBadge priority={task.priority} />
-            {isOverdue(task.due_date, task.status === "DONE", today) && <OverdueBadge />}
-            {archived && <Badge tone="muted">보관됨</Badge>}
-            <ManageMenu title="업무 관리" subtitle={task.title} items={manageItems} />
-          </span>
-        }
-      />
-      <p>
-        <SecondaryLinkButton href="/tasks">
-          ← 업무 목록
-        </SecondaryLinkButton>
-      </p>
-
+      <Link href="/tasks" className="inline-block rounded text-sm text-muted focus-visible:outline-2 focus-visible:outline-accent">← 업무</Link>
+      <PageHeader title={task.title} actions={<ManageMenu title="업무 관리" subtitle={task.title} items={manageItems} />} />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-zinc-200 pb-6 text-sm dark:border-zinc-800">
+        <TaskStatusBadge status={task.status} />
+        <TaskPriorityBadge priority={task.priority} />
+        <span><span className="text-muted">담당자 </span>{nameOf(task.assignee)} {task.assignee_id && !activeIds.has(task.assignee_id) && <InactiveAssigneeBadge />}</span>
+        <span><span className="text-muted">마감 </span>{formatDate(task.due_date, today) || "없음"}</span>
+        {isOverdue(task.due_date, task.status === "DONE", today) && <OverdueBadge />}
+        {archived && <Badge tone="muted">보관됨</Badge>}
+      </div>
       {archived && (
         <Alert tone="info">보관된 업무입니다. 복원하기 전에는 내용을 바꿀 수 없습니다.</Alert>
       )}
@@ -304,143 +297,150 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string }> }) {
         <Alert tone="info">국장의 검토를 기다리는 중입니다. 승인되면 완료로 바뀝니다.</Alert>
       )}
 
-      <InfoList>
-        <Info label="담당 국">{task.department?.name}</Info>
-        <Info label="담당자">
-          {nameOf(task.assignee)}{" "}
-          {task.assignee_id && !activeIds.has(task.assignee_id) && <InactiveAssigneeBadge />}
-        </Info>
-        <Info label="관리 책임자">{nameOf(task.manager)}</Info>
-        <Info label="만든 사람">{nameOf(task.creator)}</Info>
-        <Info label="시작일">{formatDate(task.start_date, today) || "없음"}</Info>
-        <Info label="마감일">{formatDate(task.due_date, today) || "없음"}</Info>
-        <Info label="공개 모드">{VISIBILITY_LABELS[task.visibility_mode].label}</Info>
-        <Info label="완료일">
-          {task.completed_at ? new Date(task.completed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}
-        </Info>
-      </InfoList>
 
 
-      <Section
-        title="설명"
-        action={
-          !archived &&
-          (canManage || isAssignee) && (
-            <DialogButton label="설명 수정">
-              <ActionForm action={updateTaskDescription} submitLabel="설명 저장">
-                {hidden}
-                <TextareaField label="설명" name="description" rows={8} maxLength={10000} defaultValue={task.description} />
-              </ActionForm>
-            </DialogButton>
-          )
-        }
-      >
-        <p className="whitespace-pre-wrap">{task.description || "설명이 없습니다."}</p>
-      </Section>
 
-      {/* 업무 글: 담당자가 실제 결과물(공지글 본문, 구글폼 링크 등)을 쓰고, 국장·회장단이 보고 검토한다 */}
-      <Section
-        title="업무 글"
-        action={
-          task.page_id && (
-            <SecondaryLinkButton href={`/pages/${task.page_id}`}>페이지로 크게 보기</SecondaryLinkButton>
-          )
-        }
-      >
-        {!task.page_id ? (
-          canWrite ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-zinc-300 p-4 dark:border-zinc-700">
-              <p className="text-sm">공지글 본문, 구글폼 링크처럼 이 업무의 결과물을 여기에 씁니다. 다 쓰면 검토 요청을 보내 주세요.</p>
-              <ActionForm action={startTaskPage} submitLabel="업무 글 쓰기 시작">
-                {hidden}
-              </ActionForm>
-            </div>
-          ) : (
-            <p className="text-sm">아직 작성된 업무 글이 없습니다.</p>
-          )
-        ) : !pageState ? (
-          <Alert>업무 글을 불러오지 못했습니다. 새로고침해 주세요.</Alert>
-        ) : (
-          <>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              쓰는 대로 자동 저장되고, 이 업무를 볼 수 있는 사람과 함께 고칠 수 있습니다. 기록 &gt; 페이지에도 보입니다.
-            </p>
-            <MeetingEditor
-              meetingId={task.page_id}
-              initialState={pageState.state}
-              initialSeq={pageState.lastSeq}
-              canEdit={!archived}
-              user={{ id: me, name: org.members.find((m) => m.userId === me)?.name ?? "나" }}
-              fileName={markdownFileName(task.created_at, task.title)}
-            />
-          </>
-        )}
-      </Section>
-
-      <Section
-        title="공개 범위"
-        action={
-          !archived &&
-          canManage && (
-            <DialogButton label="+ 열람 대상 추가">
-              <ActionForm action={addTaskAccessRule} submitLabel="열람 대상 추가">
-                {hidden}
-                <SelectField label="열람 대상" name="subject" placeholder="선택하세요" options={aclSubjectOptions(org, ACL_ROLE_GROUP_LABELS)} />
-              </ActionForm>
-            </DialogButton>
-          )
-        }
-      >
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {VISIBILITY_LABELS[task.visibility_mode].description}
-        </p>
-        {rulesResult.data && rulesResult.data.length > 0 ? (
-          <ul className="space-y-2">
-            {rulesResult.data.map((rule) => (
-              <li key={rule.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800">
-                <span>{aclRuleLabel(rule, org, ACL_ROLE_GROUP_LABELS)}</span>
-                {!archived && canManage && (
-                  <ActionForm action={removeTaskAccessRule} submitLabel="빼기" variant="secondary" className="flex items-center gap-2">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 space-y-8">
+          <Section
+            title="설명"
+            action={
+              !archived &&
+              (canManage || isAssignee) && (
+                <DialogButton label="설명 수정">
+                  <ActionForm action={updateTaskDescription} submitLabel="설명 저장">
                     {hidden}
-                    <input type="hidden" name="rule_id" value={rule.id} />
+                    <TextareaField label="설명" name="description" rows={8} maxLength={10000} defaultValue={task.description} />
                   </ActionForm>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm">추가한 열람 대상이 없습니다.</p>
-        )}
-      </Section>
+                </DialogButton>
+              )
+            }
+          >
+            <p className="whitespace-pre-wrap">{task.description || "설명이 없습니다."}</p>
+          </Section>
 
-      <Section title="변경 이력">
-        {logsResult.error ? (
-          <Alert>변경 이력을 불러오지 못했습니다.</Alert>
-        ) : logsResult.data.length === 0 ? (
-          <p className="text-sm">변경 이력이 없습니다.</p>
-        ) : (
-          // 접었다 펼 수 있게(4차 피드백). 기본은 접힘
-          <details className="group rounded-md border border-zinc-200 dark:border-zinc-800">
-            <summary className="cursor-pointer list-none px-3 py-2 text-sm font-medium select-none hover:bg-zinc-50 dark:hover:bg-zinc-900 [&::-webkit-details-marker]:hidden">
-              <span aria-hidden="true" className="mr-1.5 inline-block transition-transform group-open:rotate-90">▸</span>
-              {logsResult.data.length}건 <span className="group-open:hidden">펼쳐 보기</span>
-              <span className="hidden group-open:inline">접기</span>
-            </summary>
-          <ol className="space-y-2 border-t border-zinc-200 px-3 py-2 text-sm dark:border-zinc-800">
-            {logsResult.data.map((log) => (
-              <li key={log.id} className="flex flex-wrap gap-x-2">
-                <time className="text-zinc-600 dark:text-zinc-400" dateTime={log.created_at}>
-                  {new Date(log.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
-                </time>
-                <span>
-                  {nameOf(log.actor)} — {ACTIVITY_LABELS[log.action] ?? log.action}
-                </span>
-              </li>
-            ))}
-          </ol>
-          </details>
-        )}
-      </Section>
+          {/* 업무 글: 담당자가 실제 결과물(공지글 본문, 구글폼 링크 등)을 쓰고, 국장·회장단이 보고 검토한다 */}
+          <Section
+            title="업무 글"
+            action={
+              task.page_id && (
+                <SecondaryLinkButton href={`/pages/${task.page_id}`}>페이지로 크게 보기</SecondaryLinkButton>
+              )
+            }
+          >
+            {!task.page_id ? (
+              canWrite ? (
+                <div className="flex flex-col items-start gap-4 rounded-xl border border-dashed border-zinc-200 bg-surface p-6 dark:border-zinc-800">
+                  <p className="font-semibold">아직 결과물이 없어요</p>
+                  <p className="text-sm text-muted">공지글 본문, 구글폼 링크처럼 이 업무의 결과물을 여기에 씁니다. 다 쓰면 검토 요청을 보내 주세요.</p>
+                  <ActionForm action={startTaskPage} submitLabel="업무 글 쓰기 시작">
+                    {hidden}
+                  </ActionForm>
+                </div>
+              ) : (
+                <p className="text-sm">아직 작성된 업무 글이 없습니다.</p>
+              )
+            ) : !pageState ? (
+              <Alert>업무 글을 불러오지 못했습니다. 새로고침해 주세요.</Alert>
+            ) : (
+              <>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  쓰는 대로 자동 저장되고, 이 업무를 볼 수 있는 사람과 함께 고칠 수 있습니다. 기록 &gt; 페이지에도 보입니다.
+                </p>
+                <MeetingEditor
+                  meetingId={task.page_id}
+                  initialState={pageState.state}
+                  initialSeq={pageState.lastSeq}
+                  canEdit={!archived}
+                  user={{ id: me, name: org.members.find((m) => m.userId === me)?.name ?? "나" }}
+                  fileName={markdownFileName(task.created_at, task.title)}
+                />
+              </>
+            )}
+          </Section>
+
+
+          <Section title="변경 이력">
+            {logsResult.error ? (
+              <Alert>변경 이력을 불러오지 못했습니다.</Alert>
+            ) : logsResult.data.length === 0 ? (
+              <p className="text-sm">변경 이력이 없습니다.</p>
+            ) : (
+              // 접었다 펼 수 있게(4차 피드백). 기본은 접힘
+              <details className="group rounded-md border border-zinc-200 dark:border-zinc-800">
+                <summary className="cursor-pointer list-none px-3 py-2 text-sm font-medium select-none hover:bg-zinc-50 dark:hover:bg-zinc-900 [&::-webkit-details-marker]:hidden">
+                  <span aria-hidden="true" className="mr-1.5 inline-block transition-transform group-open:rotate-90">▸</span>
+                  {logsResult.data.length}건 <span className="group-open:hidden">펼쳐 보기</span>
+                  <span className="hidden group-open:inline">접기</span>
+                </summary>
+                <ol className="space-y-2 border-t border-zinc-200 px-3 py-2 text-sm dark:border-zinc-800">
+                  {logsResult.data.map((log) => (
+                    <li key={log.id} className="flex flex-wrap gap-x-2">
+                      <time className="text-zinc-600 dark:text-zinc-400" dateTime={log.created_at}>
+                        {new Date(log.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
+                      </time>
+                      <span>
+                        {nameOf(log.actor)} — {ACTIVITY_LABELS[log.action] ?? log.action}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </details>
+            )}
+          </Section>
+        </div>
+        <aside className="space-y-6 rounded-xl border border-zinc-200 bg-surface p-5 dark:border-zinc-800">
+          <h2 className="font-semibold">세부 정보</h2>
+          <dl className="grid gap-4">
+            <Info label="담당 국">{task.department?.name}</Info>
+            <Info label="관리 책임자">{nameOf(task.manager)}</Info>
+            <Info label="만든 사람">{nameOf(task.creator)}</Info>
+            <Info label="시작일">{formatDate(task.start_date, today) || "없음"}</Info>
+            <Info label="공개 모드">{VISIBILITY_LABELS[task.visibility_mode].label}</Info>
+            <Info label="완료일">
+              {task.completed_at ? new Date(task.completed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}
+            </Info>
+          </dl>
+          <div className="border-t border-zinc-200 pt-5 dark:border-zinc-800">
+            <Section
+              title="공개 범위"
+              action={
+                !archived &&
+                canManage && (
+                  <DialogButton label="+ 열람 대상 추가">
+                    <ActionForm action={addTaskAccessRule} submitLabel="열람 대상 추가">
+                      {hidden}
+                      <SelectField label="열람 대상" name="subject" placeholder="선택하세요" options={aclSubjectOptions(org, ACL_ROLE_GROUP_LABELS)} />
+                    </ActionForm>
+                  </DialogButton>
+                )
+              }
+            >
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                {VISIBILITY_LABELS[task.visibility_mode].description}
+              </p>
+              {rulesResult.data && rulesResult.data.length > 0 ? (
+                <ul className="space-y-2">
+                  {rulesResult.data.map((rule) => (
+                    <li key={rule.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+                      <span>{aclRuleLabel(rule, org, ACL_ROLE_GROUP_LABELS)}</span>
+                      {!archived && canManage && (
+                        <ActionForm action={removeTaskAccessRule} submitLabel="빼기" variant="secondary" className="flex items-center gap-2">
+                          {hidden}
+                          <input type="hidden" name="rule_id" value={rule.id} />
+                        </ActionForm>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm">추가한 열람 대상이 없습니다.</p>
+              )}
+            </Section>
+
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

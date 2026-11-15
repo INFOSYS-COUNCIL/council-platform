@@ -17,7 +17,7 @@ export type ScheduleInitial = {
   color: ScheduleColor;
 };
 
-export function ScheduleFields({ defaultDate, initial }: { defaultDate: string; initial?: ScheduleInitial }) {
+export function ScheduleFields({ defaultDate, initial }: { defaultDate: string; initial?: ScheduleInitial; }) {
   const [allDay, setAllDay] = useState(initial?.allDay ?? false);
   const [color, setColor] = useState<ScheduleColor>(initial?.color ?? "coral");
   // 처음 값의 종일 여부와 같을 때만 저장된 시작·종료를 쓴다
@@ -52,7 +52,7 @@ export function ScheduleFields({ defaultDate, initial }: { defaultDate: string; 
             <label key={c} className="cursor-pointer" title={SCHEDULE_COLORS[c].label}>
               <input type="radio" name="color" value={c} checked={color === c} onChange={() => setColor(c)} className="peer sr-only" />
               <span
-                className={`block size-8 rounded-full ${SCHEDULE_COLORS[c].dot} ring-offset-2 ring-offset-surface peer-checked:ring-2 peer-checked:ring-zinc-900 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-blue-600 dark:peer-checked:ring-zinc-100`}
+                className={`block size-8 rounded-full ${SCHEDULE_COLORS[c].dot} ring-offset-2 ring-offset-surface peer-checked:ring-2 peer-checked:ring-zinc-900 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-accent dark:peer-checked:ring-zinc-100`}
               />
               <span className="sr-only">{SCHEDULE_COLORS[c].label}</span>
             </label>

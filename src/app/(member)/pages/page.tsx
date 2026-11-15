@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { SelectField } from "@/components/ui/form-field";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -32,9 +34,9 @@ export default function PagesPage(props: PageProps<"/pages">) {
   );
 }
 
-type Row = { id: string; title: string; tags: string[]; meeting_at: string; created_by: string };
+type Row = { id: string; title: string; tags: string[]; meeting_at: string; created_by: string; };
 
-async function PagesContent({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function PagesContent({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>>; }) {
   const membership = await requireMember("/pages");
   const me = await getCurrentUserId();
   const raw = await searchParams;
@@ -42,7 +44,7 @@ async function PagesContent({ searchParams }: { searchParams: Promise<Record<str
   const tag = typeof raw.tag === "string" ? raw.tag : "";
   const sort: "desc" | "asc" = raw.sort === "asc" ? "asc" : "desc";
   const grouped = raw.group === "tag";
-  const href = (change: Partial<{ tag: string; sort: string; group: boolean }>) => {
+  const href = (change: Partial<{ tag: string; sort: string; group: boolean; }>) => {
     const next = { tag, sort, group: grouped, ...change };
     const p = new URLSearchParams();
     if (q) p.set("q", q);
@@ -122,17 +124,18 @@ async function PagesContent({ searchParams }: { searchParams: Promise<Record<str
             name="q"
             defaultValue={q}
             placeholder="제목 검색"
-            className={`h-9 w-48 rounded-md border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900 ${FOCUS_RING}`}
+            className={`h-11 w-48 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`}
           />
         </form>
         <nav aria-label="정렬과 보기" className="flex flex-wrap gap-2 text-sm">
-          <PillLink href={href({ sort: "desc" })} current={sort === "desc"}>
-            최신 날짜순
-          </PillLink>
-          <PillLink href={href({ sort: "asc" })} current={sort === "asc"}>
-            오래된 날짜순
-          </PillLink>
-          <PillLink href={href({ group: !grouped })} current={grouped}>
+          <form action="/pages" className="flex items-end gap-2">
+            {q && <input type="hidden" name="q" value={q} />}
+            {tag && <input type="hidden" name="tag" value={tag} />}
+            {grouped && <input type="hidden" name="group" value="tag" />}
+            <SelectField label="정렬" name="sort" defaultValue={sort} options={[{ value: "desc", label: "최신 날짜순" }, { value: "asc", label: "오래된 날짜순" }]} />
+            <Button type="submit" variant="secondary">적용</Button>
+          </form>
+          <PillLink variant="chip" href={href({ group: !grouped })} current={grouped}>
             태그별로 묶어 보기
           </PillLink>
         </nav>
@@ -140,11 +143,11 @@ async function PagesContent({ searchParams }: { searchParams: Promise<Record<str
 
       {allTags.length > 0 && (
         <nav aria-label="태그로 거르기" className="flex flex-wrap gap-2 text-sm">
-          <PillLink href={href({ tag: "" })} current={!tag}>
+          <PillLink variant="chip" href={href({ tag: "" })} current={!tag}>
             모든 태그
           </PillLink>
           {allTags.map((t) => (
-            <PillLink key={t} href={href({ tag: t })} current={tag === t}>
+            <PillLink variant="chip" key={t} href={href({ tag: t })} current={tag === t}>
               {`#${t}`}
             </PillLink>
           ))}

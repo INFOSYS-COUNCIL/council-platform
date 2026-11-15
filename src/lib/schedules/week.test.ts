@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, groupByDay, monthGrid, mondayOf, timeLabel, weekBars, weekDays } from "./week";
+import { addMonths, groupByDay, isCalendarDate, monthGrid, mondayOf, timeLabel, weekBars, weekDays } from "./week";
+
+describe("isCalendarDate", () => {
+  it.each(["2026-11-15", "2028-02-29"])("실제 날짜 %s를 받는다", (value) => {
+    expect(isCalendarDate(value)).toBe(true);
+  });
+  it.each([undefined, ["2026-11-15"], "2026-13-01", "2026-02-29", "2026-11-31", "2026-00-00", "2026-1-1"])("잘못된 날짜 %s를 거른다", (value) => {
+    expect(isCalendarDate(value)).toBe(false);
+  });
+});
 
 describe("mondayOf / weekDays", () => {
   it("일요일은 그 주의 월요일(6일 전)로, 월요일은 그대로", () => {

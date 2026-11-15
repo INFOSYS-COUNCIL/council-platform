@@ -28,11 +28,11 @@ export type NavIcon =
 
 export type NavGroup = {
   label: string;
-  items: readonly { href: string; label: string; icon: NavIcon }[];
+  items: readonly { href: string; label: string; icon: NavIcon; }[];
 };
 
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 function isCurrent(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -83,7 +83,7 @@ export function Sidebar({
   const toggleCollapsed = () => {
     try {
       localStorage.setItem(COLLAPSED_KEY, collapsed ? "0" : "1");
-    } catch {}
+    } catch { }
     window.dispatchEvent(new Event(COLLAPSED_EVENT));
   };
   // 접혔을 때 넓은 화면에서만 글자를 숨긴다(스크린리더는 계속 읽는다).
@@ -92,7 +92,7 @@ export function Sidebar({
   return (
     // 좁은 화면: 위쪽 고정 막대라 내용 위에 쌓는다(z-30). 넓은 화면: 쌓지 않아 회의록 편집기 메뉴가 사이드바 위로 보인다.
     <aside
-      className={`sticky top-0 z-30 shrink-0 border-b md:z-auto border-zinc-200 bg-sidebar/90 backdrop-blur md:h-screen md:border-r md:border-b-0 md:transition-[width] dark:border-zinc-800 ${collapsed ? "md:w-16" : "md:w-60"}`}
+      className={`sticky top-0 z-30 shrink-0 border-b md:z-auto border-zinc-200 bg-sidebar md:h-screen md:border-r md:border-b-0 md:transition-[width] dark:border-zinc-800 ${collapsed ? "md:w-16" : "md:w-62"}`}
       onKeyDown={(e) => {
         if (e.key === "Escape" && open) setOpenedAt(null);
       }}
@@ -105,11 +105,11 @@ export function Sidebar({
         aria-controls="member-nav"
         aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
         title={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
-        className={`absolute top-1/2 -right-9 z-10 -translate-y-1/2 hidden size-7 place-items-center rounded-full border border-zinc-300 bg-surface text-zinc-600 shadow-sm hover:text-zinc-950 md:grid dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-50 ${FOCUS}`}
+        className={`absolute top-1/2 -right-5 z-10 -translate-y-1/2 hidden size-10 place-items-center rounded-full border border-zinc-300 bg-surface text-zinc-600 shadow-sm hover:text-zinc-950 md:grid dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-50 ${FOCUS}`}
       >
         <Icon name={collapsed ? "expand" : "collapse"} />
       </button>
-      <div className="flex h-14 items-center justify-between gap-2 px-4 md:h-auto md:px-3 md:pt-4 md:pb-2">
+      <div className="flex h-16 items-center justify-between gap-2 px-4 md:h-auto md:px-3 md:pt-4 md:pb-2">
         {/* 로고를 누르면 첫 화면으로 */}
         <Link
           href="/"
@@ -117,14 +117,14 @@ export function Sidebar({
         >
           <span
             aria-hidden="true"
-            className="bg-coral-gradient grid size-7 shrink-0 place-items-center rounded-md text-xs font-bold text-zinc-950"
+            className="bg-coral-gradient grid size-9 shrink-0 place-items-center rounded-md text-xs font-bold text-zinc-950"
           >
             IS
           </span>
           <span className={`min-w-0 ${hideWide}`}>
             <span className="block truncate text-sm font-semibold">{platformName}</span>
             {roleLabel && (
-              <span className="block truncate text-xs text-zinc-600 dark:text-zinc-400">
+              <span className="hidden truncate text-xs md:block text-zinc-600 dark:text-zinc-400">
                 정보시스템학과 · {roleLabel}
               </span>
             )}
@@ -138,14 +138,14 @@ export function Sidebar({
           className={`inline-flex items-center gap-1.5 rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm font-medium hover:bg-zinc-100 md:hidden dark:border-zinc-700 dark:hover:bg-zinc-800 ${FOCUS}`}
         >
           <Icon name={open ? "close" : "menu"} />
-          메뉴
+          <span className="sr-only">메뉴</span>
         </button>
       </div>
 
       <nav
         id="member-nav"
         aria-label="주 메뉴"
-        className={`${open ? "flex" : "hidden"} max-h-[calc(100dvh-3.5rem)] flex-col justify-between gap-4 overflow-y-auto border-t border-zinc-200 px-3 pt-3 pb-4 md:flex md:h-[calc(100vh-4.5rem)] md:max-h-none md:border-t-0 md:pt-2 dark:border-zinc-800`}
+        className={`${open ? "flex" : "hidden"} max-h-[calc(100dvh-4rem)] flex-col justify-between gap-4 overflow-y-auto border-t border-zinc-200 px-3 pt-3 pb-4 md:flex md:h-[calc(100vh-4.5rem)] md:max-h-none md:border-t-0 md:pt-2 dark:border-zinc-800`}
       >
         <div className="space-y-5">
           {groups.map((group) => (
@@ -181,10 +181,10 @@ export function SidebarFallback() {
     // 좁은 화면: 위쪽 고정 막대라 내용 위에 쌓는다(z-30). 넓은 화면: 쌓지 않아 회의록 편집기 메뉴가 사이드바 위로 보인다.
     <aside
       aria-hidden="true"
-      className="h-14 shrink-0 border-b border-zinc-200 bg-sidebar md:h-screen md:w-60 md:border-r md:border-b-0 dark:border-zinc-800"
+      className="h-16 shrink-0 border-b border-zinc-200 bg-sidebar md:h-screen md:w-62 md:border-r md:border-b-0 dark:border-zinc-800"
     >
       <div className="flex items-center gap-2.5 px-4 py-3.5 md:px-4 md:pt-5">
-        <span className="bg-coral-gradient size-7 rounded-md" />
+        <span className="bg-coral-gradient size-9 rounded-lg" />
         <span className="h-4 w-28 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
       </div>
     </aside>
@@ -210,11 +210,10 @@ function NavLink({
       prefetch={false}
       aria-current={current ? "page" : undefined}
       title={collapsed ? item.label : undefined}
-      className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm ${FOCUS} ${
-        current
-          ? "bg-white font-medium text-zinc-950 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-700"
+      className={`flex items-center gap-2.5 min-h-11 rounded-lg px-3 py-2 text-sm ${FOCUS} ${current
+          ? "bg-surface font-semibold text-accent ring-1 ring-zinc-200 dark:ring-zinc-800"
           : "text-zinc-700 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-50"
-      }`}
+        }`}
     >
       <span className={current ? "text-coral-700 dark:text-coral-300" : "text-zinc-500 dark:text-zinc-400"}>
         <Icon name={item.icon} />
@@ -303,7 +302,7 @@ const ICON_PATHS: Record<NavIcon | "menu" | "close", ReactNode> = {
   close: <path d="m4 4 8 8M12 4l-8 8" />,
 };
 
-function Icon({ name }: { name: keyof typeof ICON_PATHS }) {
+function Icon({ name }: { name: keyof typeof ICON_PATHS; }) {
   return (
     <svg
       aria-hidden="true"

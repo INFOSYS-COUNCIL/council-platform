@@ -2,126 +2,106 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { OrgChart } from "@/components/org/org-chart";
 import { SectionPager } from "@/components/section-pager";
-import { SunsetScene } from "@/components/sunset-scene";
 import { getActiveMembership, getCurrentUserId } from "@/lib/auth/session";
 import { getPublicOrgChart } from "@/lib/org/public-chart";
 import { getCouncilProfile } from "@/lib/site";
 
-// 첫 화면(2차 QA): 노을 위에 학생회 이름을 크게, 그 아래 "제 N대 정보시스템학과 학생회"와 회장단(직책 순).
-// 스크롤하면 건의하기 안내(학생회가 아닌 학생의 주 목적이라 먼저), 그 아래 조직도(3차 QA).
-// 세 구역은 각각 화면을 꽉 채우고, 조금만 스크롤해도 다음 구역으로 붙는다(scroll-snap). 오른쪽 위에는 로그인 / 대시보드 버튼.
-// 로고는 임시 "IS". 바꿀 때는 이 파일과 sidebar.tsx·login/page.tsx의 IS 표시를 함께 바꾼다.
-const PILL =
-  "inline-flex min-h-10 items-center justify-center rounded-full px-5 py-2 text-sm font-semibold shadow-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+const PILL = "inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-6 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export default function Home() {
   return (
-    <SectionPager className="h-svh snap-y snap-mandatory overflow-y-auto motion-reduce:snap-none">
-      <section className="relative isolate flex min-h-svh snap-start flex-col overflow-hidden">
-        <SunsetScene className="absolute inset-0 -z-10 size-full" />
-        <header className="flex justify-end p-4 sm:p-6">
-          <Suspense fallback={<span className="min-h-10" />}>
-            <AccountButton />
-          </Suspense>
+    <SectionPager className="h-svh snap-y snap-proximity overflow-y-auto motion-reduce:snap-none">
+      <section className="flex min-h-svh snap-start flex-col bg-background">
+        <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-10">
+          <Link href="/" aria-label="첫 화면" className="flex items-center gap-2.5 rounded-lg font-bold focus-visible:outline-2 focus-visible:outline-accent">
+            <span aria-hidden="true" className="bg-coral-gradient grid size-9 place-items-center rounded-full text-xs text-zinc-950">IS</span>
+            <Suspense fallback="학생회"><CouncilName /></Suspense>
+          </Link>
+          <nav aria-label="첫 화면 메뉴" className="flex items-center gap-4 text-sm sm:gap-7">
+            <Link href="/suggestions/new" className="rounded focus-visible:outline-2 focus-visible:outline-accent">건의하기</Link>
+            <a href="#org" className="rounded focus-visible:outline-2 focus-visible:outline-accent">조직도</a>
+            <Suspense fallback={<span className="h-12 w-20" />}><AccountButton /></Suspense>
+          </nav>
         </header>
-        <div className="flex flex-1 items-end justify-center px-4 pb-[12vh]">
-          <div className="flex flex-col items-center rounded-3xl bg-white/55 px-8 py-8 text-center shadow-[0_20px_60px_-20px_rgb(244_91_79/0.4)] ring-1 ring-white/70 backdrop-blur-md sm:px-14">
-            <span
-              aria-hidden="true"
-              className="bg-coral-gradient grid size-14 place-items-center rounded-2xl text-lg font-bold text-zinc-950 shadow-sm"
-            >
-              IS
-            </span>
-            <Suspense fallback={<h1 className="mt-5 text-4xl font-bold tracking-tight text-zinc-900 sm:text-6xl">학생회</h1>}>
-              <Hero />
-            </Suspense>
+        <div className="mx-auto grid w-full max-w-7xl flex-1 items-center gap-10 px-5 py-16 sm:px-10 lg:grid-cols-2 lg:gap-16 lg:py-24">
+          <div className="space-y-7">
+            <Suspense fallback={<h1 className="text-6xl font-bold">학생회</h1>}><Hero /></Suspense>
+            <p className="text-lg leading-relaxed text-zinc-700 sm:text-xl dark:text-zinc-300">학과 생활에서 불편한 점, 바라는 점을 들려주세요.<br />학생회가 읽고, 처리 과정과 답변을 공개합니다.</p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/suggestions/new" className={`${PILL} bg-accent text-on-accent hover:bg-coral-800 dark:hover:bg-coral-300`}>건의하기 <span aria-hidden="true">→</span></Link>
+              <Link href="/suggestions/public" className={`${PILL} border border-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800`}>모두의 건의 보기</Link>
+            </div>
+            <Suspense fallback={null}><Leaders /></Suspense>
+          </div>
+          <svg aria-hidden="true" viewBox="0 0 600 440" className="mx-auto w-full max-w-xl">
+            <defs><linearGradient id="hero-sun" x2="0.7" y2="1"><stop stopColor="#f7944f" /><stop offset="1" stopColor="#f45b4f" /></linearGradient></defs>
+            <path d="M50 300a250 250 0 0 1 500 0" fill="#ffe6da" />
+            <path d="M110 300a190 190 0 0 1 380 0" fill="#fbc58a" />
+            <path d="M170 300a130 130 0 0 1 260 0" fill="url(#hero-sun)" />
+            <path d="M0 300h600" stroke="currentColor" strokeWidth="2" />
+            <path d="M85 346h430" stroke="#f9a193" strokeWidth="10" strokeLinecap="round" />
+            <path d="M145 388h310" stroke="#facaaa" strokeWidth="7" strokeLinecap="round" />
+            <path d="M205 424h190" stroke="#fbd5ad" strokeWidth="5" strokeLinecap="round" />
+          </svg>
+        </div>
+      </section>
+      <section id="suggest" aria-labelledby="suggest-title" className="flex min-h-svh snap-start items-center bg-[#2a1a15] px-5 py-20 text-[#fff8f0] sm:px-10">
+        <div className="mx-auto w-full max-w-6xl space-y-12">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <h2 id="suggest-title" className="text-3xl font-bold tracking-tight sm:text-5xl">건의는 세 단계면 끝나요</h2>
+            <p className="max-w-sm text-sm leading-relaxed text-[#d6c1b5]">작성자 이름은 회장·부회장만 봅니다. 다른 학생에게는 보이지 않아요.</p>
+          </div>
+          <ol className="grid gap-8 md:grid-cols-3">
+            {[
+              ["학교 계정으로 로그인", "@hanyang.ac.kr Google 계정이면 누구나 건의할 수 있어요."],
+              ["불편한 점, 바라는 점 남기기", "학과 생활에 관한 건의면 무엇이든 괜찮아요."],
+              ["처리 상태와 답변 확인", "접수됨 → 검토 중 → 답변 완료. ‘내 건의’에서 언제든 볼 수 있어요."],
+            ].map(([title, description], i) => (
+              <li key={title} className="space-y-2 border-t border-[#ff8a75] pt-5">
+                <span className="text-sm font-semibold text-[#ffb08a]">0{i + 1}</span>
+                <h3 className="text-xl font-semibold">{title}</h3>
+                <p className="text-sm leading-relaxed text-[#d6c1b5]">{description}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/suggestions/new" className={`${PILL} bg-[#ff8a75] text-[#2a1a15] hover:bg-[#ffb08a]`}>지금 건의하기 <span aria-hidden="true">→</span></Link>
+            <Link href="/suggestions" className={`${PILL} border border-[#d6c1b5] hover:bg-white/10`}>내 건의 보기</Link>
           </div>
         </div>
-        <a
-          href="#suggest"
-          className="mx-auto mb-6 text-sm font-medium text-zinc-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600"
-        >
-          건의하기 ↓
-        </a>
       </section>
-
-      <section id="suggest" aria-labelledby="suggest-title" className="flex min-h-svh snap-start flex-col justify-center bg-coral-50 px-4 py-16 sm:px-8 dark:bg-zinc-900">
-        <div className="mx-auto max-w-2xl space-y-4 text-center">
-          <h2 id="suggest-title" className="text-2xl font-bold tracking-tight">
-            학생회에 건의하기
-          </h2>
-          <p className="text-zinc-700 dark:text-zinc-300">
-            학과 생활에서 불편한 점, 바라는 점을 학생회에 남겨 주세요. 학교 계정으로 로그인하면 누구나 건의할 수 있고,
-            처리 상태와 학생회 답변은 내 건의에서 확인할 수 있습니다. 작성자 이름은 회장·부회장만 봅니다.
-          </p>
-          {/* 로그인하지 않았으면 건의하기 화면이 로그인으로 보낸 뒤 돌아온다 */}
-          <Link href="/suggestions/new" className={`${PILL} min-h-12 bg-coral-700 px-8 text-base text-white hover:bg-coral-800`}>
-            건의하기
-          </Link>
-          <p>
-            <a href="#org" className="text-sm font-medium text-zinc-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-zinc-300">
-              조직도 보기 ↓
-            </a>
-          </p>
-        </div>
-      </section>
-
-      <section id="org" aria-labelledby="org-title" className="flex min-h-svh snap-start flex-col justify-center bg-background px-4 py-16 sm:px-8">
-        <div className="mx-auto w-full max-w-5xl space-y-8">
-          <h2 id="org-title" className="text-center text-2xl font-bold tracking-tight">
-            조직도
-          </h2>
-          <Suspense fallback={<p role="status" className="text-center">불러오는 중…</p>}>
-            <PublicOrg />
-          </Suspense>
+      <section id="org" aria-labelledby="org-title" className="flex min-h-svh snap-start flex-col justify-center bg-background px-5 py-20 sm:px-10">
+        <div className="mx-auto w-full max-w-5xl space-y-10">
+          <h2 id="org-title" className="text-center text-3xl font-bold tracking-tight">조직도</h2>
+          <Suspense fallback={<p role="status" className="text-center">불러오는 중…</p>}><PublicOrg /></Suspense>
         </div>
       </section>
     </SectionPager>
   );
 }
 
+async function CouncilName() {
+  return (await getCouncilProfile()).name;
+}
+
 async function Hero() {
-  const [profile, chart] = await Promise.all([getCouncilProfile(), getPublicOrgChart().catch(() => null)]);
-  const leaders = chart?.executives ?? [];
-  return (
-    <>
-      <h1 className="mt-5 text-4xl font-bold tracking-tight text-balance text-zinc-900 sm:text-6xl">{profile.name}</h1>
-      <p className="mt-3 text-base font-medium text-zinc-800 sm:text-lg">
-        {profile.generation ? `제 ${profile.generation}대 ` : ""}정보시스템학과 학생회
-      </p>
-      {leaders.length > 0 && (
-        <p className="mt-2 text-sm text-zinc-700">
-          {leaders.map((p) => `${p.position ?? "회장단"} ${p.name}`).join(" · ")}
-        </p>
-      )}
-    </>
-  );
+  const profile = await getCouncilProfile();
+  return <><p className="text-sm font-semibold text-accent">한양대학교 정보시스템학과 {profile.generation ? `제 ${profile.generation}대 ` : ""}학생회</p><h1 className="mt-5 text-7xl leading-tight font-bold tracking-tight sm:text-9xl lg:text-[10rem]">{profile.name}</h1></>;
+}
+
+async function Leaders() {
+  const chart = await getPublicOrgChart().catch(() => null);
+  return chart?.executives.length ? <p className="text-sm text-muted">{chart.executives.map((p) => `${p.position ?? "회장단"} ${p.name}`).join(" · ")}</p> : null;
 }
 
 async function PublicOrg() {
   const chart = await getPublicOrgChart().catch(() => null);
-  if (!chart) return <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">조직도를 불러오지 못했습니다.</p>;
+  if (!chart) return <p className="text-center text-sm text-muted">조직도를 불러오지 못했습니다.</p>;
   return <OrgChart {...chart} />;
 }
 
-// 로그인 전: 로그인 / 학생회 구성원: 대시보드 / 그 밖의 학생: 내 건의
 async function AccountButton() {
   const userId = await getCurrentUserId();
-  if (!userId) {
-    return (
-      <Link href="/login" className={`${PILL} bg-coral-700 text-white hover:bg-coral-800`}>
-        로그인
-      </Link>
-    );
-  }
-  const membership = await getActiveMembership();
-  return membership ? (
-    <Link href="/dashboard" className={`${PILL} bg-coral-700 text-white hover:bg-coral-800`}>
-      대시보드로 가기
-    </Link>
-  ) : (
-    <Link href="/suggestions" className={`${PILL} bg-white text-zinc-900 hover:bg-zinc-100`}>
-      내 건의
-    </Link>
-  );
+  const membership = userId ? await getActiveMembership() : null;
+  return <Link href={!userId ? "/login" : membership ? "/dashboard" : "/suggestions"} className={`${PILL} min-h-10 bg-foreground px-4 py-2 text-background hover:opacity-85`}>{!userId ? "로그인" : membership ? "대시보드" : "내 건의"}</Link>;
 }

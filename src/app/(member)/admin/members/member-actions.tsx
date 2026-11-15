@@ -14,7 +14,7 @@ import { changeRole, endMembership } from "./actions";
 
 const roleOptions = ROLE_ORDER.map((role) => ({ value: role, label: ROLE_LABELS[role] }));
 const MENU_ITEM =
-  "block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800";
+  "block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:hover:bg-zinc-800";
 
 type Mode = "menu" | "role" | "end";
 
@@ -50,7 +50,7 @@ export function MemberActions({
   const [departmentId, setDepartmentId] = useState(member.department_id ?? "");
   const [positionId, setPositionId] = useState(member.position_id ?? "");
 
-  const items: { mode: Mode; label: string; danger?: boolean }[] = [
+  const items: { mode: Mode; label: string; danger?: boolean; }[] = [
     ...(canChangeRole ? [{ mode: "role" as const, label: "수정" }] : []),
     ...(canEnd ? [{ mode: "end" as const, label: "소속 종료", danger: true }] : []),
   ];
@@ -74,7 +74,7 @@ export function MemberActions({
         aria-haspopup="dialog"
         aria-label={`${member.name} 설정`}
         title="설정"
-        className="grid size-8 place-items-center rounded-md text-lg leading-none text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+        className="grid size-8 place-items-center rounded-md text-lg leading-none text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
       >
         <span aria-hidden="true">⋯</span>
       </button>
@@ -93,7 +93,7 @@ export function MemberActions({
             type="button"
             onClick={() => dialogRef.current?.close()}
             aria-label="닫기"
-            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800"
+            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-accent dark:hover:bg-zinc-800"
           >
             <span aria-hidden="true">✕</span>
           </button>

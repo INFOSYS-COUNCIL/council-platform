@@ -44,7 +44,7 @@ export default function MeetingDetailPage(props: PageProps<"/meetings/[meetingId
   );
 }
 
-async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }> }) {
+async function MeetingDetail({ params }: { params: Promise<{ meetingId: string; }>; }) {
   const { meetingId } = await params;
   const membership = await requireMember(`/meetings/${meetingId}`);
   if (!UUID.test(meetingId)) notFound();
@@ -92,8 +92,8 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
   const scopeLabel = groupRule
     ? MEETING_SCOPE_LABELS[groupRule.role_group as "ALL_COUNCIL" | "DIRECTORS" | "EXECUTIVES"].label
     : `선택한 국만 · ${rulesResult.data
-        .map((r) => org.departments.find((d) => d.id === r.department_id)?.name ?? "비활성 부서")
-        .join(", ")}`;
+      .map((r) => org.departments.find((d) => d.id === r.department_id)?.name ?? "비활성 부서")
+      .join(", ")}`;
   const currentScope: MeetingScope = (groupRule?.role_group as MeetingScope | undefined) ?? "DEPARTMENTS";
   const currentDepartmentIds = groupRule ? [] : rulesResult.data.flatMap((r) => (r.department_id ? [r.department_id] : []));
   const hidden = <input type="hidden" name="meeting_id" value={meeting.id} />;
@@ -187,9 +187,9 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
           ← 회의록 목록
         </SecondaryLinkButton>
       </p>
-      <Alert tone="info">
+      {meeting.status !== "DRAFT" && <Alert tone="info">
         지금 <strong>{MEETING_STATUS_LABELS[meeting.status]}</strong> · {MEETING_STATUS_HELP[meeting.status]}
-      </Alert>
+      </Alert>}
 
       <Section title="개요">
         <InfoList>

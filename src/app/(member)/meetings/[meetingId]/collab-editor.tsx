@@ -11,6 +11,7 @@ import { applyAwarenessUpdate, Awareness, encodeAwarenessUpdate, removeAwareness
 import * as Y from "yjs";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useColorScheme } from "@/components/ui/theme-picker";
 import { rpcErrorMessage } from "@/lib/actions/result";
 import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
 import { fromBytea, MEETING_FRAGMENT, toBytea } from "@/lib/meetings/labels";
@@ -40,10 +41,11 @@ export function CollabEditor({
   initialState: string;
   initialSeq: number;
   canEdit: boolean;
-  user: { id: string; name: string };
+  user: { id: string; name: string; };
   fileName: string; // md로 저장할 때 이름
 }) {
   const router = useRouter();
+  const colorScheme = useColorScheme();
   const supabase = useMemo(() => createClient(), []);
   // 서버가 합쳐 준 Snapshot + Update에서 시작한다. 이 적용은 저장 대상이 아니다.
   const [{ doc, awareness }] = useState(() => {
@@ -134,7 +136,7 @@ export function CollabEditor({
       void channel.send({ type: "broadcast", event: "awareness", payload: { u: toBase64(update) } });
     };
     const onAwareness = (
-      { added, updated, removed }: { added: number[]; updated: number[]; removed: number[] },
+      { added, updated, removed }: { added: number[]; updated: number[]; removed: number[]; },
       origin: unknown,
     ) => {
       if (origin === REMOTE || !canEdit) return;
@@ -155,7 +157,7 @@ export function CollabEditor({
         })
         .on("broadcast", { event: "status" }, () => router.refresh())
         .on("presence", { event: "sync" }, () => {
-          const state = channel!.presenceState<{ name: string }>();
+          const state = channel!.presenceState<{ name: string; }>();
           setOnline(Object.values(state).map((metas) => metas[0]?.name ?? "이름 없음"));
         })
         .subscribe((s) => {
@@ -209,13 +211,8 @@ export function CollabEditor({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button type="button" variant="secondary" onClick={saveMarkdown}>
-          md로 저장
-        </Button>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface dark:border-zinc-800">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
         <p aria-live="polite" className="text-zinc-600 dark:text-zinc-400">
           접속 중 {online.length}명{online.length > 0 && `: ${online.join(", ")}`}
           {!connected && " · 연결 끊김, 다시 연결하는 중"}
@@ -223,6 +220,7 @@ export function CollabEditor({
         <p role="status" className={status.stopped || status.retrying ? "font-medium text-red-700 dark:text-red-400" : "font-medium text-coral-800 dark:text-coral-300"}>
           {saveLabel}
         </p>
+        <Button type="button" variant="secondary" onClick={saveMarkdown}>md로 저장</Button>
       </div>
       {status.stopped && (
         <Alert>
@@ -230,8 +228,8 @@ export function CollabEditor({
         </Alert>
       )}
       {notice && <Alert tone="info">{notice}</Alert>}
-      <div className="min-h-64 rounded-md border border-zinc-200 bg-white py-4 dark:border-zinc-800 dark:bg-transparent">
-        <BlockNoteView editor={editor} editable={editable} slashMenu={false}>
+      <div className="min-h-64 bg-surface py-4">
+        <BlockNoteView editor={editor} theme={colorScheme} editable={editable} slashMenu={false}>
           <MeetingSlashMenu editor={editor} onNewPage={newPage} />
         </BlockNoteView>
       </div>

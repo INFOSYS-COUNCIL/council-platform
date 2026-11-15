@@ -32,16 +32,15 @@ export function Pagination({
 }
 
 // 탭·필터용 둥근 링크. 지금 고른 것은 aria-current로 알린다.
-export function PillLink({ href, current, children }: { href: string; current: boolean; children: string }) {
+export function PillLink({ href, current, children, variant = "tab" }: { href: string; current: boolean; children: string; variant?: "tab" | "chip"; }) {
   return (
     <Link
       href={href}
       aria-current={current ? "page" : undefined}
-      className={`rounded-md px-2.5 py-1 text-sm ${FOCUS_RING} ${
-        current
-          ? "bg-white font-medium text-zinc-950 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-700"
-          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
-      }`}
+      className={`inline-flex min-h-11 shrink-0 items-center px-3 py-2 text-sm ${FOCUS_RING} ${variant === "tab" ? `border-b-2 ${current ? "border-accent font-semibold text-foreground" : "border-transparent text-muted hover:text-foreground"}` : `rounded-full border ${current
+          ? "border-foreground bg-foreground font-semibold text-background"
+          : "border-border-input text-muted hover:text-foreground"
+        }`}`}
     >
       {children}
     </Link>

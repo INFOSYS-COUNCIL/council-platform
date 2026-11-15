@@ -6,7 +6,8 @@ import { Alert } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
-import { TextField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";
+import { SelectField, TextField } from "@/components/ui/form-field";
 import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { pageNumber, Pagination, PillLink } from "@/components/ui/pagination";
@@ -81,10 +82,11 @@ async function MeetingsContent({
             </PillLink>
           ))}
         </nav>
-        <nav aria-label="정렬" className="flex flex-wrap gap-2 text-sm">
-          <PillLink href={href(status, 1, "desc")} current={sort === "desc"}>최신 날짜순</PillLink>
-          <PillLink href={href(status, 1, "asc")} current={sort === "asc"}>오래된 날짜순</PillLink>
-        </nav>
+        <form action="/meetings" className="flex items-end gap-2">
+          <input type="hidden" name="status" value={status} />
+          <SelectField label="정렬" name="sort" defaultValue={sort} options={[{ value: "desc", label: "최신 날짜순" }, { value: "asc", label: "오래된 날짜순" }]} />
+          <Button type="submit" variant="secondary">적용</Button>
+        </form>
       </div>
 
       {error ? (
@@ -129,7 +131,7 @@ async function MeetingsContent({
 // 관리(정보 수정·보관): 회장단 또는 만든 국장 / 보관 풀기: 회장단 또는 대표 작성자 국장
 // 삭제: 상태와 관계없이 회장단 또는 만든 사람·대표 작성자인 국장
 function meetingItems(
-  m: { id: string; title: string; meeting_at: string; created_by: string; author_id: string },
+  m: { id: string; title: string; meeting_at: string; created_by: string; author_id: string; },
   status: MeetingStatus,
   role: string,
   me: string | null,
@@ -170,29 +172,29 @@ function meetingItems(
   }
   if (status === "ARCHIVED" && canHandleArchived) {
     items.push({
-        key: "reopen",
-        label: "보관 풀고 다시 편집하기",
-        content: (
-          <ActionForm action={changeMeetingStatus} submitLabel="다시 편집하기">
-            {hidden}
-            <input type="hidden" name="status" value="DRAFT" />
-            <p className="text-sm">&quot;편집 중&quot;으로 돌아가 다시 고칠 수 있게 됩니다.</p>
-          </ActionForm>
-        ),
+      key: "reopen",
+      label: "보관 풀고 다시 편집하기",
+      content: (
+        <ActionForm action={changeMeetingStatus} submitLabel="다시 편집하기">
+          {hidden}
+          <input type="hidden" name="status" value="DRAFT" />
+          <p className="text-sm">&quot;편집 중&quot;으로 돌아가 다시 고칠 수 있게 됩니다.</p>
+        </ActionForm>
+      ),
     });
   }
   if (canDelete) {
     items.push({
-        key: "delete",
-        label: "삭제",
-        danger: true,
-        content: (
-          <ActionForm action={deleteMeeting} submitLabel="삭제">
-            {hidden}
-            <input type="hidden" name="status_tab" value={status} />
-            <p className="text-sm">이 회의록을 본문까지 완전히 지웁니다. 되돌릴 수 없습니다.</p>
-          </ActionForm>
-        ),
+      key: "delete",
+      label: "삭제",
+      danger: true,
+      content: (
+        <ActionForm action={deleteMeeting} submitLabel="삭제">
+          {hidden}
+          <input type="hidden" name="status_tab" value={status} />
+          <p className="text-sm">이 회의록을 본문까지 완전히 지웁니다. 되돌릴 수 없습니다.</p>
+        </ActionForm>
+      ),
     });
   }
   return items;

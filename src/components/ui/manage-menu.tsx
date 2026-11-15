@@ -7,7 +7,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 // 메뉴는 화면 기준(fixed)으로 띄워 가로 스크롤 표 등에 잘리지 않게 한다. 바깥 클릭·Esc·스크롤로 닫힌다.
 // 폼은 서버 페이지에서 만들어 content로 넘긴다(ActionForm 등).
 // wide: 칸이 많은 수정 폼은 대화상자를 넓게 연다
-export type ManageItem = { key: string; label: string; danger?: boolean; wide?: boolean; content: ReactNode };
+export type ManageItem = { key: string; label: string; danger?: boolean; wide?: boolean; content: ReactNode; };
 
 const MENU_WIDTH = 176; // w-44
 
@@ -25,7 +25,7 @@ export function ManageMenu({
   const menuRef = useRef<HTMLUListElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [menuAt, setMenuAt] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
+  const [menuAt, setMenuAt] = useState<{ top?: number; bottom?: number; left: number; } | null>(null);
   const current = items.find((item) => item.key === selected);
 
   useEffect(() => {
@@ -81,7 +81,7 @@ export function ManageMenu({
         aria-controls={menuAt ? `${id}-menu` : undefined}
         aria-label={`${subtitle ?? title} 관리`}
         title="관리"
-        className="grid size-8 shrink-0 place-items-center rounded-md text-lg leading-none text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+        className="grid size-8 shrink-0 place-items-center rounded-md text-lg leading-none text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
       >
         <span aria-hidden="true">⋯</span>
       </button>
@@ -115,9 +115,8 @@ export function ManageMenu({
                 type="button"
                 role="menuitem"
                 onClick={() => openDialog(item.key)}
-                className={`block w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-zinc-100 focus-visible:bg-zinc-100 focus-visible:outline-none dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 ${
-                  item.danger ? "text-red-700 dark:text-red-400" : ""
-                }`}
+                className={`block w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-zinc-100 focus-visible:bg-zinc-100 focus-visible:outline-none dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 ${item.danger ? "text-red-700 dark:text-red-400" : ""
+                  }`}
               >
                 {item.label}
               </button>
@@ -143,7 +142,7 @@ export function ManageMenu({
             type="button"
             onClick={() => dialogRef.current?.close()}
             aria-label="닫기"
-            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800"
+            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-accent dark:hover:bg-zinc-800"
           >
             <span aria-hidden="true">✕</span>
           </button>

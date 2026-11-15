@@ -68,7 +68,7 @@ async function CouncilSuggestions({
   const from = (page - 1) * PER_PAGE;
   const isExecutive = membership.role === "EXECUTIVE";
   // 삭제: 회장단 또는 맡은 국의 국장(DB 함수가 다시 검사)
-  const canDelete = (s: { assigned_department_id: string | null }) =>
+  const canDelete = (s: { assigned_department_id: string | null; }) =>
     isExecutive || (membership.role === "DIRECTOR" && s.assigned_department_id === membership.departmentId);
   const [{ data, count, error }, org] = await Promise.all([
     query.order("created_at", { ascending: false }).range(from, from + PER_PAGE - 1),
@@ -80,7 +80,7 @@ async function CouncilSuggestions({
     <>
       <nav aria-label="상태로 거르기" className="flex flex-wrap gap-2">
         {[null, ...SUGGESTION_STATUS_ORDER].map((s) => (
-          <PillLink key={s ?? "all"} href={href(s)} current={s === status}>
+          <PillLink variant="chip" key={s ?? "all"} href={href(s)} current={s === status}>
             {s ? SUGGESTION_STATUS_LABELS[s] : "전체"}
           </PillLink>
         ))}
@@ -116,7 +116,7 @@ async function CouncilSuggestions({
 // 목록 ⋯ 관리: 삭제(회장단·맡은 국 국장)를 맨 위에, 그다음 상태 바꾸기·배정(회장단).
 // 철회된 건의는 상태·배정을 바꾸지 않는다. 학생이 쓴 내용은 고치지 않는다. 권한은 DB 함수가 다시 검사한다.
 function suggestionItems(
-  s: { id: string; status: SuggestionStatus; withdrawn_at: string | null; assigned_department_id: string | null; assigned_user_id: string | null },
+  s: { id: string; status: SuggestionStatus; withdrawn_at: string | null; assigned_department_id: string | null; assigned_user_id: string | null; },
   org: Awaited<ReturnType<typeof getTermOrgOptions>> | null,
   canDelete: boolean,
 ): ManageItem[] {

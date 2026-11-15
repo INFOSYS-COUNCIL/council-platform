@@ -11,7 +11,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/me"
-        className="inline-flex min-h-9 items-center rounded-md border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium shadow-sm hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+        className="inline-flex min-h-9 items-center rounded-md border border-zinc-300 bg-white px-3.5 py-1.5 text-sm font-medium shadow-sm hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
       >
         내 계정으로 가기
       </Link>
