@@ -10,6 +10,7 @@ import {
   type FieldErrors,
 } from "@/lib/actions/result";
 import { requireMember } from "@/lib/auth/session";
+import { templateState } from "@/lib/meetings/ydoc";
 import { parseAclSubject } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -93,6 +94,18 @@ async function taskContext(formData: FormData) {
   const taskId = text(formData, "task_id");
   await requireMember(`/tasks/${taskId}`);
   return { taskId, supabase: await createClient() };
+}
+
+// 업무 글: 기록 > 페이지와 같은 공동 편집 페이지를 하나 만들어 업무에 연결한다(이미 있으면 그대로).
+export async function startTaskPage(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { taskId, supabase } = await taskContext(formData);
+  const initial = templateState([]);
+  const { error } = await supabase.rpc("create_task_page", {
+    p_task_id: taskId,
+    p_state: initial.state,
+    p_state_vector: initial.vector,
+  });
+  return done(error, "업무 글을 시작했습니다. 아래에 내용을 쓰면 자동으로 저장됩니다.");
 }
 
 function done(error: { code?: string; message?: string } | null, message: string): ActionState {

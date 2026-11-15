@@ -14,9 +14,12 @@ describe("isSuggestionHandler", () => {
     expect(isSuggestionHandler(d, me, { assigned_department_id: "d1", assigned_user_id: null })).toBe(true);
     expect(isSuggestionHandler(d, me, { assigned_department_id: "d2", assigned_user_id: null })).toBe(false);
   });
-  it("국원은 나에게 배정된 건만 (같은 국 배정이어도 아니다)", () => {
+  it("국장은 자신에게 직접 배정된 건도", () => {
+    expect(isSuggestionHandler({ ...base, role: "DIRECTOR" }, me, { assigned_department_id: "d2", assigned_user_id: me })).toBe(true);
+  });
+  it("국원은 배정돼도 처리하지 않는다", () => {
     expect(isSuggestionHandler(base, me, { assigned_department_id: "d1", assigned_user_id: "u2" })).toBe(false);
-    expect(isSuggestionHandler(base, me, { assigned_department_id: null, assigned_user_id: me })).toBe(true);
+    expect(isSuggestionHandler(base, me, { assigned_department_id: null, assigned_user_id: me })).toBe(false);
   });
 });
 

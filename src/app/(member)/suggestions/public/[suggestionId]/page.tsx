@@ -44,6 +44,7 @@ async function PublicSuggestion({ params }: { params: Promise<{ suggestionId: st
       .select("id, body, created_at, updated_at")
       .eq("suggestion_id", suggestionId)
       .eq("message_type", "AUTHOR_VISIBLE")
+      .not("approved_at", "is", null)
       .order("created_at"),
   ]);
   if (error) return <Alert>불러오지 못했습니다. 새로고침해 주세요.</Alert>;

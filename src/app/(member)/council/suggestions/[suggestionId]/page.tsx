@@ -10,12 +10,13 @@ import { SelectField, TextareaField } from "@/components/ui/form-field";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
-import { isSuggestionHandler } from "@/lib/suggestions/handler";
+import { isSuggestionHandler, SUGGESTION_HANDLER_ROLES } from "@/lib/suggestions/handler";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import { SUGGESTION_STATUS_LABELS, SUGGESTION_STATUS_ORDER } from "@/lib/suggestions/labels";
 import {
   addSuggestionMessage,
+  approveSuggestionMessage,
   assignSuggestion,
   changeSuggestionStatus,
   deleteSuggestionMessage,
@@ -38,7 +39,7 @@ export default function CouncilSuggestionPage(props: PageProps<"/council/suggest
 
 async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: string }> }) {
   const { suggestionId } = await params;
-  const membership = await requireMember(`/council/suggestions/${suggestionId}`);
+  const membership = await requireMember(`/council/suggestions/${suggestionId}`, SUGGESTION_HANDLER_ROLES);
   if (!UUID.test(suggestionId)) notFound();
   const isExecutive = membership.role === "EXECUTIVE";
 
@@ -51,7 +52,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
       .maybeSingle(),
     supabase
       .from("suggestion_messages")
-      .select("id, message_type, body, created_at, updated_at, writer_id, writer:profiles!suggestion_messages_writer_id_fkey(display_name, email)")
+      .select("id, message_type, body, created_at, updated_at, approved_at, writer_id, writer:profiles!suggestion_messages_writer_id_fkey(display_name, email)")
       .eq("suggestion_id", suggestionId)
       .order("created_at"),
     // 신원은 회장단만 (7.1절). 다른 사람은 부르지도 않는다
@@ -109,8 +110,12 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
               >
                 <div className="flex items-start justify-between gap-2">
                   <Badge tone={m.message_type === "AUTHOR_VISIBLE" ? "strong" : "muted"}>
-                    {m.message_type === "AUTHOR_VISIBLE" ? "작성자에게 공개" : "내부 메모"}
+                    {m.message_type === "AUTHOR_VISIBLE" ? "작성자 답변" : "내부 메모"}
                   </Badge>
+                  {m.message_type === "AUTHOR_VISIBLE" && (
+                    <Badge tone={m.approved_at ? "neutral" : "muted"}>{m.approved_at ? "승인됨 · 작성자에게 보임" : "승인 대기 · 아직 안 보임"}</Badge>
+                  )}
+                  <span className="flex-1" />
                   {!closed && canEditMessages && (
                     <ManageMenu
                       title={m.message_type === "AUTHOR_VISIBLE" ? "답변 관리" : "메모 관리"}
@@ -130,7 +135,7 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
                                 maxLength={3000}
                                 required
                                 defaultValue={m.body}
-                                hint={m.message_type === "AUTHOR_VISIBLE" ? "고친 내용이 작성자에게 바로 보입니다." : undefined}
+                                hint={m.message_type === "AUTHOR_VISIBLE" ? "고치면 다시 승인 대기가 되고, 승인해야 작성자에게 보입니다." : undefined}
                               />
                             </ActionForm>
                           ),
@@ -155,6 +160,17 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
                   )}
                 </div>
                 <p className="mt-2 whitespace-pre-wrap">{m.body}</p>
+                {!closed && m.message_type === "AUTHOR_VISIBLE" && !m.approved_at && (
+                  <ActionForm
+                    action={approveSuggestionMessage}
+                    submitLabel="승인하고 작성자에게 공개"
+                    confirmMessage={s.visibility === "PUBLIC" ? "승인하면 작성자와 모든 학생에게 보입니다. 승인할까요?" : "승인하면 작성자에게 보입니다. 승인할까요?"}
+                    className="mt-2"
+                  >
+                    {hidden}
+                    <input type="hidden" name="message_id" value={m.id} />
+                  </ActionForm>
+                )}
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   {m.writer?.display_name?.trim() || m.writer?.email} ·{" "}
                   {new Date(m.updated_at ?? m.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" })}
@@ -174,13 +190,12 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
             </ActionForm>
             <ActionForm
               action={addSuggestionMessage}
-              submitLabel="작성자에게 답변"
+              submitLabel="답변 남기기 (승인 대기)"
               variant="secondary"
-              confirmMessage="이 답변은 작성자에게 바로 공개됩니다. 남길까요?"
             >
               {hidden}
               <input type="hidden" name="message_type" value="AUTHOR_VISIBLE" />
-              <TextareaField label="작성자 공개 답변" name="body" rows={4} maxLength={3000} required hint="작성자가 내 건의 화면에서 봅니다." />
+              <TextareaField label="작성자 공개 답변" name="body" rows={4} maxLength={3000} required hint="회장단이나 국장이 승인해야 작성자가 내 건의 화면에서 봅니다." />
             </ActionForm>
           </div>
         )}
@@ -196,14 +211,14 @@ async function CouncilSuggestion({ params }: { params: Promise<{ suggestionId: s
                 name="status"
                 defaultValue={s.status}
                 options={SUGGESTION_STATUS_ORDER.map((st) => ({ value: st, label: SUGGESTION_STATUS_LABELS[st] }))}
-                hint="처리 완료·종료 전에 작성자 공개 답변이 하나 이상 있어야 합니다."
+                hint="답변 완료로 바꾸려면 승인된 작성자 답변이 하나 이상 있어야 합니다."
               />
             </ActionForm>
             {isExecutive && (
               <ActionForm action={assignSuggestion} submitLabel="배정 저장" variant="secondary">
                 {hidden}
                 <SelectField label="담당 부서" name="department_id" placeholder="미배정" options={departmentSelectOptions(org.departments)} defaultValue={s.assigned_department_id ?? ""} />
-                <SelectField label="담당자" name="user_id" placeholder="부서 국장이 처리" options={memberSelectOptions(org.members)} defaultValue={s.assigned_user_id ?? ""} />
+                <SelectField label="담당자" name="user_id" placeholder="부서 국장이 처리" hint="국장이나 회장단만 맡을 수 있습니다." options={memberSelectOptions(org.members.filter((m) => m.role !== "MEMBER"))} defaultValue={s.assigned_user_id ?? ""} />
               </ActionForm>
             )}
           </div>

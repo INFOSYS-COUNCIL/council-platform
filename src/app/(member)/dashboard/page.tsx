@@ -5,12 +5,14 @@ import { MeetingStatusBadge, OverdueBadge, SuggestionStatusBadge, TaskStatusBadg
 import { Skeleton } from "@/components/ui/detail";
 import { FOCUS_RING } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
-import { getCurrentUserId, requireMember } from "@/lib/auth/session";
+import { getActiveMembership, getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDate, formatDateTime, isOverdue, todayInSeoul } from "@/lib/dates";
 import { fetchWeekSchedules } from "@/lib/schedules/queries";
 import { groupByDay, mondayOf, timeLabel, weekDays } from "@/lib/schedules/week";
 import { councilTagline, getCouncilProfile } from "@/lib/site";
+import { handlerFilter } from "@/lib/suggestions/handler";
 import { createClient } from "@/lib/supabase/server";
+import { NotificationBell, type NotificationItem } from "./notification-bell";
 
 export const metadata: Metadata = {
   title: "대시보드",
@@ -23,7 +25,15 @@ export default async function DashboardPage() {
   const profile = await getCouncilProfile();
   return (
     <div className="space-y-6">
-      <PageHeader title="대시보드" description={councilTagline(profile)} />
+      <PageHeader
+        title="대시보드"
+        description={councilTagline(profile)}
+        actions={
+          <Suspense fallback={null}>
+            <Notifications />
+          </Suspense>
+        }
+      />
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContent />
       </Suspense>
@@ -47,11 +57,48 @@ function DashboardSkeleton() {
 const TASK_FIELDS = "id, title, status, due_date, department:departments(name)";
 const OPEN_SUGGESTION_STATUSES = ["RECEIVED", "IN_REVIEW"] as const;
 
+const NOTIFICATION_TEXT = {
+  TASK_CREATED: "새 업무",
+  SUGGESTION_SUBMITTED: "새 건의가 접수됐습니다",
+  SUGGESTION_ASSIGNED: "건의가 배정됐습니다",
+} as const;
+
+// 알림은 회장단·국장에게만 온다(새 업무·새 건의·건의 배정). 제목은 RLS로 볼 수 있을 때만 붙인다.
+async function Notifications() {
+  const membership = await getActiveMembership();
+  if (!membership || membership.role === "MEMBER") return null;
+  const supabase = await createClient();
+  const [{ data }, { count }] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("id, kind, created_at, read_at, task:tasks(id, title), suggestion:suggestions(id, title)")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null),
+  ]);
+  const today = todayInSeoul();
+  const items: NotificationItem[] = (data ?? []).map((n) => {
+    const kind = n.kind as keyof typeof NOTIFICATION_TEXT;
+    const target = n.task ? { title: n.task.title, href: `/tasks/${n.task.id}` } : n.suggestion ? { title: n.suggestion.title, href: `/council/suggestions/${n.suggestion.id}` } : null;
+    return {
+      id: n.id,
+      text: target ? `${NOTIFICATION_TEXT[kind] ?? "알림"}: ${target.title}` : NOTIFICATION_TEXT[kind] ?? "알림",
+      href: target?.href ?? null,
+      when: formatDateTime(n.created_at, today),
+      unread: n.read_at === null,
+    };
+  });
+  return <NotificationBell items={items} unreadCount={count ?? 0} />;
+}
+
 async function DashboardContent() {
   const membership = await requireMember("/dashboard");
   const me = (await getCurrentUserId())!;
   const today = todayInSeoul();
   const supabase = await createClient();
+  // 업무·일정 추가와 건의 처리는 국장·회장단만(DB 함수가 다시 검사한다). 국원에게는 버튼·칸을 보이지 않는다
+  const isMember = membership.role === "MEMBER";
+  const suggestionScope = handlerFilter(membership, me);
 
   const [mine, week, links, meetings, suggestions] = await Promise.all([
     supabase
@@ -74,14 +121,19 @@ async function DashboardContent() {
       .neq("status", "ARCHIVED")
       .order("updated_at", { ascending: false })
       .limit(5),
-    // 건의 처리 화면과 같은 범위(RLS: 회장단 전체, 국장 자기 국, 국원 직접 배정) 중 아직 끝나지 않은 건
-    supabase
-      .from("suggestions")
-      .select("id, title, status, created_at, department:departments(name)", { count: "exact" })
-      .eq("term_id", membership.termId)
-      .in("status", OPEN_SUGGESTION_STATUSES)
-      .order("created_at", { ascending: false })
-      .limit(5),
+    // 건의 처리 화면과 같은 범위(회장단 전체, 국장 자기 국·자신에게 배정) 중 아직 끝나지 않은 건. 국원은 부르지 않는다
+    isMember
+      ? null
+      : (() => {
+          const q = supabase
+            .from("suggestions")
+            .select("id, title, status, created_at, department:departments(name)", { count: "exact" })
+            .eq("term_id", membership.termId)
+            .in("status", OPEN_SUGGESTION_STATUSES)
+            .order("created_at", { ascending: false })
+            .limit(5);
+          return suggestionScope ? q.or(suggestionScope) : q;
+        })(),
   ]);
 
   // 오늘부터 이번 주 일요일까지만
@@ -122,7 +174,7 @@ async function DashboardContent() {
           failed={!!mine.error}
           empty={mine.data?.length === 0}
           emptyText="맡은 업무가 없습니다."
-          footer={{ href: "/tasks/new", label: "+ 업무 만들기" }}
+          footer={isMember ? { href: "/tasks", label: "업무 전체 보기" } : { href: "/tasks/new", label: "+ 업무 만들기" }}
         >
           {mine.data?.map((t) => (
             <TaskLine key={t.id} task={t} today={today} />
@@ -136,7 +188,7 @@ async function DashboardContent() {
           failed={!!week.error}
           empty={upcomingDays.length === 0}
           emptyText="이번 주에 남은 일정이 없습니다."
-          footer={{ href: "/schedule", label: "+ 일정 추가" }}
+          footer={isMember ? { href: "/schedule", label: "일정 전체 보기" } : { href: "/schedule", label: "+ 일정 추가" }}
         >
           {upcomingDays.flatMap((day) =>
             byDay.get(day)!.map((s) => (
@@ -157,6 +209,7 @@ async function DashboardContent() {
           )}
         </Column>
 
+        {suggestions && (
         <Column
           title="처리할 건의"
           dot="bg-amber-500"
@@ -180,6 +233,7 @@ async function DashboardContent() {
             />
           ))}
         </Column>
+        )}
 
         <Column
           title="최근 회의록"

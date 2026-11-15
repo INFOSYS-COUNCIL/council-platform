@@ -28,7 +28,7 @@ select throws_ok(
 );
 
 set local request.jwt.claims = '{"sub":"ef000000-0000-0000-0000-000000000001","role":"authenticated"}';
-select public.add_suggestion_message((select id from ids where name = 'public'), 'AUTHOR_VISIBLE', '공개 답변');
+select public.approve_suggestion_message((public.add_suggestion_message((select id from ids where name = 'public'), 'AUTHOR_VISIBLE', '공개 답변')).id);
 select public.add_suggestion_message((select id from ids where name = 'public'), 'INTERNAL', '내부 메모');
 
 set local request.jwt.claims = '{"sub":"bf000000-0000-0000-0000-000000000002","role":"authenticated"}';

@@ -34,7 +34,7 @@ type Task = {
 export default function TeamTasksPage() {
   return (
     <div className="min-w-0 space-y-6">
-      <PageHeader title="업무 현황" description="누가 어떤 업무를 맡고 있는지 조직도로 봅니다. 이름을 누르면 끝나지 않은 업무가 펼쳐집니다." />
+      <PageHeader title="업무 현황" description="누가 어떤 업무를 맡고 있는지 조직도로 봅니다. 이름을 누르면 할당된 업무를 볼 수 있습니다." />
       <Suspense fallback={<p role="status">불러오는 중…</p>}>
         <TeamTasksContent />
       </Suspense>
