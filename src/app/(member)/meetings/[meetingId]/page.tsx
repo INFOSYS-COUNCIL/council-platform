@@ -15,7 +15,8 @@ import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDateTime, isoToSeoulLocal, todayInSeoul } from "@/lib/dates";
 import { MEETING_SCOPE_LABELS, MEETING_STATUS_HELP, MEETING_STATUS_LABELS, type MeetingScope } from "@/lib/meetings/labels";
 import { markdownFileName } from "@/lib/meetings/export";
-import { fetchMeetingState } from "@/lib/meetings/queries";
+import { byEditAmount, type EditStat } from "@/lib/meetings/edit-stats";
+import { fetchEditStats, fetchMeetingState } from "@/lib/meetings/queries";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -65,20 +66,23 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
   if (meeting.kind === "PAGE") redirect(`/pages/${meeting.id}`);
 
   let state;
+  let stats: Map<string, EditStat>;
   try {
-    state = await fetchMeetingState(supabase, meetingId);
+    [state, stats] = await Promise.all([fetchMeetingState(supabase, meetingId), fetchEditStats(supabase, meetingId)]);
   } catch {
     return <Alert>본문을 불러오지 못했습니다. 새로고침해 주세요.</Alert>;
   }
 
   const nameOf = (id: string) => org.members.find((m) => m.userId === id)?.name ?? "(비활성 구성원)";
-  const editorIds = editorsResult.data.map((e) => e.user_id);
+  // 편집자 목록: 많이 고친 사람이 위로(4차 피드백). 편집자로 지정되지 않았지만 고친 사람(회장단 등)도 함께 보인다
+  const assignedEditors = new Set(editorsResult.data.map((e) => e.user_id));
+  const editorIds = byEditAmount([...new Set([...assignedEditors, ...stats.keys()])], stats);
   // 표시용 판정. 실제 검사는 DB 함수(can_edit_meeting·can_manage_meeting·delete_meeting)가 한다.
   // 관리·삭제는 국장과 회장단만(3차 피드백): 회장단, 또는 만든 사람·대표 작성자인 국장.
   const isExecutive = membership.role === "EXECUTIVE";
   const isDirector = membership.role === "DIRECTOR";
   const canManage = isExecutive || (isDirector && meeting.created_by === me);
-  const canEdit = meeting.status === "DRAFT" && (isExecutive || editorIds.includes(me));
+  const canEdit = meeting.status === "DRAFT" && (isExecutive || assignedEditors.has(me));
   const archived = meeting.status === "ARCHIVED";
   const canHandleArchived = isExecutive || (isDirector && meeting.author_id === me);
   const canDelete = isExecutive || (isDirector && (meeting.created_by === me || meeting.author_id === me));
@@ -93,7 +97,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
   const currentScope: MeetingScope = (groupRule?.role_group as MeetingScope | undefined) ?? "DEPARTMENTS";
   const currentDepartmentIds = groupRule ? [] : rulesResult.data.flatMap((r) => (r.department_id ? [r.department_id] : []));
   const hidden = <input type="hidden" name="meeting_id" value={meeting.id} />;
-  const candidates = memberSelectOptions(org.members.filter((m) => !editorIds.includes(m.userId)));
+  const candidates = memberSelectOptions(org.members.filter((m) => !assignedEditors.has(m.userId)));
 
   // 관리 ⋯ 메뉴: 진행 상태·회의 정보·대표 작성자·삭제를 한곳에 모은다(화면에는 내용만 둔다)
   const manageItems: ManageItem[] = [];
@@ -231,8 +235,14 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string }
             <li key={id} className="flex items-center justify-between gap-3 px-3 py-2">
               <span className="min-w-0 text-sm">
                 {nameOf(id)} {id === meeting.author_id && <Badge tone="muted">대표 작성자</Badge>}
+                {!assignedEditors.has(id) && <Badge tone="muted">편집자 아님</Badge>}
+                <span className="block text-xs text-zinc-600 dark:text-zinc-400">
+                  {stats.has(id)
+                    ? `새로 추가한 글자 ${stats.get(id)!.added.toLocaleString()}자 · 수정한 글자 ${stats.get(id)!.changed.toLocaleString()}자`
+                    : "아직 고친 내용 없음"}
+                </span>
               </span>
-              {canManage && !archived && id !== meeting.author_id && (
+              {canManage && !archived && assignedEditors.has(id) && id !== meeting.author_id && (
                 <ActionForm action={removeMeetingEditor} submitLabel="빼기" variant="secondary">
                   {hidden}
                   <input type="hidden" name="user_id" value={id} />

@@ -57,7 +57,8 @@ async function PagesContent({ searchParams }: { searchParams: Promise<Record<str
     .from("meeting_minutes")
     .select("id, title, tags, meeting_at, created_by")
     .eq("term_id", membership.termId)
-    .eq("kind", "PAGE");
+    .eq("kind", "PAGE")
+    .is("guide_department_id", null);
   // 검색어의 %·_는 글자 그대로 찾는다
   if (q) query = query.ilike("title", `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
   if (tag) query = query.contains("tags", [tag]);
