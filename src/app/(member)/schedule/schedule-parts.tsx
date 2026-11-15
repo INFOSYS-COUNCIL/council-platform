@@ -16,7 +16,7 @@ export type ScheduleRow = ScheduleTime & {
   event_id: string | null;
   created_by: string;
   color?: string;
-  event?: { name: string } | null;
+  event?: { name: string; } | null;
 };
 
 function initialOf(s: ScheduleRow): ScheduleInitial {
@@ -32,9 +32,9 @@ function initialOf(s: ScheduleRow): ScheduleInitial {
 }
 
 // canManage: 만든 사람·회장단·행사 관리자(DB 함수와 같은 기준)
-export function ScheduleItem({ s, canManage, prefix }: { s: ScheduleRow; canManage: boolean; prefix?: string }) {
+export function ScheduleItem({ s, canManage, prefix }: { s: ScheduleRow; canManage: boolean; prefix?: string; }) {
   return (
-    <li className="flex items-center justify-between gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900">
+    <li className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-surface px-3 py-3 dark:border-zinc-800">
       <span className="flex min-w-0 items-start gap-2.5">
         <span aria-hidden="true" className={`mt-1.5 size-2.5 shrink-0 rounded-full ${scheduleColor(s.color).dot}`} />
         <span className="min-w-0">
@@ -79,7 +79,7 @@ export function ScheduleItem({ s, canManage, prefix }: { s: ScheduleRow; canMana
   );
 }
 
-export function NewScheduleForm({ defaultDate }: { defaultDate: string }) {
+export function NewScheduleForm({ defaultDate }: { defaultDate: string; }) {
   return (
     <ActionForm action={createSchedule} submitLabel="일정 추가">
       <ScheduleFields defaultDate={defaultDate} />

@@ -8,16 +8,16 @@ import {
 import { MEETING_STATUS_LABELS, type MeetingStatus } from "@/lib/meetings/labels";
 import { SUGGESTION_STATUS_LABELS, type SuggestionStatus } from "@/lib/suggestions/labels";
 
-// Linear처럼 얇은 테두리 + 앞쪽 점으로 상태를 구분한다.
+// 상태는 다섯 색과 글자로 구분한다. 기존 tone 이름은 같은 계열로 유지한다.
 const TONES = {
-  neutral: "border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300",
-  strong: "border-coral-200 bg-coral-50 text-coral-900 dark:border-coral-900 dark:bg-coral-900/40 dark:text-coral-200",
-  muted: "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
-  danger: "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200",
-  info: "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200",
-  warning: "border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-200",
-  caution: "border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-200",
-  success: "border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200",
+  neutral: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+  strong: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+  muted: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+  danger: "bg-danger-bg text-danger",
+  info: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300",
+  caution: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300",
+  success: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
 } as const;
 
 export type BadgeTone = keyof typeof TONES;
@@ -26,17 +26,6 @@ export type BadgeTone = keyof typeof TONES;
 export function badgeToneClass(tone: BadgeTone): string {
   return TONES[tone];
 }
-
-const DOTS: Record<BadgeTone, string> = {
-  neutral: "bg-zinc-400",
-  strong: "bg-coral-500",
-  muted: "bg-zinc-300 dark:bg-zinc-600",
-  danger: "bg-red-500",
-  info: "bg-blue-500",
-  warning: "bg-orange-500",
-  caution: "bg-yellow-500",
-  success: "bg-green-500",
-};
 
 // 짧은 상태 표시. 색만으로 뜻을 전하지 않도록 항상 글자를 함께 쓴다.
 export function Badge({
@@ -48,9 +37,8 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${TONES[tone]}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap ${TONES[tone]}`}
     >
-      <span aria-hidden="true" className={`size-1.5 rounded-full ${DOTS[tone]}`} />
       {children}
     </span>
   );
@@ -64,35 +52,35 @@ export const TASK_STATUS_TONES: Record<TaskStatus, BadgeTone> = {
   DONE: "success",
 };
 
-export function TaskStatusBadge({ status }: { status: TaskStatus }) {
+export function TaskStatusBadge({ status }: { status: TaskStatus; }) {
   return <Badge tone={TASK_STATUS_TONES[status]}>{TASK_STATUS_LABELS[status]}</Badge>;
 }
 
-// 건의: 접수됨 노랑 · 검토 중 파랑 · 답변 완료 초록 · 철회됨 흐리게
+// 건의: 접수됨 중립 · 검토 중 파랑 · 답변 완료 초록 · 철회됨 중립
 const SUGGESTION_STATUS_TONES: Record<SuggestionStatus, BadgeTone> = {
-  RECEIVED: "caution",
+  RECEIVED: "neutral",
   IN_REVIEW: "info",
   RESOLVED: "success",
   CLOSED: "muted",
 };
 
-export function SuggestionStatusBadge({ status }: { status: SuggestionStatus }) {
+export function SuggestionStatusBadge({ status }: { status: SuggestionStatus; }) {
   return <Badge tone={SUGGESTION_STATUS_TONES[status]}>{SUGGESTION_STATUS_LABELS[status]}</Badge>;
 }
 
-// 회의록: 편집 중 주황 · 보관함 흐리게
+// 회의록: 편집 중 파랑 · 확정 초록 · 보관함 중립
 const MEETING_STATUS_TONES: Record<MeetingStatus, BadgeTone> = {
-  DRAFT: "warning",
+  DRAFT: "info",
   CONFIRMED: "success",
   ARCHIVED: "muted",
 };
 
-export function MeetingStatusBadge({ status }: { status: MeetingStatus }) {
+export function MeetingStatusBadge({ status }: { status: MeetingStatus; }) {
   return <Badge tone={MEETING_STATUS_TONES[status]}>{MEETING_STATUS_LABELS[status]}</Badge>;
 }
 
 // 보통은 표시하지 않는다. 높음·낮음만 눈에 띄게 한다.
-export function TaskPriorityBadge({ priority }: { priority: TaskPriority }) {
+export function TaskPriorityBadge({ priority }: { priority: TaskPriority; }) {
   if (priority === "NORMAL") return null;
   return (
     <Badge tone={priority === "HIGH" ? "danger" : "muted"}>

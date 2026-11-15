@@ -14,7 +14,7 @@ import { cancelAccount, correctStudentNo, deleteAccount, reactivateMember, updat
 
 const roleOptions = ROLE_ORDER.map((role) => ({ value: role, label: ROLE_LABELS[role] }));
 const MENU_ITEM =
-  "block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800";
+  "block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:hover:bg-zinc-800";
 
 type Mode = "menu" | "update" | "studentNo" | "cancel" | "delete" | "reactivate";
 
@@ -61,7 +61,7 @@ export function AccountActions({
   const [positionId, setPositionId] = useState(account.position_id ?? "");
 
   const pending = account.is_active && !activated;
-  const items: { mode: Mode; label: string; danger?: boolean }[] = [
+  const items: { mode: Mode; label: string; danger?: boolean; }[] = [
     ...(ended && account.is_active ? [{ mode: "reactivate" as const, label: "학생회 권한 다시 주기" }] : []),
     ...(pending ? [{ mode: "update" as const, label: "수정" }] : []),
     ...(account.is_active ? [{ mode: "studentNo" as const, label: "학번 정정" }] : []),
@@ -89,7 +89,7 @@ export function AccountActions({
         aria-haspopup="dialog"
         aria-label={`${account.email} 설정`}
         title="설정"
-        className="grid size-8 place-items-center rounded-md text-lg leading-none text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+        className="grid size-8 place-items-center rounded-md text-lg leading-none text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
       >
         <span aria-hidden="true">⋯</span>
       </button>
@@ -108,7 +108,7 @@ export function AccountActions({
             type="button"
             onClick={close}
             aria-label="닫기"
-            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800"
+            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-accent dark:hover:bg-zinc-800"
           >
             <span aria-hidden="true">✕</span>
           </button>

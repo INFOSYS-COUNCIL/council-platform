@@ -3,10 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Alert } from "@/components/ui/alert";
 import {
-  badgeToneClass,
   InactiveAssigneeBadge,
   OverdueBadge,
-  TASK_STATUS_TONES,
   TaskPriorityBadge,
   TaskStatusBadge,
 } from "@/components/ui/badge";
@@ -107,9 +105,8 @@ async function TasksContent({
       <li key={task.id}>
         <Link
           href={`/tasks/${task.id}`}
-          className={`flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between ${FOCUS_RING} ${
-            isUrgent ? "hover:bg-red-100/60 dark:hover:bg-red-900/40" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"
-          }`}
+          className={`flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between ${FOCUS_RING} ${isUrgent ? "hover:bg-red-100/60 dark:hover:bg-red-900/40" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            }`}
         >
           <span className="min-w-0">
             <span className={`block truncate font-medium ${isUrgent ? "text-red-800 dark:text-red-200" : ""}`}>
@@ -140,7 +137,7 @@ async function TasksContent({
         actions={canCreate && <LinkButton href="/tasks/new">업무 만들기</LinkButton>}
       />
 
-      <nav aria-label="업무 분류" className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-800">
+      <nav aria-label="업무 분류" className="flex gap-2 overflow-x-auto border-b border-zinc-200 dark:border-zinc-800">
         {tabs.map((t) => (
           <PillLink key={t} href={taskListHref(params, { tab: t })} current={params.tab === t}>
             {TASK_TABS[t]}
@@ -189,21 +186,19 @@ async function TasksContent({
   );
 }
 
-function StatusFilter({ params }: { params: TaskListParams }) {
+function StatusFilter({ params }: { params: TaskListParams; }) {
   const options = [null, ...TASK_STATUS_ORDER] as const;
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm" role="group" aria-label="상태로 거르기">
+    <div className="flex items-center gap-2 overflow-x-auto pb-1 text-sm" role="group" aria-label="상태로 거르기">
       {options.map((s) => (
         <Link
           key={s ?? "all"}
           href={taskListHref(params, { status: s })}
           aria-current={params.status === s ? "true" : undefined}
-          // 상태마다 배지와 같은 색. 고른 것은 굵은 글씨와 테두리 고리로 표시한다
-          className={`rounded-md border px-2.5 py-1 ${FOCUS_RING} ${badgeToneClass(s ? TASK_STATUS_TONES[s] : "neutral")} ${
-            params.status === s
-              ? "font-semibold ring-2 ring-coral-600 ring-offset-1 dark:ring-coral-400 dark:ring-offset-zinc-950"
-              : ""
-          }`}
+          className={`inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-2 ${FOCUS_RING} ${params.status === s
+              ? "border-foreground bg-foreground font-semibold text-background"
+              : "border-border-input bg-surface text-muted"
+            }`}
         >
           {s ? TASK_STATUS_LABELS[s] : "모든 상태"}
         </Link>

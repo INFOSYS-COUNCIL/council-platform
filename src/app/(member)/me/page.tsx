@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { ThemePicker } from "@/components/ui/theme-picker";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -55,6 +56,7 @@ async function AccountDetails() {
 
   return (
     <div className="space-y-6">
+      <ThemePicker />
       <dl className="space-y-4 rounded-lg border border-zinc-200 bg-surface p-4 dark:border-zinc-800">
         <div className="space-y-1">
           <dt className="text-sm font-medium text-zinc-600 dark:text-zinc-400">이메일</dt>
@@ -72,7 +74,7 @@ async function AccountDetails() {
       </dl>
 
       <section className="space-y-2">
-        <h2 className="border-l-4 border-coral-500 pl-2.5 text-lg font-bold">학생회 소속</h2>
+        <h2 className="text-lg font-semibold">학생회 소속</h2>
         {memberships.length === 0 ? (
           <p>
             학생회 구성원으로 등록되어 있지 않아 일반 학생으로 로그인했습니다.

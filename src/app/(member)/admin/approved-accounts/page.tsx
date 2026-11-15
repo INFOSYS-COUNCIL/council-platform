@@ -70,7 +70,7 @@ async function ApprovedAccountsContent() {
           role="region"
           aria-label="승인 명단 표"
           tabIndex={0}
-          className="max-w-full overflow-x-auto rounded-md border focus-visible:outline-2 focus-visible:outline-blue-600"
+          className="max-w-full overflow-x-auto rounded-md border focus-visible:outline-2 focus-visible:outline-accent"
         >
           <table className="w-full text-left text-sm">
             <thead>

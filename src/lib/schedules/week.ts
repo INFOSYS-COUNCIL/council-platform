@@ -2,6 +2,12 @@ import { isoToSeoulLocal } from "@/lib/dates";
 
 // 일정 화면의 한 주(월~일, 한국 날짜) 계산. 날짜는 "YYYY-MM-DD" 문자열로 다룬다.
 
+export function isCalendarDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 function addDays(date: string, days: number): string {
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);
@@ -71,14 +77,14 @@ export function timeLabel(s: ScheduleTime): string {
 // 여러 날에 걸친 일정(시작일 ≠ 종료일)을 한 주 안에서 이어진 막대로 놓는다.
 // 겹치지 않게 줄(lane)을 나눈다: 먼저 시작하는 것, 같은 날이면 긴 것부터 비어 있는 가장 위 줄에 둔다.
 // col은 그 주에서 0(월)~6(일), span은 그 주 안에서 걸친 날 수. 주를 넘어가면 다음 주에 다시 놓인다.
-export type WeekBar<T> = { item: T; col: number; span: number; lane: number; fromPrev: boolean; toNext: boolean };
+export type WeekBar<T> = { item: T; col: number; span: number; lane: number; fromPrev: boolean; toNext: boolean; };
 
 export function isMultiDay(s: ScheduleTime): boolean {
   const [from, to] = scheduleDateRange(s);
   return from !== to;
 }
 
-export function weekBars<T extends ScheduleTime>(schedules: T[], week: string[]): { bars: WeekBar<T>[]; lanes: number } {
+export function weekBars<T extends ScheduleTime>(schedules: T[], week: string[]): { bars: WeekBar<T>[]; lanes: number; } {
   const first = week[0];
   const last = week[week.length - 1];
   const spans = schedules

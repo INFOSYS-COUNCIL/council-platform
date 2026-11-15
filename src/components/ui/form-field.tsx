@@ -9,7 +9,7 @@ import type {
 // 스크린리더가 함께 읽게 한다. id를 주지 않으면 name을 id로 쓴다.
 
 const CONTROL =
-  "w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-base shadow-sm sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60 aria-[invalid=true]:border-red-500 dark:border-zinc-700 dark:bg-zinc-900";
+  "min-h-11 w-full rounded-lg border border-border-input bg-surface px-3 py-2 text-base sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60 aria-[invalid=true]:border-danger";
 
 type FieldProps = {
   label: string;
@@ -109,7 +109,7 @@ export function TextareaField({
   );
 }
 
-export type SelectOption = { value: string; label: string };
+export type SelectOption = { value: string; label: string; };
 
 export function SelectField({
   label,

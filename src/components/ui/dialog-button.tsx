@@ -36,7 +36,7 @@ export function DialogButton({
             type="button"
             onClick={() => ref.current?.close()}
             aria-label="닫기"
-            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800"
+            className="grid size-8 shrink-0 place-items-center rounded-md hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-accent dark:hover:bg-zinc-800"
           >
             <span aria-hidden="true">✕</span>
           </button>

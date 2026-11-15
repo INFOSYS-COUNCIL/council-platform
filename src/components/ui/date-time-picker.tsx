@@ -17,7 +17,7 @@ const TIMES = Array.from({ length: 36 }, (_, i) => {
   return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 });
 const CELL =
-  "grid h-9 place-items-center rounded-md text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-30";
+  "grid h-9 place-items-center rounded-md text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-30";
 const SELECTED = "bg-coral-700 font-semibold text-white dark:bg-coral-400 dark:text-zinc-950";
 
 // "13:30" → "오후 1:30"
@@ -100,9 +100,8 @@ export function DateTimePicker({
         aria-controls={`${id}-panel`}
         aria-describedby={[hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(" ") || undefined}
         onClick={() => setOpen(!open)}
-        className={`flex w-full items-center justify-between gap-2 rounded-md border bg-white px-3 py-1.5 text-left text-base shadow-sm sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-zinc-900 ${
-          error ? "border-red-500" : "border-zinc-300 dark:border-zinc-700"
-        } ${value ? "" : "text-zinc-500 dark:text-zinc-400"}`}
+        className={`flex w-full items-center justify-between gap-2 min-h-11 rounded-lg border bg-surface px-3 py-2 text-left text-base sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${error ? "border-danger" : "border-border-input"
+          } ${value ? "" : "text-zinc-500 dark:text-zinc-400"}`}
       >
         <span id={`${id}-value`}>{display}</span>
         <svg aria-hidden="true" viewBox="0 0 16 16" className="size-4 shrink-0 text-coral-700 dark:text-coral-300" fill="none" stroke="currentColor" strokeWidth="1.4">
@@ -145,11 +144,10 @@ export function DateTimePicker({
                     aria-pressed={selected}
                     aria-label={formatDate(day)}
                     onClick={() => pickDate(day)}
-                    className={`${CELL} ${day.startsWith(month) ? "" : "text-zinc-400 dark:text-zinc-600"} ${
-                      selected
+                    className={`${CELL} ${day.startsWith(month) ? "" : "text-zinc-400 dark:text-zinc-600"} ${selected
                         ? SELECTED
                         : `hover:bg-coral-50 dark:hover:bg-zinc-800 ${day === today ? "ring-1 ring-coral-300 dark:ring-coral-800" : ""}`
-                    }`}
+                      }`}
                   >
                     {Number(day.slice(8))}
                   </button>
@@ -188,7 +186,7 @@ export function DateTimePicker({
                   setValue("");
                   setOpen(false);
                 }}
-                className="rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-accent dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 지우기
               </button>
@@ -198,7 +196,7 @@ export function DateTimePicker({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-md bg-coral-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-coral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-coral-400 dark:text-zinc-950"
+              className="rounded-md bg-coral-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-coral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:bg-coral-400 dark:text-zinc-950"
             >
               확인
             </button>
