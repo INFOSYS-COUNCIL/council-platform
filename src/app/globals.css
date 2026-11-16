@@ -128,3 +128,44 @@ body {
 .bg-coral-gradient {
   background-image: linear-gradient(135deg, #f45b4f, #f7944f 55%, #fbc58a);
 }
+
+/* 첫 화면(시안 B): 유리 원(비눗방울) 장식. 글자 반짝임 효과는 넣지 않는다 */
+@keyframes gaon-spin { to { transform: rotate(360deg); } }
+@keyframes gaon-shine { 0%, 100% { opacity: .85; } 50% { opacity: 1; } }
+@keyframes gaon-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.gaon-bubble {
+  position: absolute;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .55);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 56%, rgba(255, 255, 255, .06) 70%, rgba(255, 255, 255, .22) 86%, rgba(255, 255, 255, .55) 96%, rgba(255, 255, 255, .15) 100%);
+}
+.gaon-film {
+  position: absolute; inset: 0; border-radius: 999px; padding: var(--film, 10px);
+  background: conic-gradient(from 200deg, rgba(159, 243, 255, 0), rgba(159, 243, 255, .75), rgba(255, 194, 230, .7), rgba(216, 255, 176, .55), rgba(214, 200, 255, .7), rgba(255, 255, 255, 0) 45%, rgba(255, 255, 255, 0) 70%, rgba(255, 194, 230, .45), rgba(159, 243, 255, 0));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(var(--soft, 3px));
+  animation: gaon-spin 14s linear infinite;
+}
+.gaon-hi {
+  position: absolute; inset: 3%; border-radius: 999px;
+  border: var(--hi, 9px) solid transparent; border-left-color: rgba(255, 255, 255, .9); border-top-color: rgba(255, 255, 255, .35);
+  transform: rotate(12deg); filter: blur(var(--soft, 3px));
+  animation: gaon-shine 3.6s ease-in-out infinite;
+}
+.gaon-lo {
+  position: absolute; inset: 4%; border-radius: 999px;
+  border: var(--lo, 5px) solid transparent; border-right-color: rgba(255, 255, 255, .45); border-bottom-color: rgba(255, 255, 255, .2);
+  transform: rotate(-8deg); filter: blur(var(--soft, 3px));
+}
+.gaon-speck {
+  position: absolute; width: var(--sp, 6px); height: var(--sp, 6px); border-radius: 999px;
+  background: #fff; box-shadow: 0 0 8px 2px rgba(255, 255, 255, .8);
+}
+.gaon-title { filter: drop-shadow(6px 6px 0 #ffd199); }
+.gaon-sub { text-shadow: 1.5px 1.5px 0 rgba(255, 209, 153, .75); animation: gaon-rise .9s cubic-bezier(.2, .7, .2, 1) both; }
+.gaon-sub-2 { animation-delay: .25s; }
+@media (prefers-reduced-motion: reduce) {
+  .gaon-film, .gaon-hi, .gaon-sub { animation: none; }
+}

@@ -1,49 +1,90 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Noto_Serif_KR } from "next/font/google";
+import { Suspense, type CSSProperties } from "react";
 import { OrgChart } from "@/components/org/org-chart";
 import { SectionPager } from "@/components/section-pager";
 import { getActiveMembership, getCurrentUserId } from "@/lib/auth/session";
 import { getPublicOrgChart } from "@/lib/org/public-chart";
 import { getCouncilProfile } from "@/lib/site";
 
+// 학생회 이름 글꼴. 시안의 Cafe24 Classictype이 설치돼 있으면 그것을, 없으면 Noto Serif KR을 쓴다
+const gaonFont = Noto_Serif_KR({ weight: ["600", "900"], subsets: ["latin"], preload: false, fallback: ["Cafe24 Classictype", "serif"] });
+
+const HERO_LINK = "text-[#2a1a15] hover:text-[#00453A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2a1a15]";
+const HERO_PILL = `inline-flex items-center rounded-full text-[17px] font-bold ${HERO_LINK}`;
+
+// 유리 원 위치·크기(시안 그대로). size 외 값은 막·반사광 두께와 흐림 정도
+type BubbleSpec = { size: number; pos: CSSProperties; film: number; soft: number; hi: number; lo: number; sp: number; specks?: [string, string][] };
+const BUBBLES: BubbleSpec[] = [
+  { size: 680, pos: { right: -80, top: 110 }, film: 14, soft: 4, hi: 12, lo: 6, sp: 6, specks: [["30%", "32%"], ["44%", "46%"]] },
+  { size: 150, pos: { right: 530, top: 640 }, film: 5, soft: 1.5, hi: 4, lo: 2, sp: 3, specks: [["34%", "30%"]] },
+  { size: 56, pos: { right: 590, top: 132 }, film: 3, soft: 1, hi: 2, lo: 1, sp: 2 },
+  { size: 92, pos: { right: 40, top: 58 }, film: 4, soft: 1.4, hi: 4, lo: 2, sp: 2, specks: [["32%", "30%"]] },
+  { size: 110, pos: { right: 250, top: 770 }, film: 5, soft: 1.6, hi: 4, lo: 2, sp: 2, specks: [["33%", "30%"]] },
+  { size: 36, pos: { right: 470, top: 596 }, film: 2, soft: 0.8, hi: 2, lo: 1, sp: 2 },
+  { size: 26, pos: { right: 700, top: 268 }, film: 2, soft: 0.8, hi: 2, lo: 1, sp: 2 },
+  { size: 64, pos: { right: 700, top: 470 }, film: 3, soft: 0.9, hi: 2, lo: 1, sp: 2, specks: [["34%", "30%"]] },
+  { size: 44, pos: { left: "3%", top: 118 }, film: 2, soft: 0.8, hi: 2, lo: 1, sp: 2 },
+  { size: 30, pos: { left: "38%", top: 800 }, film: 2, soft: 0.8, hi: 2, lo: 1, sp: 2 },
+];
+
+function Bubble({ size, pos, film, soft, hi, lo, sp, specks = [] }: BubbleSpec) {
+  const vars = { "--film": `${film}px`, "--soft": `${soft}px`, "--hi": `${hi}px`, "--lo": `${lo}px`, "--sp": `${sp}px` } as CSSProperties;
+  return (
+    <div aria-hidden="true" className="gaon-bubble" style={{ ...pos, width: size, height: size, backgroundColor: "rgba(255,255,255,0.14)" }}>
+      <span className="gaon-film" style={vars} />
+      <span className="gaon-hi" style={vars} />
+      <span className="gaon-lo" style={vars} />
+      {specks.map(([left, top]) => (
+        <span key={left + top} className="gaon-speck" style={{ ...vars, left, top }} />
+      ))}
+    </div>
+  );
+}
+
 const PILL = "inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-6 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export default function Home() {
   return (
     <SectionPager className="h-svh overflow-y-auto overscroll-y-contain [overflow-anchor:none]">
-      <section className="flex min-h-svh flex-col bg-background">
-        <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-10">
-          <Link href="/" aria-label="첫 화면" className="flex items-center gap-2.5 rounded-lg font-bold focus-visible:outline-2 focus-visible:outline-accent">
-            <Image src="/council-logo.png" alt="" width={36} height={36} className="size-9 rounded-full object-cover" />
-            <Suspense fallback="학생회"><CouncilName /></Suspense>
+      {/* 첫 구역(시안 B): 노을빛 배경 + 유리 원, 왼쪽에 큰 학생회 이름. 색은 다크 모드와 상관없이 고정이다 */}
+      <section
+        className="relative flex min-h-svh flex-col overflow-hidden text-[#2a1a15] [word-break:keep-all]"
+        style={{
+          backgroundColor: "#F3645B",
+          backgroundImage:
+            "radial-gradient(900px 760px at 102% -4%, #D9303F 0%, #E74851 28%, rgba(231,72,81,0) 62%), radial-gradient(520px 440px at -4% 104%, #DA3545 0%, #EE4F55 30%, rgba(238,79,85,0) 60%), radial-gradient(760px 640px at 82% 50%, #FFD199 0%, #FCB182 26%, #FB8B6D 48%, rgba(251,139,109,0) 74%), radial-gradient(620px 520px at -2% -4%, #FB8B6D 0%, rgba(251,139,109,0) 68%)",
+        }}
+      >
+        {BUBBLES.map((b, i) => (
+          <Bubble key={i} {...b} />
+        ))}
+        <header className="relative mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-4 px-6 py-5">
+          <Link href="/" aria-label="첫 화면" className={`mr-auto flex items-center gap-2.5 rounded-lg ${HERO_LINK}`}>
+            <Image src="/council-logo.png" alt="" width={36} height={36} className="size-9 rounded-full border-2 border-white/85 object-cover" />
+            <span className={`${gaonFont.className} text-[22px] tracking-[-0.02em]`}>
+              <Suspense fallback="학생회"><CouncilName /></Suspense>
+            </span>
           </Link>
-          <nav aria-label="첫 화면 메뉴" className="flex items-center gap-4 text-sm sm:gap-7">
-            <Link href="/suggestions/new" className="rounded focus-visible:outline-2 focus-visible:outline-accent">건의하기</Link>
-            <a href="#org" className="rounded focus-visible:outline-2 focus-visible:outline-accent">조직도</a>
-            <Suspense fallback={<span className="h-12 w-20" />}><AccountButton /></Suspense>
+          <nav aria-label="페이지 안 이동" className="flex gap-1 text-[15px] font-medium">
+            <a href="#suggest" className={`rounded-lg px-3 py-2.5 ${HERO_LINK}`}>건의하기</a>
+            <a href="#org" className={`rounded-lg px-3 py-2.5 ${HERO_LINK}`}>조직도</a>
           </nav>
+          <Suspense fallback={<span className="h-11 w-24" />}><AccountButton /></Suspense>
         </header>
-        <div className="mx-auto grid w-full max-w-7xl flex-1 items-center gap-10 px-5 py-16 sm:px-10 lg:grid-cols-2 lg:gap-16 lg:py-24">
-          <div className="space-y-7">
-            <Suspense fallback={<h1 className="text-6xl font-bold">학생회</h1>}><Hero /></Suspense>
-            <p className="text-lg leading-relaxed text-zinc-700 sm:text-xl dark:text-zinc-300">학과 생활에서 불편한 점, 바라는 점을 들려주세요.<br />학생회가 읽고, 처리 과정과 답변을 공개합니다.</p>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/suggestions/new" className={`${PILL} bg-accent text-on-accent hover:bg-coral-800 dark:hover:bg-coral-300`}>건의하기 <span aria-hidden="true">→</span></Link>
-              <Link href="/suggestions/public" className={`${PILL} border border-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800`}>모두의 건의 보기</Link>
-            </div>
-            <Suspense fallback={null}><Leaders /></Suspense>
+
+        <div className="relative mx-auto flex w-full max-w-[1240px] flex-1 flex-col justify-center gap-7 px-6 pt-10 pb-20">
+          <Suspense fallback={<h1 className={`${gaonFont.className} text-[clamp(110px,16vw,230px)] leading-[0.88]`}>학생회</h1>}>
+            <Hero />
+          </Suspense>
+          <div className="flex flex-wrap gap-3">
+            <a href="#suggest" className={`${HERO_PILL} min-h-14 gap-2.5 bg-[#fff8f0] px-[30px] shadow-[0_10px_30px_rgba(122,36,27,0.22)]`}>
+              건의하기
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </a>
+            <Link href="/suggestions/public" className={`${HERO_PILL} min-h-14 border-[1.5px] border-[#2a1a15] bg-[#fff8f0]/60 px-[26px]`}>모두의 건의 보기</Link>
           </div>
-          <svg aria-hidden="true" viewBox="0 0 600 440" className="mx-auto w-full max-w-xl">
-            <defs><linearGradient id="hero-sun" x2="0.7" y2="1"><stop stopColor="#f7944f" /><stop offset="1" stopColor="#f45b4f" /></linearGradient></defs>
-            <path d="M50 300a250 250 0 0 1 500 0" fill="#ffe6da" />
-            <path d="M110 300a190 190 0 0 1 380 0" fill="#fbc58a" />
-            <path d="M170 300a130 130 0 0 1 260 0" fill="url(#hero-sun)" />
-            <path d="M0 300h600" stroke="currentColor" strokeWidth="2" />
-            <path d="M85 346h430" stroke="#f9a193" strokeWidth="10" strokeLinecap="round" />
-            <path d="M145 388h310" stroke="#facaaa" strokeWidth="7" strokeLinecap="round" />
-            <path d="M205 424h190" stroke="#fbd5ad" strokeWidth="5" strokeLinecap="round" />
-          </svg>
         </div>
       </section>
       <section id="suggest" aria-labelledby="suggest-title" className="flex min-h-svh items-center bg-[#2a1a15] px-5 py-20 text-[#fff8f0] sm:px-10">
@@ -85,14 +126,32 @@ async function CouncilName() {
   return (await getCouncilProfile()).name;
 }
 
+// 학생회 이름(예: 가온) 위에 "한양대학교 정보시스템학과 제 N대 학생회", 아래에 회장단(직책 순)
 async function Hero() {
-  const profile = await getCouncilProfile();
-  return <><p className="text-sm font-semibold text-accent">한양대학교 정보시스템학과 {profile.generation ? `제 ${profile.generation}대 ` : ""}학생회</p><h1 className="mt-5 text-7xl leading-tight font-bold tracking-tight sm:text-9xl lg:text-[10rem]">{profile.name}</h1></>;
-}
-
-async function Leaders() {
-  const chart = await getPublicOrgChart().catch(() => null);
-  return chart?.executives.length ? <p className="text-sm text-muted">{chart.executives.map((p) => `${p.position ?? "회장단"} ${p.name}`).join(" · ")}</p> : null;
+  const [profile, chart] = await Promise.all([getCouncilProfile(), getPublicOrgChart().catch(() => null)]);
+  const leaders = chart?.executives ?? [];
+  return (
+    <>
+      <span className={`${gaonFont.className} gaon-sub -mb-2.5 ml-1 self-start text-2xl tracking-[-0.01em] text-[#5a2118]`}>
+        한양대학교 정보시스템학과 {profile.generation ? `제${profile.generation}대 ` : ""}학생회
+      </span>
+      <h1 className={`${gaonFont.className} gaon-title m-0 text-[clamp(96px,16vw,230px)] leading-[0.88] font-semibold tracking-[-0.02em]`}>
+        {profile.name}
+      </h1>
+      {leaders.length > 0 && (
+        <p className="gaon-sub gaon-sub-2 mt-[22px] mb-1.5 ml-1.5 flex flex-wrap items-center gap-x-3.5 gap-y-2.5 text-[19px] leading-snug text-[#3d1f17]">
+          {leaders.map((p, i) => (
+            <span key={`${p.name}-${i}`} className="contents">
+              {i > 0 && <span aria-hidden="true" className="size-1 rounded-full bg-[#5a2118] opacity-70" />}
+              <span>
+                <span className="font-medium">{p.position ?? "회장단"}</span> <b className="font-bold">{p.name}</b>
+              </span>
+            </span>
+          ))}
+        </p>
+      )}
+    </>
+  );
 }
 
 async function PublicOrg() {
@@ -104,5 +163,12 @@ async function PublicOrg() {
 async function AccountButton() {
   const userId = await getCurrentUserId();
   const membership = userId ? await getActiveMembership() : null;
-  return <Link href={!userId ? "/login" : membership ? "/dashboard" : "/suggestions"} className={`${PILL} min-h-10 bg-foreground px-4 py-2 text-background hover:opacity-85`}>{!userId ? "로그인" : membership ? "대시보드" : "내 건의"}</Link>;
+  return (
+    <Link
+      href={!userId ? "/login" : membership ? "/dashboard" : "/suggestions"}
+      className={`${HERO_PILL} min-h-11 bg-[#fff8f0] px-5 text-[15px] shadow-[0_6px_20px_rgba(122,36,27,0.18)]`}
+    >
+      {!userId ? "로그인" : membership ? "대시보드" : "내 건의"}
+    </Link>
+  );
 }
