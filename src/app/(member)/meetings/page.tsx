@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/detail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Button } from "@/components/ui/button";
-import { SelectField, TextField } from "@/components/ui/form-field";
+import { TextField } from "@/components/ui/form-field";
 import { FOCUS_RING, LinkButton } from "@/components/ui/link-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { pageNumber, Pagination, PillLink } from "@/components/ui/pagination";
@@ -50,18 +50,22 @@ async function MeetingsContent({
   const page = pageNumber(raw.page);
   // 정렬: 회의 날짜 최신순(기본) / 오래된순
   const sort: "desc" | "asc" = raw.sort === "asc" ? "asc" : "desc";
+  // 제목 검색(QA 3차). 본문은 공동 편집 기록이라 검색하지 않는다
+  const q = typeof raw.q === "string" ? raw.q.trim().slice(0, 50) : "";
   const href = (s: MeetingStatus, p = 1, o = sort) =>
-    `/meetings?status=${s}${o === "asc" ? "&sort=asc" : ""}${p > 1 ? `&page=${p}` : ""}`;
+    `/meetings?status=${s}${o === "asc" ? "&sort=asc" : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}${p > 1 ? `&page=${p}` : ""}`;
 
   // 볼 수 있는 회의록만 RLS가 돌려준다
   const supabase = await createClient();
   const from = (page - 1) * PER_PAGE;
-  const query = supabase
+  let query = supabase
     .from("meeting_minutes")
     .select("id, title, meeting_at, updated_at, created_by, author_id", { count: "exact" })
     .eq("term_id", membership.termId)
     .eq("kind", "MEETING")
     .eq("status", status);
+  // 검색어의 %·_는 글자 그대로 찾는다
+  if (q) query = query.ilike("title", `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
   const { data: meetings, count, error } = await query
     .order("meeting_at", { ascending: sort === "asc" })
     .order("updated_at", { ascending: false })
@@ -74,7 +78,8 @@ async function MeetingsContent({
   return (
     <div className="space-y-6">
       <PageHeader title="회의록" actions={canCreate && <LinkButton href={newHref}>회의록 만들기</LinkButton>} />
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-zinc-200 pb-3 dark:border-zinc-800">
+      {/* 상태·정렬·검색을 왼쪽에 모은다. 정렬은 드롭다운 대신 두 버튼(맥에서 선택 상자가 위로 열리던 문제, QA 3차) */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-zinc-200 pb-3 dark:border-zinc-800">
         <nav aria-label="회의록 상태" className="flex flex-wrap gap-2">
           {MEETING_STATUS_ORDER.map((s) => (
             <PillLink key={s} href={href(s)} current={s === status}>
@@ -82,10 +87,24 @@ async function MeetingsContent({
             </PillLink>
           ))}
         </nav>
-        <form action="/meetings" className="flex items-end gap-2">
+        <nav aria-label="날짜 정렬" className="flex flex-wrap gap-2">
+          <PillLink variant="chip" href={href(status, 1, "desc")} current={sort === "desc"}>최신 날짜순</PillLink>
+          <PillLink variant="chip" href={href(status, 1, "asc")} current={sort === "asc"}>오래된 날짜순</PillLink>
+        </nav>
+        {/* GET 폼이라 JavaScript 없이도 검색된다 */}
+        <form action="/meetings" role="search" className="flex items-center gap-2">
           <input type="hidden" name="status" value={status} />
-          <SelectField label="정렬" name="sort" defaultValue={sort} options={[{ value: "desc", label: "최신 날짜순" }, { value: "asc", label: "오래된 날짜순" }]} />
-          <Button type="submit" variant="secondary">적용</Button>
+          {sort === "asc" && <input type="hidden" name="sort" value="asc" />}
+          <label htmlFor="meetings-q" className="sr-only">회의록 제목 검색</label>
+          <input
+            id="meetings-q"
+            name="q"
+            type="search"
+            defaultValue={q}
+            placeholder="회의록 제목 검색"
+            className={`h-11 w-48 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`}
+          />
+          <Button type="submit" variant="secondary">검색</Button>
         </form>
       </div>
 
@@ -98,7 +117,7 @@ async function MeetingsContent({
         </Alert>
       ) : meetings.length === 0 ? (
         <EmptyState
-          title="회의록이 없습니다."
+          title={q ? `"${q}"에 맞는 회의록이 없습니다.` : "회의록이 없습니다."}
           action={canCreate && status === "DRAFT" ? <LinkButton href={newHref}>회의록 만들기</LinkButton> : undefined}
         />
       ) : (

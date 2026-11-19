@@ -26,7 +26,6 @@ export default function GuidesPage() {
     <div className="space-y-6">
       <PageHeader
         title="가이드라인"
-        description="국마다 업무를 처리하는 방법과 자료를 모아 둡니다. 행사 이름을 태그로 달면 행사별로 찾기 쉽습니다."
       />
       <Suspense fallback={<Skeleton />}>
         <GuidesContent />

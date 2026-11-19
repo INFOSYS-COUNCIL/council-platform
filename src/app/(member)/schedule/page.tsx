@@ -43,7 +43,7 @@ async function ScheduleContent({ searchParams }: { searchParams: Promise<Record<
   const selected = isCalendarDate(params.date) ? params.date : today;
   const month = typeof params.month === "string" && MONTH.test(params.month) ? params.month : selected.slice(0, 7);
   const view = params.view === "tasks" ? "tasks" : "all";
-  const mode = params.mode === "month" ? "month" : "week";
+  const mode = params.mode === "week" ? "week" : "month"; // 기본은 월 달력(QA 3차)
   const days = mode === "month" ? monthGrid(month) : weekDays(sundayOf(selected));
   const weeks = Array.from({ length: days.length / 7 }, (_, w) => days.slice(w * 7, w * 7 + 7));
 

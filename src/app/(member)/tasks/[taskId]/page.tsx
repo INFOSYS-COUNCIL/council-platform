@@ -141,6 +141,17 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
   ];
   const managerOptions = memberSelectOptions(org.members.filter((m) => m.role !== "MEMBER"));
   const hidden = <input type="hidden" name="task_id" value={task.id} />;
+  // 검토자 표시(QA 3차): "재무국 국장 ○○ · 관리 책임자 ○○ · 회장단"
+  const reviewDirector =
+    task.visibility_mode === "DEFAULT" && task.department_id
+      ? org.members.find((m) => m.role === "DIRECTOR" && m.departmentId === task.department_id)
+      : undefined;
+  const reviewManager = org.members.find((m) => m.userId === task.manager_id && m.role !== "EXECUTIVE" && m.userId !== reviewDirector?.userId);
+  const reviewerText = [
+    reviewDirector && `${reviewDirector.departmentName ?? ""} 국장 ${reviewDirector.name}`.trim(),
+    reviewManager && `관리 책임자 ${reviewManager.name}`,
+    "회장단",
+  ].filter(Boolean).join(" · ");
   const canWrite = !archived && (canManage || isAssignee);
 
   // 업무 글(연결된 페이지) 본문. 업무를 볼 수 있으면 페이지도 볼 수 있다(DB 규칙). 못 읽으면 안내만 한다
@@ -270,7 +281,8 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
         <Alert tone="info">보관된 업무입니다. 복원하기 전에는 내용을 바꿀 수 없습니다.</Alert>
       )}
 
-      {/* 검토·승인: 국원은 일을 마치면 검토 요청을 보내고, 국장(관리 권한자)이 승인하거나 돌려보낸다 */}
+      {/* 검토·승인: 국원은 일을 마치면 검토 요청을 보내고, 국장(관리 권한자)이 승인하거나 돌려보낸다.
+          검토할 수 있는 사람은 can_manage_task와 같다: 담당 국 국장(기본 공개 업무), 관리 책임자, 회장단 */}
       {!archived && task.status === "REVIEW" && canManage && (
         <div className="space-y-3 rounded-lg border border-coral-300 bg-coral-50 p-4 dark:border-coral-800 dark:bg-coral-900/20">
           <p className="font-semibold">검토 요청이 왔습니다</p>
@@ -289,7 +301,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
       )}
       {!archived && isAssignee && !canManage && (task.status === "TODO" || task.status === "IN_PROGRESS") && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm">일을 마쳤다면 국장에게 검토를 요청하세요. 국장이 승인하면 완료됩니다.</p>
+          <p className="text-sm">일을 마쳤다면 검토를 요청하세요. {reviewerText} 중 한 명이 승인하면 완료됩니다.</p>
           <ActionForm action={changeTaskStatus} submitLabel="검토 요청 보내기">
             {hidden}
             <input type="hidden" name="status" value="REVIEW" />
@@ -297,7 +309,7 @@ async function TaskDetail({ params }: { params: Promise<{ taskId: string; }>; })
         </div>
       )}
       {!archived && isAssignee && !canManage && task.status === "REVIEW" && (
-        <Alert tone="info">국장의 검토를 기다리는 중입니다. 승인되면 완료로 바뀝니다.</Alert>
+        <Alert tone="info">검토 중: {reviewerText}. 이 중 한 명이 승인하면 완료로 바뀝니다.</Alert>
       )}
 
 

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function OrgPage() {
   return (
     <div className="min-w-0 space-y-6">
-      <PageHeader title="조직도" description="이번 기수 학생회 구성원입니다." />
+      <PageHeader title="조직도" />
       <Suspense fallback={<p role="status">불러오는 중…</p>}>
         <OrgContent />
       </Suspense>

@@ -5,7 +5,7 @@ import type { PartialBlock } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
 import { useColorScheme } from "@/components/ui/theme-picker";
-import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
+import { MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
 import { meetingSchema } from "@/lib/meetings/schema";
 import type { Json } from "@/lib/supabase/database.types";
 
@@ -17,7 +17,8 @@ export function TemplateEditor({ initialBlocks, onChange }: { initialBlocks: Jso
     dictionary: MEETING_DICTIONARY,
     initialContent:
       Array.isArray(initialBlocks) && initialBlocks.length > 0 ? (initialBlocks as PartialBlock[]) : undefined,
-    pasteHandler: ({ event, defaultPasteHandler }) => blocksFilePaste(event) || defaultPasteHandler(MARKDOWN_PASTE),
+    // 템플릿에는 파일·이미지를 올리지 않는다(올릴 회의록이 아직 없다)
+    pasteHandler: ({ event, defaultPasteHandler }) => (event.clipboardData?.files.length ?? 0) > 0 || defaultPasteHandler(MARKDOWN_PASTE),
   });
 
   return (

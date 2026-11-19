@@ -40,6 +40,8 @@ async function NewMeetingContent() {
       me={me}
       defaultMeetingAt={isoToSeoulLocal(new Date().toISOString()).slice(0, 14) + "00"}
       members={memberSelectOptions(org.members)}
+      // 회장단은 지정하지 않아도 편집할 수 있어 편집자 후보에서 뺀다(QA 3차)
+      editorCandidates={memberSelectOptions(org.members.filter((m) => m.role !== "EXECUTIVE"))}
       departments={departmentSelectOptions(org.departments)}
       templates={templates.data.map((t) => ({ value: t.id, label: t.name }))}
     />
