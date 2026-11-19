@@ -197,6 +197,14 @@ function NavLink({
   current: boolean;
   collapsed: boolean;
 }) {
+  // 접힌 사이드바: 아이콘에 마우스를 올리거나 키보드로 옮기면 메뉴 이름을 옆에 바로 띄운다(QA 3차).
+  // 메뉴 목록이 세로 스크롤 영역이라 absolute로는 잘리므로 화면 기준(fixed)으로 띄운다.
+  const [tip, setTip] = useState<{ top: number; left: number } | null>(null);
+  const showTip = (e: { currentTarget: HTMLElement }) => {
+    if (!collapsed) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    setTip({ top: r.top + r.height / 2, left: r.right + 8 });
+  };
   return (
     // prefetch={false}: 좁은 화면에서 메뉴를 열면 링크 10개가 한꺼번에 보이며 동시에 미리 불러온다.
     // 로그인 토큰이 만료된 뒤(휴대폰에서 탭을 오래 두었다 다시 연 경우)라면 그 요청들이 같은
@@ -206,7 +214,10 @@ function NavLink({
       href={item.href}
       prefetch={false}
       aria-current={current ? "page" : undefined}
-      title={collapsed ? item.label : undefined}
+      onMouseEnter={showTip}
+      onFocus={showTip}
+      onMouseLeave={() => setTip(null)}
+      onBlur={() => setTip(null)}
       className={`flex items-center gap-2.5 min-h-11 rounded-lg px-3 py-2 text-sm ${FOCUS} ${current
           ? "bg-surface font-semibold text-accent ring-1 ring-zinc-200 dark:ring-zinc-800"
           : "text-zinc-700 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-50"
@@ -216,6 +227,15 @@ function NavLink({
         <Icon name={item.icon} />
       </span>
       <span className={collapsed ? "md:sr-only" : ""}>{item.label}</span>
+      {collapsed && tip && (
+        <span
+          aria-hidden="true"
+          style={tip}
+          className="pointer-events-none fixed z-50 hidden -translate-y-1/2 rounded-md bg-zinc-900 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-lg md:block dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          {item.label}
+        </span>
+      )}
     </Link>
   );
 }

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Noto_Serif_KR } from "next/font/google";
 import { Suspense, type CSSProperties } from "react";
@@ -52,9 +51,10 @@ export default function Home() {
       <section
         className="relative flex min-h-svh flex-col overflow-hidden text-[#2a1a15] [word-break:keep-all]"
         style={{
-          backgroundColor: "#F3645B",
+          // QA 3차: "너무 밝고 화사하다" → 채도를 낮춘 모래색 바탕에 은은한 테라코타 빛
+          backgroundColor: "#E8DACE",
           backgroundImage:
-            "radial-gradient(900px 760px at 102% -4%, #D9303F 0%, #E74851 28%, rgba(231,72,81,0) 62%), radial-gradient(520px 440px at -4% 104%, #DA3545 0%, #EE4F55 30%, rgba(238,79,85,0) 60%), radial-gradient(760px 640px at 82% 50%, #FFD199 0%, #FCB182 26%, #FB8B6D 48%, rgba(251,139,109,0) 74%), radial-gradient(620px 520px at -2% -4%, #FB8B6D 0%, rgba(251,139,109,0) 68%)",
+            "radial-gradient(900px 760px at 102% -4%, #B9766A 0%, #C98F80 28%, rgba(201,143,128,0) 62%), radial-gradient(520px 440px at -4% 104%, #BE8270 0%, #CFA08F 30%, rgba(207,160,143,0) 60%), radial-gradient(760px 640px at 82% 50%, #F1DCC6 0%, #E7C6AE 30%, rgba(231,198,174,0) 72%), radial-gradient(620px 520px at -2% -4%, #D8B4A2 0%, rgba(216,180,162,0) 68%)",
         }}
       >
         {BUBBLES.map((b, i) => (
@@ -62,7 +62,6 @@ export default function Home() {
         ))}
         <header className="relative mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-4 px-6 py-5">
           <Link href="/" aria-label="첫 화면" className={`mr-auto flex items-center gap-2.5 rounded-lg ${HERO_LINK}`}>
-            <Image src="/council-logo.png" alt="" width={36} height={36} className="size-9 rounded-full border-2 border-white/85 object-cover" />
             <span className={`${gaonFont.className} text-[22px] tracking-[-0.02em]`}>
               <Suspense fallback="학생회"><CouncilName /></Suspense>
             </span>

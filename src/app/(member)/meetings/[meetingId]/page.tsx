@@ -74,9 +74,11 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string; 
   }
 
   const nameOf = (id: string) => org.members.find((m) => m.userId === id)?.name ?? "(비활성 구성원)";
-  // 편집자 목록: 많이 고친 사람이 위로(4차 피드백). 편집자로 지정되지 않았지만 고친 사람(회장단 등)도 함께 보인다
+  // 편집자 목록: 지정된 편집자만, 많이 고친 사람이 위로. 글자 수는 보이지 않고(수정 압박·부정확, QA 3차)
+  // 실제로 편집했는지와 가장 많이 고친 "주 편집자"만 표시한다
   const assignedEditors = new Set(editorsResult.data.map((e) => e.user_id));
-  const editorIds = byEditAmount([...new Set([...assignedEditors, ...stats.keys()])], stats);
+  const editorIds = byEditAmount([...assignedEditors], stats);
+  const mainEditor = editorIds.find((id) => stats.has(id));
   // 표시용 판정. 실제 검사는 DB 함수(can_edit_meeting·can_manage_meeting·delete_meeting)가 한다.
   // 관리·삭제는 국장과 회장단만(3차 피드백): 회장단, 또는 만든 사람·대표 작성자인 국장.
   const isExecutive = membership.role === "EXECUTIVE";
@@ -97,7 +99,7 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string; 
   const currentScope: MeetingScope = (groupRule?.role_group as MeetingScope | undefined) ?? "DEPARTMENTS";
   const currentDepartmentIds = groupRule ? [] : rulesResult.data.flatMap((r) => (r.department_id ? [r.department_id] : []));
   const hidden = <input type="hidden" name="meeting_id" value={meeting.id} />;
-  const candidates = memberSelectOptions(org.members.filter((m) => !assignedEditors.has(m.userId)));
+  const candidates = memberSelectOptions(org.members.filter((m) => m.role !== "EXECUTIVE" && !assignedEditors.has(m.userId)));
 
   // 관리 ⋯ 메뉴: 진행 상태·회의 정보·대표 작성자·삭제를 한곳에 모은다(화면에는 내용만 둔다)
   const manageItems: ManageItem[] = [];
@@ -235,14 +237,10 @@ async function MeetingDetail({ params }: { params: Promise<{ meetingId: string; 
             <li key={id} className="flex items-center justify-between gap-3 px-3 py-2">
               <span className="min-w-0 text-sm">
                 {nameOf(id)} {id === meeting.author_id && <Badge tone="muted">대표 작성자</Badge>}
-                {!assignedEditors.has(id) && <Badge tone="muted">편집자 아님</Badge>}
-                <span className="block text-xs text-zinc-600 dark:text-zinc-400">
-                  {stats.has(id)
-                    ? `새로 추가한 글자 ${stats.get(id)!.added.toLocaleString()}자 · 수정한 글자 ${stats.get(id)!.changed.toLocaleString()}자`
-                    : "아직 고친 내용 없음"}
-                </span>
+                {id === mainEditor && <Badge tone="info">주 편집자</Badge>}
+                <span className="block text-xs text-zinc-600 dark:text-zinc-400">{stats.has(id) ? "편집함" : "아직 편집하지 않음"}</span>
               </span>
-              {canManage && !archived && assignedEditors.has(id) && id !== meeting.author_id && (
+              {canManage && !archived && id !== meeting.author_id && (
                 <ActionForm action={removeMeetingEditor} submitLabel="빼기" variant="secondary">
                   {hidden}
                   <input type="hidden" name="user_id" value={id} />

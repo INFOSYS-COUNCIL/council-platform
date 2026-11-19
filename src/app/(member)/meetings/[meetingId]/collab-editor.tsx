@@ -6,14 +6,14 @@ import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { applyAwarenessUpdate, Awareness, encodeAwarenessUpdate, removeAwarenessStates } from "y-protocols/awareness";
 import * as Y from "yjs";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useColorScheme } from "@/components/ui/theme-picker";
 import { rpcErrorMessage } from "@/lib/actions/result";
-import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
+import { blocksFilePaste, MARKDOWN_PASTE, MEETING_DICTIONARY, MEETING_IMAGE_MAX_BYTES, MEETING_IMAGE_TYPES, MeetingSlashMenu } from "@/lib/meetings/editor-parts";
 import { fromBytea, MEETING_FRAGMENT, toBytea } from "@/lib/meetings/labels";
 import { meetingSchema } from "@/lib/meetings/schema";
 import { createClient } from "@/lib/supabase/client";
@@ -70,11 +70,24 @@ export function CollabEditor({
           provider: { awareness },
         }),
       ],
-      // D-7: 파일·이미지 붙여넣기는 받지 않는다.
+      // 공동 편집에서는 ProseMirror 기본 되돌리기(history)를 끄고 Yjs 되돌리기만 쓴다(BlockNote withCollaboration과 같음).
+      // 둘이 함께 켜져 Ctrl/Cmd+Z가 기본 되돌리기로 가서, 안 되돌려지거나 엉뚱한 입력이 되돌려졌다(QA 3차)
+      disableExtensions: ["history"],
+      // 이미지(5MB 이하)는 붙여넣기·끌어넣기·"/이미지"로 넣는다(QA 3차). 다른 파일은 받지 않는다(D-7).
+      // 올린 이미지는 /api/meeting-images/... 고정 주소로 본문에 들어가고, 볼 수 있는 사람만 연다.
+      uploadFile: async (file: File) => {
+        if (!MEETING_IMAGE_TYPES.includes(file.type)) throw new Error("PNG·JPG·WEBP·GIF 이미지만 넣을 수 있습니다.");
+        if (file.size > MEETING_IMAGE_MAX_BYTES) throw new Error("이미지는 한 장에 5MB까지 넣을 수 있습니다.");
+        const ext = file.type.split("/")[1].replace("jpeg", "jpg");
+        const path = `${meetingId}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage.from("meeting-images").upload(path, file, { contentType: file.type });
+        if (error) throw new Error("이미지를 올리지 못했습니다. 다시 시도해 주세요.");
+        return `/api/meeting-images/${path}`;
+      },
       // 마크다운 글(# 제목, - 목록, **굵게**, 표 등)을 붙여 넣으면 형식이 그대로 살아 있는 블록이 된다.
       pasteHandler: ({ event, defaultPasteHandler }) => {
         if (blocksFilePaste(event)) {
-          setNotice("회의록에는 파일·이미지를 넣을 수 없습니다. 행사 자료에 올리고 링크를 붙여 주세요.");
+          setNotice("이미지(PNG·JPG·WEBP·GIF, 5MB 이하)만 넣을 수 있습니다. 다른 파일은 행사 자료에 올리고 링크를 붙여 주세요.");
           return true;
         }
         return defaultPasteHandler(MARKDOWN_PASTE);
@@ -210,6 +223,52 @@ export function CollabEditor({
     URL.revokeObjectURL(url);
   };
 
+  // PDF로 저장: 본문만 새 창에 깔끔하게 그려 브라우저 인쇄(“PDF로 저장”)를 연다. 서버에 파일을 만들지 않는다
+  const savePdf = async () => {
+    const win = window.open("", "_blank");
+    if (!win) {
+      setNotice("팝업이 막혀 PDF 창을 열지 못했습니다. 이 사이트의 팝업을 허용해 주세요.");
+      return;
+    }
+    const title = fileName.replace(/\.md$/, "");
+    const esc = (t: string) => t.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+    const body = await editor.blocksToHTMLLossy(editor.document);
+    win.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><base href="${location.origin}/"><title>${esc(title)}</title>
+<style>body{font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#1f1a18;line-height:1.65;max-width:720px;margin:32px auto;padding:0 24px}
+h1.doc-title{font-size:24px;border-bottom:2px solid #f45b4f;padding-bottom:8px}img{max-width:100%}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:4px 8px}
+blockquote{border-left:3px solid #ccc;margin-left:0;padding-left:12px;color:#555}pre{background:#f4f4f5;padding:8px;white-space:pre-wrap}@page{margin:16mm}</style>
+</head><body><h1 class="doc-title">${esc(title)}</h1>${body}<script>window.addEventListener("load",function(){window.print()})</script></body></html>`);
+    win.document.close();
+  };
+
+  // 되돌리기(Ctrl/Cmd+Z) 고침(QA 3차). 공동 편집은 Yjs UndoManager가 되돌리기를 맡는다.
+  // 1) y-prosemirror는 편집기가 화면에서 떨어졌다 다시 붙을 때(개발 모드 이중 실행, 다시 그리기) UndoManager를 꺼 버리고
+  //    다시 켜지 않는다. 그러면 기록이 쌓이지 않아 Ctrl/Cmd+Z가 아무것도 되돌리지 못했다. 입력 전에 꺼져 있으면 다시 켠다.
+  // 2) 0.5초 안의 입력은 한 묶음이라 쉬지 않고 치면 긴 문장이 한 번에 되돌려졌다. 띄어쓰기·줄바꿈·문장부호·붙여넣기에서 끊는다.
+  type UndoManagerLike = {
+    doc: { on(event: "afterTransaction", fn: unknown): void };
+    trackedOrigins: Set<unknown>;
+    afterTransactionHandler: unknown;
+    stopCapturing(): void;
+  };
+  const undoManager = () => {
+    const state = editor.prosemirrorState;
+    const plugin = state.plugins.find((p) => (p as unknown as { key: string }).key.startsWith("y-undo"));
+    const um = (plugin?.getState(state) as { undoManager?: UndoManagerLike } | undefined)?.undoManager;
+    // UndoManager는 만들 때 자기 자신을 trackedOrigins에 넣고, destroy()에서 뺀다. 빠져 있으면 꺼진 것이다
+    if (um && !um.trackedOrigins.has(um)) {
+      um.trackedOrigins.add(um);
+      um.doc.on("afterTransaction", um.afterTransactionHandler);
+    }
+    return um;
+  };
+  const beforeInput = () => void undoManager();
+  const onEditorKeyDown = (e: KeyboardEvent) => {
+    const um = undoManager();
+    if (["Space", "Enter", "NumpadEnter", "Period", "Comma", "Slash", "Semicolon"].includes(e.code) || e.key === " ") um?.stopCapturing();
+  };
+  const onEditorPaste = () => undoManager()?.stopCapturing();
+
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface dark:border-zinc-800">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -220,7 +279,10 @@ export function CollabEditor({
         <p role="status" className={status.stopped || status.retrying ? "font-medium text-red-700 dark:text-red-400" : "font-medium text-coral-800 dark:text-coral-300"}>
           {saveLabel}
         </p>
-        <Button type="button" variant="secondary" onClick={saveMarkdown}>md로 저장</Button>
+        <span className="flex gap-2">
+          <Button type="button" variant="secondary" onClick={saveMarkdown}>md로 저장</Button>
+          <Button type="button" variant="secondary" onClick={savePdf}>PDF로 저장</Button>
+        </span>
       </div>
       {status.stopped && (
         <Alert>
@@ -228,7 +290,7 @@ export function CollabEditor({
         </Alert>
       )}
       {notice && <Alert tone="info">{notice}</Alert>}
-      <div className="min-h-64 bg-surface py-4">
+      <div className="min-h-64 bg-surface py-4" onKeyDownCapture={onEditorKeyDown} onPasteCapture={onEditorPaste} onDropCapture={beforeInput} onBeforeInputCapture={beforeInput}>
         <BlockNoteView editor={editor} theme={colorScheme} editable={editable} slashMenu={false}>
           <MeetingSlashMenu editor={editor} onNewPage={newPage} />
         </BlockNoteView>

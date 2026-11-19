@@ -13,12 +13,14 @@ export function NewMeetingForm({
   me,
   defaultMeetingAt,
   members,
+  editorCandidates,
   departments,
   templates,
 }: {
   me: string;
   defaultMeetingAt: string;
   members: SelectOption[];
+  editorCandidates: SelectOption[];
   departments: SelectOption[];
   templates: SelectOption[];
 }) {
@@ -41,7 +43,8 @@ export function NewMeetingForm({
         <legend className="text-sm font-medium">편집자</legend>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">본문을 함께 고칠 사람입니다. 회장단은 지정하지 않아도 고칠 수 있습니다.</p>
         <div className="grid max-h-64 gap-2 overflow-y-auto rounded-md border border-zinc-200 p-3 sm:grid-cols-2 dark:border-zinc-800">
-          {members.map((m) => (
+          {editorCandidates.length === 0 && <p className="text-sm text-zinc-600 dark:text-zinc-400">지정할 수 있는 구성원이 없습니다.</p>}
+          {editorCandidates.map((m) => (
             <label key={m.value} className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="editor_ids" value={m.value} defaultChecked={m.value === me} className="accent-coral-700" />
               {m.label}
