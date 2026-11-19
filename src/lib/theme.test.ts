@@ -33,6 +33,26 @@ describe("화면 모드 초기화", () => {
     expect(dataset.colorScheme).toBe("dark");
   });
 
+  it.each(["maple", "rift"])("%s 테마의 밝기를 새로고침과 기기 설정 변경 후에도 유지한다", (theme) => {
+    for (const dark of [false, true]) {
+      const { dataset, media, listeners } = start(theme, dark);
+      expect(dataset).toEqual({ theme, colorScheme: theme === "rift" ? "dark" : "light" });
+      media.matches = !dark;
+      listeners.media();
+      expect(dataset.colorScheme).toBe(theme === "rift" ? "dark" : "light");
+    }
+  });
+
+  it("다른 탭에서 협곡과 메이플을 선택하면 편집기의 밝기도 전환한다", () => {
+    const { dataset, storage, listeners } = start("maple", false);
+    storage.value = "rift";
+    listeners.storage({ key: THEME_KEY });
+    expect(dataset).toEqual({ theme: "rift", colorScheme: "dark" });
+    storage.value = "maple";
+    listeners.storage({ key: THEME_KEY });
+    expect(dataset).toEqual({ theme: "maple", colorScheme: "light" });
+  });
+
   it("다른 탭의 변경과 저장소 초기화를 반영한다", () => {
     const { dataset, storage, listeners } = start("light", true);
     storage.value = "dark";

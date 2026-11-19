@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Noto_Serif_KR } from "next/font/google";
 import { Suspense, type CSSProperties } from "react";
 import { OrgChart } from "@/components/org/org-chart";
 import { SectionPager } from "@/components/section-pager";
@@ -7,8 +6,7 @@ import { getActiveMembership, getCurrentUserId } from "@/lib/auth/session";
 import { getPublicOrgChart } from "@/lib/org/public-chart";
 import { getCouncilProfile } from "@/lib/site";
 
-// 학생회 이름 글꼴. 시안의 Cafe24 Classictype이 설치돼 있으면 그것을, 없으면 Noto Serif KR을 쓴다
-const gaonFont = Noto_Serif_KR({ weight: ["600", "900"], subsets: ["latin"], preload: false, fallback: ["Cafe24 Classictype", "serif"] });
+const gaonFont = "font-[family-name:var(--font-gaon-serif)]";
 
 const HERO_LINK = "text-[#2a1a15] hover:text-[#00453A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2a1a15]";
 const HERO_PILL = `inline-flex items-center rounded-full text-[17px] font-bold ${HERO_LINK}`;
@@ -49,7 +47,7 @@ export default function Home() {
     <SectionPager className="h-svh overflow-y-auto overscroll-y-contain [overflow-anchor:none]">
       {/* 첫 구역(시안 B): 노을빛 배경 + 유리 원, 왼쪽에 큰 학생회 이름. 색은 다크 모드와 상관없이 고정이다 */}
       <section
-        className="relative flex min-h-svh flex-col overflow-hidden text-[#2a1a15] [word-break:keep-all]"
+        className="home-hero relative flex min-h-svh flex-col overflow-hidden text-[#2a1a15] [word-break:keep-all]"
         style={{
           // QA 3차: "너무 밝고 화사하다" → 채도를 낮춘 모래색 바탕에 은은한 테라코타 빛
           backgroundColor: "#E8DACE",
@@ -62,7 +60,7 @@ export default function Home() {
         ))}
         <header className="relative mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-4 px-6 py-5">
           <Link href="/" aria-label="첫 화면" className={`mr-auto flex items-center gap-2.5 rounded-lg ${HERO_LINK}`}>
-            <span className={`${gaonFont.className} text-[22px] tracking-[-0.02em]`}>
+            <span className={`${gaonFont} text-[22px] tracking-[-0.02em]`}>
               <Suspense fallback="학생회"><CouncilName /></Suspense>
             </span>
           </Link>
@@ -74,7 +72,7 @@ export default function Home() {
         </header>
 
         <div className="relative mx-auto flex w-full max-w-[1240px] flex-1 flex-col justify-center gap-7 px-6 pt-10 pb-20">
-          <Suspense fallback={<h1 className={`${gaonFont.className} text-[clamp(110px,16vw,230px)] leading-[0.88]`}>학생회</h1>}>
+          <Suspense fallback={<h1 className={`${gaonFont} text-[clamp(110px,16vw,230px)] leading-[0.88]`}>학생회</h1>}>
             <Hero />
           </Suspense>
           <div className="flex flex-wrap gap-3">
@@ -131,10 +129,10 @@ async function Hero() {
   const leaders = chart?.executives ?? [];
   return (
     <>
-      <span className={`${gaonFont.className} gaon-sub -mb-2.5 ml-1 self-start text-2xl tracking-[-0.01em] text-[#5a2118]`}>
+      <span className={`${gaonFont} gaon-sub -mb-2.5 ml-1 self-start text-2xl tracking-[-0.01em] text-[#5a2118]`}>
         한양대학교 정보시스템학과 {profile.generation ? `제${profile.generation}대 ` : ""}학생회
       </span>
-      <h1 className={`${gaonFont.className} gaon-title m-0 text-[clamp(96px,16vw,230px)] leading-[0.88] font-semibold tracking-[-0.02em]`}>
+      <h1 className={`${gaonFont} gaon-title m-0 text-[clamp(96px,16vw,230px)] leading-[0.88] font-semibold tracking-[-0.02em]`}>
         {profile.name}
       </h1>
       {leaders.length > 0 && (

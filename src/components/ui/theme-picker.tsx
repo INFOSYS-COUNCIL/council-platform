@@ -21,7 +21,7 @@ export function ThemePicker() {
   function changeTheme(value: ThemePreference) {
     const root = document.documentElement;
     root.dataset.theme = value;
-    root.dataset.colorScheme = value === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : value === "maple" ? "light" : value;
+    root.dataset.colorScheme = value === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : value === "maple" ? "light" : value === "rift" ? "dark" : value;
     try {
       localStorage.setItem(THEME_KEY, value);
       setMessage("화면 모드를 저장했습니다.");
@@ -38,7 +38,7 @@ export function ThemePicker() {
         name="theme"
         value={preference}
         onChange={(event) => changeTheme(event.target.value as ThemePreference)}
-        options={[{ value: "light", label: "일반 모드 (라이트)" }, { value: "dark", label: "다크 모드" }, { value: "system", label: "기기 설정 따르기" }, { value: "maple", label: "메이플 (단풍 도트)" }]}
+        options={[{ value: "light", label: "일반 모드 (라이트)" }, { value: "dark", label: "다크 모드" }, { value: "system", label: "기기 설정 따르기" }, { value: "maple", label: "메이플 (단풍 도트)" }, { value: "rift", label: "소환사의 협곡 (롤)" }]}
         hint="선택한 모드는 이 브라우저에 저장됩니다."
       />
       <p role="status" className="text-sm text-muted">{message}</p>
