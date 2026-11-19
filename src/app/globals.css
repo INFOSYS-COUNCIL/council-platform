@@ -1,3 +1,5 @@
+/* 메이플 테마 도트 글꼴(Galmuri, SIL OFL). CSS 규칙상 다른 import보다 먼저 둔다 */
+@import url("https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css");
 @import "tailwindcss";
 @custom-variant dark (&:where([data-color-scheme="dark"], [data-color-scheme="dark"] *));
 
@@ -169,3 +171,66 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .gaon-film, .gaon-hi, .gaon-sub { animation: none; }
 }
+
+/* 메이플 테마(사용자 선택, 라이트 계열): 단풍색 + 도트(픽셀) 느낌.
+   픽셀 단풍잎·버섯은 직접 그린 그림이다(특정 게임 캐릭터를 쓰지 않는다). 글꼴은 Galmuri(SIL OFL). */
+:root[data-theme="maple"] {
+  --background: #fff3dc;
+  --foreground: #3b2412;
+  --surface: #fffaf0;
+  --sidebar: #ffe6bf;
+  --muted: #6e4f33;
+  --border-input: #9c6b3c;
+  --accent: #c2410c;
+  --on-accent: #ffffff;
+  --danger: #b91c1c;
+  --danger-bg: #fee2e2;
+  --font-sans: "Galmuri11", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --maple-leaf: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60' shape-rendering='crispEdges'><rect x='10' y='8' width='1' height='1' fill='%23e8590c'/><rect x='7' y='9' width='1' height='1' fill='%23e8590c'/><rect x='10' y='9' width='1' height='1' fill='%23e8590c'/><rect x='13' y='9' width='1' height='1' fill='%23e8590c'/><rect x='7' y='10' width='1' height='1' fill='%23e8590c'/><rect x='8' y='10' width='1' height='1' fill='%23e8590c'/><rect x='10' y='10' width='1' height='1' fill='%23e8590c'/><rect x='12' y='10' width='1' height='1' fill='%23e8590c'/><rect x='13' y='10' width='1' height='1' fill='%23e8590c'/><rect x='8' y='11' width='1' height='1' fill='%23e8590c'/><rect x='9' y='11' width='1' height='1' fill='%23e8590c'/><rect x='10' y='11' width='1' height='1' fill='%23e8590c'/><rect x='11' y='11' width='1' height='1' fill='%23e8590c'/><rect x='12' y='11' width='1' height='1' fill='%23e8590c'/><rect x='6' y='12' width='1' height='1' fill='%23e8590c'/><rect x='7' y='12' width='1' height='1' fill='%23e8590c'/><rect x='8' y='12' width='1' height='1' fill='%23e8590c'/><rect x='9' y='12' width='1' height='1' fill='%23e8590c'/><rect x='10' y='12' width='1' height='1' fill='%23e8590c'/><rect x='11' y='12' width='1' height='1' fill='%23e8590c'/><rect x='12' y='12' width='1' height='1' fill='%23e8590c'/><rect x='13' y='12' width='1' height='1' fill='%23e8590c'/><rect x='14' y='12' width='1' height='1' fill='%23e8590c'/><rect x='7' y='13' width='1' height='1' fill='%23e8590c'/><rect x='8' y='13' width='1' height='1' fill='%23e8590c'/><rect x='9' y='13' width='1' height='1' fill='%23e8590c'/><rect x='10' y='13' width='1' height='1' fill='%23e8590c'/><rect x='11' y='13' width='1' height='1' fill='%23e8590c'/><rect x='12' y='13' width='1' height='1' fill='%23e8590c'/><rect x='13' y='13' width='1' height='1' fill='%23e8590c'/><rect x='8' y='14' width='1' height='1' fill='%23e8590c'/><rect x='9' y='14' width='1' height='1' fill='%23e8590c'/><rect x='10' y='14' width='1' height='1' fill='%23e8590c'/><rect x='11' y='14' width='1' height='1' fill='%23e8590c'/><rect x='12' y='14' width='1' height='1' fill='%23e8590c'/><rect x='10' y='15' width='1' height='1' fill='%239a3412'/><rect x='10' y='16' width='1' height='1' fill='%239a3412'/></svg>");
+  --maple-leaf-2: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60' shape-rendering='crispEdges'><rect x='42' y='36' width='1' height='1' fill='%23f59f00'/><rect x='39' y='37' width='1' height='1' fill='%23f59f00'/><rect x='42' y='37' width='1' height='1' fill='%23f59f00'/><rect x='45' y='37' width='1' height='1' fill='%23f59f00'/><rect x='39' y='38' width='1' height='1' fill='%23f59f00'/><rect x='40' y='38' width='1' height='1' fill='%23f59f00'/><rect x='42' y='38' width='1' height='1' fill='%23f59f00'/><rect x='44' y='38' width='1' height='1' fill='%23f59f00'/><rect x='45' y='38' width='1' height='1' fill='%23f59f00'/><rect x='40' y='39' width='1' height='1' fill='%23f59f00'/><rect x='41' y='39' width='1' height='1' fill='%23f59f00'/><rect x='42' y='39' width='1' height='1' fill='%23f59f00'/><rect x='43' y='39' width='1' height='1' fill='%23f59f00'/><rect x='44' y='39' width='1' height='1' fill='%23f59f00'/><rect x='38' y='40' width='1' height='1' fill='%23f59f00'/><rect x='39' y='40' width='1' height='1' fill='%23f59f00'/><rect x='40' y='40' width='1' height='1' fill='%23f59f00'/><rect x='41' y='40' width='1' height='1' fill='%23f59f00'/><rect x='42' y='40' width='1' height='1' fill='%23f59f00'/><rect x='43' y='40' width='1' height='1' fill='%23f59f00'/><rect x='44' y='40' width='1' height='1' fill='%23f59f00'/><rect x='45' y='40' width='1' height='1' fill='%23f59f00'/><rect x='46' y='40' width='1' height='1' fill='%23f59f00'/><rect x='39' y='41' width='1' height='1' fill='%23f59f00'/><rect x='40' y='41' width='1' height='1' fill='%23f59f00'/><rect x='41' y='41' width='1' height='1' fill='%23f59f00'/><rect x='42' y='41' width='1' height='1' fill='%23f59f00'/><rect x='43' y='41' width='1' height='1' fill='%23f59f00'/><rect x='44' y='41' width='1' height='1' fill='%23f59f00'/><rect x='45' y='41' width='1' height='1' fill='%23f59f00'/><rect x='40' y='42' width='1' height='1' fill='%23f59f00'/><rect x='41' y='42' width='1' height='1' fill='%23f59f00'/><rect x='42' y='42' width='1' height='1' fill='%23f59f00'/><rect x='43' y='42' width='1' height='1' fill='%23f59f00'/><rect x='44' y='42' width='1' height='1' fill='%23f59f00'/><rect x='42' y='43' width='1' height='1' fill='%239a3412'/><rect x='42' y='44' width='1' height='1' fill='%239a3412'/></svg>");
+  --maple-mushroom: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='48' height='48' shape-rendering='crispEdges'><rect x='3' y='0' width='1' height='1' fill='%235c2a0e'/><rect x='4' y='0' width='1' height='1' fill='%235c2a0e'/><rect x='5' y='0' width='1' height='1' fill='%235c2a0e'/><rect x='6' y='0' width='1' height='1' fill='%235c2a0e'/><rect x='7' y='0' width='1' height='1' fill='%235c2a0e'/><rect x='8' y='0' width='1' height='1' fill='%235c2a0e'/><rect x='2' y='1' width='1' height='1' fill='%235c2a0e'/><rect x='3' y='1' width='1' height='1' fill='%23e8590c'/><rect x='4' y='1' width='1' height='1' fill='%23e8590c'/><rect x='5' y='1' width='1' height='1' fill='%23e8590c'/><rect x='6' y='1' width='1' height='1' fill='%23e8590c'/><rect x='7' y='1' width='1' height='1' fill='%23ffd43b'/><rect x='8' y='1' width='1' height='1' fill='%23ffd43b'/><rect x='9' y='1' width='1' height='1' fill='%235c2a0e'/><rect x='1' y='2' width='1' height='1' fill='%235c2a0e'/><rect x='2' y='2' width='1' height='1' fill='%23e8590c'/><rect x='3' y='2' width='1' height='1' fill='%23ffd43b'/><rect x='4' y='2' width='1' height='1' fill='%23ffd43b'/><rect x='5' y='2' width='1' height='1' fill='%23e8590c'/><rect x='6' y='2' width='1' height='1' fill='%23e8590c'/><rect x='7' y='2' width='1' height='1' fill='%23e8590c'/><rect x='8' y='2' width='1' height='1' fill='%23e8590c'/><rect x='9' y='2' width='1' height='1' fill='%23e8590c'/><rect x='10' y='2' width='1' height='1' fill='%235c2a0e'/><rect x='0' y='3' width='1' height='1' fill='%235c2a0e'/><rect x='1' y='3' width='1' height='1' fill='%23e8590c'/><rect x='2' y='3' width='1' height='1' fill='%23e8590c'/><rect x='3' y='3' width='1' height='1' fill='%23e8590c'/><rect x='4' y='3' width='1' height='1' fill='%23e8590c'/><rect x='5' y='3' width='1' height='1' fill='%23e8590c'/><rect x='6' y='3' width='1' height='1' fill='%23e8590c'/><rect x='7' y='3' width='1' height='1' fill='%23ffd43b'/><rect x='8' y='3' width='1' height='1' fill='%23ffd43b'/><rect x='9' y='3' width='1' height='1' fill='%23e8590c'/><rect x='10' y='3' width='1' height='1' fill='%23e8590c'/><rect x='11' y='3' width='1' height='1' fill='%235c2a0e'/><rect x='0' y='4' width='1' height='1' fill='%235c2a0e'/><rect x='1' y='4' width='1' height='1' fill='%23e8590c'/><rect x='2' y='4' width='1' height='1' fill='%23e8590c'/><rect x='3' y='4' width='1' height='1' fill='%23e8590c'/><rect x='4' y='4' width='1' height='1' fill='%23ffd43b'/><rect x='5' y='4' width='1' height='1' fill='%23ffd43b'/><rect x='6' y='4' width='1' height='1' fill='%23e8590c'/><rect x='7' y='4' width='1' height='1' fill='%23e8590c'/><rect x='8' y='4' width='1' height='1' fill='%23e8590c'/><rect x='9' y='4' width='1' height='1' fill='%23e8590c'/><rect x='10' y='4' width='1' height='1' fill='%23e8590c'/><rect x='11' y='4' width='1' height='1' fill='%235c2a0e'/><rect x='0' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='1' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='2' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='3' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='4' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='5' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='6' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='7' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='8' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='9' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='10' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='11' y='5' width='1' height='1' fill='%235c2a0e'/><rect x='2' y='6' width='1' height='1' fill='%235c2a0e'/><rect x='3' y='6' width='1' height='1' fill='%23fff4de'/><rect x='4' y='6' width='1' height='1' fill='%23fff4de'/><rect x='5' y='6' width='1' height='1' fill='%23fff4de'/><rect x='6' y='6' width='1' height='1' fill='%23fff4de'/><rect x='7' y='6' width='1' height='1' fill='%23fff4de'/><rect x='8' y='6' width='1' height='1' fill='%23fff4de'/><rect x='9' y='6' width='1' height='1' fill='%235c2a0e'/><rect x='2' y='7' width='1' height='1' fill='%235c2a0e'/><rect x='3' y='7' width='1' height='1' fill='%23fff4de'/><rect x='4' y='7' width='1' height='1' fill='%235c2a0e'/><rect x='5' y='7' width='1' height='1' fill='%23fff4de'/><rect x='6' y='7' width='1' height='1' fill='%23fff4de'/><rect x='7' y='7' width='1' height='1' fill='%235c2a0e'/><rect x='8' y='7' width='1' height='1' fill='%23fff4de'/><rect x='9' y='7' width='1' height='1' fill='%235c2a0e'/><rect x='2' y='8' width='1' height='1' fill='%235c2a0e'/><rect x='3' y='8' width='1' height='1' fill='%23fff4de'/><rect x='4' y='8' width='1' height='1' fill='%23fff4de'/><rect x='5' y='8' width='1' height='1' fill='%23fff4de'/><rect x='6' y='8' width='1' height='1' fill='%23fff4de'/><rect x='7' y='8' width='1' height='1' fill='%23fff4de'/><rect x='8' y='8' width='1' height='1' fill='%23fff4de'/><rect x='9' y='8' width='1' height='1' fill='%235c2a0e'/><rect x='2' y='9' width='1' height='1' fill='%235c2a0e'/><rect x='3' y='9' width='1' height='1' fill='%23fff4de'/><rect x='4' y='9' width='1' height='1' fill='%23fff4de'/><rect x='5' y='9' width='1' height='1' fill='%23f783ac'/><rect x='6' y='9' width='1' height='1' fill='%23f783ac'/><rect x='7' y='9' width='1' height='1' fill='%23fff4de'/><rect x='8' y='9' width='1' height='1' fill='%23fff4de'/><rect x='9' y='9' width='1' height='1' fill='%235c2a0e'/><rect x='3' y='10' width='1' height='1' fill='%235c2a0e'/><rect x='4' y='10' width='1' height='1' fill='%23fff4de'/><rect x='5' y='10' width='1' height='1' fill='%23fff4de'/><rect x='6' y='10' width='1' height='1' fill='%23fff4de'/><rect x='7' y='10' width='1' height='1' fill='%23fff4de'/><rect x='8' y='10' width='1' height='1' fill='%235c2a0e'/><rect x='4' y='11' width='1' height='1' fill='%235c2a0e'/><rect x='5' y='11' width='1' height='1' fill='%235c2a0e'/><rect x='6' y='11' width='1' height='1' fill='%235c2a0e'/><rect x='7' y='11' width='1' height='1' fill='%235c2a0e'/></svg>");
+}
+:root[data-theme="maple"] body {
+  /* 도트 격자 위에 작은 픽셀 단풍잎이 띄엄띄엄(잎 하나 ≈ 36px, 240px마다) */
+  background:
+    var(--maple-leaf) 0 0 / 240px 240px repeat,
+    var(--maple-leaf-2) 0 0 / 240px 240px repeat,
+    radial-gradient(rgb(156 107 60 / 0.18) 1px, transparent 1.5px) 0 0 / 12px 12px,
+    var(--background);
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  image-rendering: pixelated;
+}
+/* 오른쪽 아래에서 도트 버섯 친구가 지켜본다(장식, 넓은 화면만) */
+:root[data-theme="maple"] body::after {
+  content: "";
+  position: fixed;
+  right: 18px;
+  bottom: 14px;
+  width: 48px;
+  height: 48px;
+  background: var(--maple-mushroom) center / contain no-repeat;
+  pointer-events: none;
+  z-index: 40;
+  animation: maple-hop 2.4s steps(2, end) infinite;
+}
+@keyframes maple-hop { 50% { transform: translateY(-4px); } }
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+  :root[data-theme="maple"] body::after { animation: none; }
+}
+@media (max-width: 767px) {
+  :root[data-theme="maple"] body::after { display: none; }
+}
+/* 도트 느낌: 둥근 모서리를 각지게, 그림자는 흐림 없이 계단처럼, 테두리는 두껍게 */
+:root[data-theme="maple"] [class*="rounded"]:not(.rounded-full) { border-radius: 3px; }
+:root[data-theme="maple"] [class*="shadow"] { box-shadow: 3px 3px 0 rgb(122 70 30 / 0.35); }
+:root[data-theme="maple"] button,
+:root[data-theme="maple"] a[class*="rounded-full"],
+:root[data-theme="maple"] input,
+:root[data-theme="maple"] select,
+:root[data-theme="maple"] textarea { border-radius: 3px; }
+:root[data-theme="maple"] h1,
+:root[data-theme="maple"] h2 { text-shadow: 2px 2px 0 rgb(245 159 0 / 0.35); }
+:root[data-theme="maple"] ::selection { background: #ffd8a8; color: #3b2412; }
+:root[data-theme="maple"] .bn-container[data-color-scheme] .bn-editor { font-family: var(--font-sans); }
