@@ -1,15 +1,14 @@
 export const THEME_KEY = "council-theme";
-// maple: 단풍색 도트 테마(라이트 계열)
-export type ThemePreference = "light" | "dark" | "system" | "maple";
+export type ThemePreference = "light" | "dark" | "system" | "maple" | "rift";
 
 // 첫 화면을 그리기 전에 적용해 저장한 테마와 화면이 잠깐 달라지는 것을 막는다.
 export const THEME_SCRIPT = `(() => {
   const root = document.documentElement;
   const media = window.matchMedia('(prefers-color-scheme: dark)');
-  const valid = value => ['light', 'dark', 'system', 'maple'].includes(value);
+  const valid = value => ['light', 'dark', 'system', 'maple', 'rift'].includes(value);
   const apply = value => {
     root.dataset.theme = valid(value) ? value : 'system';
-    root.dataset.colorScheme = root.dataset.theme === 'system' ? (media.matches ? 'dark' : 'light') : root.dataset.theme === 'maple' ? 'light' : root.dataset.theme;
+    root.dataset.colorScheme = root.dataset.theme === 'system' ? (media.matches ? 'dark' : 'light') : root.dataset.theme === 'maple' ? 'light' : root.dataset.theme === 'rift' ? 'dark' : root.dataset.theme;
   };
   const restore = () => {
     let value;
