@@ -71,7 +71,8 @@ async function CouncilSuggestions({
   const canDelete = (s: { assigned_department_id: string | null; }) =>
     isExecutive || (membership.role === "DIRECTOR" && s.assigned_department_id === membership.departmentId);
   const [{ data, count, error }, org] = await Promise.all([
-    query.order("created_at", { ascending: false }).range(from, from + PER_PAGE - 1),
+    // 접수됨 → 검토 중 → 답변 완료 순(enum 순서), 같은 상태 안에서는 최근 것부터
+    query.order("status").order("created_at", { ascending: false }).range(from, from + PER_PAGE - 1),
     // 배정은 회장단만 하므로 부서·구성원 목록도 회장단일 때만 부른다
     isExecutive ? getTermOrgOptions(membership.termId) : null,
   ]);

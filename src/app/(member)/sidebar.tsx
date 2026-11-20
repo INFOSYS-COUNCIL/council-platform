@@ -142,7 +142,7 @@ export function Sidebar({
       <nav
         id="member-nav"
         aria-label="주 메뉴"
-        className={`${open ? "flex" : "hidden"} max-h-[calc(100dvh-4rem)] flex-col justify-between gap-4 overflow-y-auto border-t border-zinc-200 px-3 pt-3 pb-4 md:flex md:h-[calc(100vh-4.5rem)] md:max-h-none md:border-t-0 md:pt-2 dark:border-zinc-800`}
+        className={`${open ? "flex" : "hidden"} max-h-[calc(100dvh-4rem)] flex-col justify-between gap-4 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-t border-zinc-200 px-3 pt-3 pb-4 md:flex md:h-[calc(100vh-4.5rem)] md:max-h-none md:border-t-0 md:pt-2 dark:border-zinc-800`}
       >
         <div className="space-y-5">
           {groups.map((group) => (
