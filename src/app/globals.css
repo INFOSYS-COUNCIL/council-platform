@@ -329,3 +329,107 @@ body {
 :root[data-theme="rift"] #suggest li > span { color: var(--accent); }
 :root[data-theme="rift"] #suggest p { color: var(--muted); }
 :root[data-theme="rift"] #suggest a[class*="bg-"] { background: var(--accent); color: var(--on-accent); }
+
+/* 협곡 다듬기(사용자 요청): 금빛 테두리·모서리 장식, 청록 마법빛, 은은한 마름모 무늬.
+   장식은 모두 CSS로 직접 만든 것이다(게임 이미지·로고를 쓰지 않는다). */
+:root[data-theme="rift"] body {
+  /* 협곡 다듬기: 바탕은 아래 body::before의 판타지 계곡 그림 */
+  background:
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgb(10 200 185 / 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgb(200 170 110 / 0.08), transparent 60%),
+    radial-gradient(ellipse 120% 90% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.45)),
+    var(--background);
+  background-attachment: fixed;
+  scrollbar-color: #785a28 #010a13;
+}
+:root[data-theme="rift"] body::before {
+  /* 직접 그린 판타지 계곡(안개 산맥·고대 유적·빛나는 수정·침엽수 숲). 글자가 잘 읽히도록 위·왼쪽을 어둡게 덮는다 */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgb(1 10 19 / 0.82) 0%, rgb(1 10 19 / 0.55) 45%, rgb(1 10 19 / 0.35) 100%),
+    linear-gradient(180deg, rgb(1 10 19 / 0.55) 0%, rgb(1 10 19 / 0.15) 40%, rgb(1 10 19 / 0.5) 100%),
+    url("/themes/rift-valley.svg") center bottom / cover no-repeat;
+}
+/* 사이드바: 금빛 세로선, 현재 메뉴는 청록 빛 막대 */
+:root[data-theme="rift"] aside {
+  background: linear-gradient(180deg, #0a1a26, #050e16);
+  border-color: rgb(200 170 110 / 0.35) !important;
+  box-shadow: inset -1px 0 0 rgb(10 200 185 / 0.08);
+}
+:root[data-theme="rift"] aside a[aria-current="page"] {
+  background: linear-gradient(90deg, rgb(10 200 185 / 0.16), rgb(200 170 110 / 0.06));
+  box-shadow: inset 3px 0 0 #0ac8b9, inset 0 0 0 1px rgb(200 170 110 / 0.35);
+  color: #f0e6d2;
+}
+/* 카드: 얇은 금빛 테두리 + 네 모서리 금빛 꺾쇠 */
+:root[data-theme="rift"] .bg-surface {
+  border-color: rgb(200 170 110 / 0.3) !important;
+  background-color: rgb(11 29 42 / 0.92);
+  background-image:
+    linear-gradient(#c8aa6e, #c8aa6e), linear-gradient(#c8aa6e, #c8aa6e),
+    linear-gradient(#c8aa6e, #c8aa6e), linear-gradient(#c8aa6e, #c8aa6e),
+    linear-gradient(#c8aa6e, #c8aa6e), linear-gradient(#c8aa6e, #c8aa6e),
+    linear-gradient(#c8aa6e, #c8aa6e), linear-gradient(#c8aa6e, #c8aa6e),
+    linear-gradient(160deg, rgb(10 200 185 / 0.06), transparent 55%);
+  background-size: 10px 1px, 1px 10px, 10px 1px, 1px 10px, 10px 1px, 1px 10px, 10px 1px, 1px 10px, auto;
+  background-position: 0 0, 0 0, 100% 0, 100% 0, 0 100%, 0 100%, 100% 100%, 100% 100%, 0 0;
+  background-repeat: no-repeat;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35), inset 0 1px rgb(240 230 210 / 0.05);
+}
+/* 구역 제목: 금빛 그라데이션 글자, 왼쪽 막대는 마름모 장식처럼 */
+:root[data-theme="rift"] :is(h1, h2) {
+  background: linear-gradient(180deg, #f0e6d2 0%, #c8aa6e 60%, #a07a3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+:root[data-theme="rift"] h2[class*="border-l-4"] {
+  border-left-color: transparent;
+  position: relative;
+  padding-left: 1.1rem;
+}
+:root[data-theme="rift"] h2[class*="border-l-4"]::before {
+  content: "";
+  position: absolute;
+  left: 0.15rem;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  transform: translateY(-50%) rotate(45deg);
+  background: #0ac8b9;
+  box-shadow: 0 0 8px rgb(10 200 185 / 0.7), 0 0 0 1px #c8aa6e;
+}
+/* 버튼: 주 버튼은 금빛 금속판, 보조 버튼은 어두운 청록에 금 테두리 */
+:root[data-theme="rift"] button.bg-accent,
+:root[data-theme="rift"] a.bg-accent {
+  background: linear-gradient(180deg, #e8d4a8 0%, #c8aa6e 45%, #8a6b32 100%);
+  color: #010a13;
+  border: 1px solid #f0e6d2;
+  box-shadow: inset 0 0 0 1px #785a28, 0 0 14px rgb(200 170 110 / 0.25);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.25);
+}
+:root[data-theme="rift"] button.bg-accent:hover,
+:root[data-theme="rift"] a.bg-accent:hover {
+  background: linear-gradient(180deg, #f6e8c4 0%, #dcc08a 45%, #a2834a 100%);
+  box-shadow: inset 0 0 0 1px #785a28, 0 0 22px rgb(10 200 185 / 0.35);
+}
+:root[data-theme="rift"] button.border-border-input,
+:root[data-theme="rift"] a.border-border-input {
+  background: linear-gradient(180deg, #123140, #07131e);
+  border-color: #785a28;
+  color: #f0e6d2;
+}
+:root[data-theme="rift"] button.border-border-input:hover,
+:root[data-theme="rift"] a.border-border-input:hover { border-color: #c8aa6e; box-shadow: 0 0 12px rgb(10 200 185 / 0.25); }
+/* 입력칸: 어두운 바탕, 초점은 청록 빛 */
+:root[data-theme="rift"] :is(input, select, textarea) { background-color: #06121b; border-color: #5b4a2c; }
+:root[data-theme="rift"] :is(input, select, textarea):focus-visible { border-color: #0ac8b9; box-shadow: 0 0 0 1px #0ac8b9, 0 0 12px rgb(10 200 185 / 0.35); outline: none; }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="rift"] .bg-surface { transition: box-shadow .2s, border-color .2s; }
+  :root[data-theme="rift"] a.bg-surface:hover,
+  :root[data-theme="rift"] .bg-surface:has(> a:hover) { border-color: rgb(200 170 110 / 0.6) !important; box-shadow: 0 10px 30px rgb(0 0 0 / 0.35), 0 0 18px rgb(10 200 185 / 0.15); }
+}
