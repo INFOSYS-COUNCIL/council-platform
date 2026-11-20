@@ -86,6 +86,8 @@ async function TasksContent({
   const from = (params.page - 1) * TASKS_PER_PAGE;
   const [{ data: tasks, count, error }, urgentResult, { members }] = await Promise.all([
     (archived ? base() : base().or(`status.eq.DONE,due_date.is.null,due_date.gt.${soon}`))
+      // 시작 전 → 진행 중 → 검토 요청 → 완료 순(enum 순서), 같은 상태 안에서는 마감일 순
+      .order("status")
       .order("due_date", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false })
       .range(from, from + TASKS_PER_PAGE - 1),
