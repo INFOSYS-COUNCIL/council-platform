@@ -333,9 +333,7 @@ body {
 /* 협곡 다듬기(사용자 요청): 금빛 테두리·모서리 장식, 청록 마법빛, 은은한 마름모 무늬.
    장식은 모두 CSS로 직접 만든 것이다(게임 이미지·로고를 쓰지 않는다). */
 :root[data-theme="rift"] body {
-  /* 협곡 다듬기: 오른쪽 아래에 직접 그린 '세 갈래 길·강' 선 지도, 바탕엔 옅은 육각 무늬(공식 그림·로고 아님) */
-  --rift-map: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke-linecap='round'%3E%3Crect x='4' y='4' width='192' height='192' rx='6' stroke='%23c8aa6e' stroke-opacity='.5'/%3E%3Cpath d='M20 180V20h160' stroke='%23c8aa6e' stroke-width='3'/%3E%3Cpath d='M20 180h160V20' stroke='%23c8aa6e' stroke-width='3'/%3E%3Cpath d='M20 180 180 20' stroke='%23c8aa6e' stroke-width='3'/%3E%3Cpath d='M30 30c30 18 40 40 70 70s52 40 70 70' stroke='%230ac8b9' stroke-width='6' stroke-opacity='.8'/%3E%3Ccircle cx='22' cy='178' r='12' stroke='%230ac8b9' stroke-width='2.5'/%3E%3Ccircle cx='178' cy='22' r='12' stroke='%23c8aa6e' stroke-width='2.5'/%3E%3Crect x='17.5' y='117.5' width='5' height='5' transform='rotate(45 20 120)' fill='%23c8aa6e'/%3E%3Crect x='17.5' y='67.5' width='5' height='5' transform='rotate(45 20 70)' fill='%23c8aa6e'/%3E%3Crect x='77.5' y='17.5' width='5' height='5' transform='rotate(45 80 20)' fill='%23c8aa6e'/%3E%3Crect x='127.5' y='17.5' width='5' height='5' transform='rotate(45 130 20)' fill='%23c8aa6e'/%3E%3Crect x='57.5' y='137.5' width='5' height='5' transform='rotate(45 60 140)' fill='%23c8aa6e'/%3E%3Crect x='97.5' y='97.5' width='5' height='5' transform='rotate(45 100 100)' fill='%23c8aa6e'/%3E%3Crect x='137.5' y='57.5' width='5' height='5' transform='rotate(45 140 60)' fill='%23c8aa6e'/%3E%3Crect x='77.5' y='177.5' width='5' height='5' transform='rotate(45 80 180)' fill='%23c8aa6e'/%3E%3Crect x='127.5' y='177.5' width='5' height='5' transform='rotate(45 130 180)' fill='%23c8aa6e'/%3E%3Crect x='177.5' y='127.5' width='5' height='5' transform='rotate(45 180 130)' fill='%23c8aa6e'/%3E%3Crect x='177.5' y='77.5' width='5' height='5' transform='rotate(45 180 80)' fill='%23c8aa6e'/%3E%3C/svg%3E");
-  --rift-hex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='83' viewBox='0 0 48 83'%3E%3Cpath d='M24 1 47 14v27L24 54 1 41V14Z M24 54v28 M1 82' fill='none' stroke='%230ac8b9' stroke-opacity='.06'/%3E%3C/svg%3E");
+  /* 협곡 다듬기: 바탕은 아래 body::before의 판타지 계곡 그림 */
   background:
     radial-gradient(ellipse 70% 50% at 100% 0%, rgb(10 200 185 / 0.14), transparent 60%),
     radial-gradient(ellipse 60% 50% at 0% 100%, rgb(200 170 110 / 0.08), transparent 60%),
@@ -345,17 +343,16 @@ body {
   scrollbar-color: #785a28 #010a13;
 }
 :root[data-theme="rift"] body::before {
+  /* 직접 그린 판타지 계곡(안개 산맥·고대 유적·빛나는 수정·침엽수 숲). 글자가 잘 읽히도록 위·왼쪽을 어둡게 덮는다 */
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
-    var(--rift-map) right -60px bottom -60px / min(46vw, 560px) no-repeat,
-    var(--rift-hex) 0 0 / 48px 83px;
-  opacity: 0.24;
-  -webkit-mask-image: linear-gradient(135deg, transparent 25%, #000 75%);
-  mask-image: linear-gradient(135deg, transparent 25%, #000 75%);
+    linear-gradient(90deg, rgb(1 10 19 / 0.82) 0%, rgb(1 10 19 / 0.55) 45%, rgb(1 10 19 / 0.35) 100%),
+    linear-gradient(180deg, rgb(1 10 19 / 0.55) 0%, rgb(1 10 19 / 0.15) 40%, rgb(1 10 19 / 0.5) 100%),
+    url("/themes/rift-valley.svg") center bottom / cover no-repeat;
 }
 /* 사이드바: 금빛 세로선, 현재 메뉴는 청록 빛 막대 */
 :root[data-theme="rift"] aside {
