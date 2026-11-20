@@ -72,7 +72,7 @@ export default function Home() {
         </header>
 
         <div className="relative mx-auto flex w-full max-w-[1240px] flex-1 flex-col justify-center gap-7 px-6 pt-10 pb-20">
-          <Suspense fallback={<h1 className={`${gaonFont} text-[clamp(84px,15vw,212px)] leading-[0.88]`}>학생회</h1>}>
+          <Suspense fallback={<h1 className={`${gaonFont} text-[clamp(76px,13.4vw,192px)] leading-[0.88]`}>학생회</h1>}>
             <Hero />
           </Suspense>
           <div className="flex flex-wrap gap-3">
@@ -132,7 +132,7 @@ async function Hero() {
       <span className={`${gaonFont} gaon-sub -mb-2.5 ml-1 self-start text-2xl tracking-[-0.01em] text-[#5a2118]`}>
         한양대학교 정보시스템학과 {profile.generation ? `제${profile.generation}대 ` : ""}학생회
       </span>
-      <h1 className={`${gaonFont} gaon-title m-0 text-[clamp(84px,15vw,212px)] leading-[0.88] font-semibold tracking-[-0.02em]`}>
+      <h1 className={`${gaonFont} gaon-title m-0 text-[clamp(76px,13.4vw,192px)] leading-[0.88] font-semibold tracking-[-0.02em]`}>
         {profile.name}
       </h1>
       {leaders.length > 0 && (
