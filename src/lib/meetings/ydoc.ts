@@ -1,6 +1,6 @@
 import "server-only";
 import { BlockNoteEditor, type PartialBlock } from "@blocknote/core";
-import { blocksToYDoc } from "@blocknote/core/yjs";
+import { blocksToYDoc, yXmlFragmentToBlocks } from "@blocknote/core/yjs";
 import * as Y from "yjs";
 import { MEETING_FRAGMENT, toBytea } from "./labels";
 import { meetingSchema } from "./schema";
@@ -22,4 +22,22 @@ export function templateState(blocks: unknown) {
 export function mergedState(snapshot: Uint8Array, updates: Uint8Array[]) {
   const merged = Y.mergeUpdates([snapshot, ...updates]);
   return { state: toBytea(merged), vector: toBytea(Y.encodeStateVectorFromUpdate(merged)) };
+}
+
+// 페이지 미리보기 카드에 넣을 첫 글귀(제목 블록을 먼저, 없으면 첫 글). 최대 80자
+export function stateSnippet(state: Uint8Array): string {
+  const editor = BlockNoteEditor.create({ schema: meetingSchema, _headless: true } as Parameters<typeof BlockNoteEditor.create>[0]);
+  const doc = new Y.Doc();
+  Y.applyUpdate(doc, state);
+  const blocks = yXmlFragmentToBlocks(editor, doc.getXmlFragment(MEETING_FRAGMENT));
+  const textOf = (content: unknown): string =>
+    Array.isArray(content)
+      ? content
+          .map((c: { type?: string; text?: string; content?: unknown; props?: { title?: string } }) =>
+            c.type === "text" ? (c.text ?? "") : c.type === "link" ? textOf(c.content) : c.type === "pageLink" ? (c.props?.title ?? "") : "",
+          )
+          .join("")
+      : "";
+  const lines = blocks.map((b) => ({ heading: b.type === "heading", text: textOf(b.content).trim() })).filter((l) => l.text);
+  return (lines.find((l) => l.heading) ?? lines[0])?.text.slice(0, 80) ?? "";
 }

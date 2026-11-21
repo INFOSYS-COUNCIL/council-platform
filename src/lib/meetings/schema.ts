@@ -1,4 +1,5 @@
-import { BlockNoteSchema, createBlockSpec, defaultBlockSpecs } from "@blocknote/core";
+import { BlockNoteSchema, createBlockSpec, defaultBlockSpecs, defaultInlineContentSpecs } from "@blocknote/core";
+import { pageLinkSpec } from "./page-link";
 
 // 회의록·Template 편집기가 함께 쓰는 BlockNote 구조 (기획서 6.1절).
 // React 없이 만들어 서버(Template → 초기 Snapshot 변환)에서도 같은 구조를 쓴다.
@@ -30,6 +31,8 @@ const createCallout = createBlockSpec(
 
 export const meetingSchema = BlockNoteSchema.create({
   blockSpecs: { ...blockSpecs, callout: createCallout() },
+  // 페이지 바로가기(QA): 다른 페이지·회의록으로 가는 칩
+  inlineContentSpecs: { ...defaultInlineContentSpecs, pageLink: pageLinkSpec },
 });
 
 export type MeetingBlock = typeof meetingSchema.Block;

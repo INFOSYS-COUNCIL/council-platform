@@ -12,6 +12,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { requireMember } from "@/lib/auth/session";
 import { getTermOrgOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
+import { ManageMenu } from "@/components/ui/manage-menu";
+import { deletePage } from "../pages/actions";
 import { createGuide } from "./actions";
 
 export const metadata: Metadata = {
@@ -79,22 +81,40 @@ async function GuidesContent() {
             {guides.length === 0 ? (
               <p className="text-sm text-zinc-600 dark:text-zinc-400">아직 가이드라인이 없습니다.</p>
             ) : (
-              <ul className="grid gap-2 sm:grid-cols-2">
+              /* 페이지 목록과 같은 모양: 한 줄씩, 제목·태그, 오른쪽 ⋯ 관리(일시는 넣지 않는다) */
+              <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
                 {guides.map((g) => (
-                  <li key={g.id}>
-                    <Link
-                      href={`/pages/${g.id}`}
-                      className={`flex h-full flex-col gap-1.5 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm hover:border-coral-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-coral-800 ${FOCUS_RING}`}
-                    >
-                      <span className="font-semibold">{g.title}</span>
+                  <li key={g.id} className="flex items-center gap-2 pr-2">
+                    <Link href={`/pages/${g.id}`} className={`flex min-w-0 flex-1 flex-col gap-1 p-4 hover:bg-coral-50 dark:hover:bg-zinc-800 ${FOCUS_RING}`}>
+                      <span className="truncate font-semibold">{g.title}</span>
                       {g.tags.length > 0 && (
-                        <span className="flex flex-wrap gap-1.5">
+                        <span className="flex flex-wrap items-center gap-1.5">
                           {g.tags.map((t) => (
                             <Badge key={t} tone="muted">{`#${t}`}</Badge>
                           ))}
                         </span>
                       )}
                     </Link>
+                    {canWrite(d.id) && (
+                      <ManageMenu
+                        title="가이드라인 관리"
+                        subtitle={g.title}
+                        items={[
+                          {
+                            key: "delete",
+                            label: "삭제",
+                            danger: true,
+                            content: (
+                              <ActionForm action={deletePage} submitLabel="삭제">
+                                <input type="hidden" name="page_id" value={g.id} />
+                                <input type="hidden" name="back" value="/guides" />
+                                <p className="text-sm">이 가이드라인을 지웁니다. 되돌릴 수 없습니다.</p>
+                              </ActionForm>
+                            ),
+                          },
+                        ]}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>
