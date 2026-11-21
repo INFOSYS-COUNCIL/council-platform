@@ -7,6 +7,7 @@ import type { BlockNoteEditor } from "@blocknote/core";
 import type { meetingSchema } from "./schema";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { installPageLinkHandlers } from "./page-link";
 
 // 회의록 편집기와 Template 편집기가 함께 쓰는 한국어 사전과 Slash 메뉴 (기획서 6.1절)
 
@@ -47,6 +48,7 @@ export function MeetingSlashMenu({
   onNewPage?: (title: string) => Promise<string | null>;
 }) {
   const [dialog, setDialog] = useState<DialogKind>(null);
+  useEffect(() => installPageLinkHandlers(), []);
   const close = () => {
     setDialog(null);
     editor.focus();
@@ -68,7 +70,7 @@ export function MeetingSlashMenu({
                 title: "콜아웃",
                 subtext: "눈에 띄게 강조하는 상자",
                 aliases: ["콜아웃", "강조", "callout"],
-                group: "기본 블록",
+                group: "꾸미기",
                 icon: <span aria-hidden="true">💡</span>,
                 onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "callout" }),
               },
@@ -76,7 +78,7 @@ export function MeetingSlashMenu({
                 title: "링크",
                 subtext: "지금 위치에 링크 넣기",
                 aliases: ["링크", "link", "url"],
-                group: "기본 블록",
+                group: "링크·페이지",
                 icon: <span aria-hidden="true">🔗</span>,
                 onItemClick: () => setDialog("link"),
               },
@@ -84,7 +86,7 @@ export function MeetingSlashMenu({
                 title: "기존 페이지",
                 subtext: "이미 있는 페이지·회의록 바로가기 넣기",
                 aliases: ["기존", "바로가기", "페이지 링크", "mention"],
-                group: "기본 블록",
+                group: "링크·페이지",
                 icon: <span aria-hidden="true">📎</span>,
                 onItemClick: () => setDialog("pickPage"),
               },
@@ -94,7 +96,7 @@ export function MeetingSlashMenu({
                       title: "새 페이지",
                       subtext: "새 페이지를 만들고 여기에 바로가기 넣기",
                       aliases: ["페이지", "page", "문서"],
-                      group: "기본 블록",
+                      group: "링크·페이지",
                       icon: <span aria-hidden="true">📄</span>,
                       onItemClick: () => setDialog("newPage"),
                     },

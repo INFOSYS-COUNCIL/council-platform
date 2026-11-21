@@ -20,23 +20,29 @@ function loadPreview(pageId: string): Promise<Preview | null> {
   return cache.get(pageId)!;
 }
 
-// 칩 아래에 미리보기 카드를 띄운다(화면 기준 위치라 스크롤 영역에 잘리지 않는다)
-function attachHoverPreview(anchor: HTMLElement, pageId: string, fallbackTitle: string) {
+// 칩 아래에 미리보기 카드를 띄운다(화면 기준 위치라 스크롤 영역에 잘리지 않는다).
+// BlockNote가 본문 DOM을 다시 그리면 칩에 직접 붙인 이벤트가 사라지므로, 문서 전체에서 한 번만 받는다(이벤트 위임).
+let installed = false;
+export function installPageLinkHandlers() {
+  if (installed || typeof document === "undefined") return;
+  installed = true;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let card: HTMLDivElement | null = null;
+  let current: HTMLAnchorElement | null = null;
   const hide = () => {
     clearTimeout(timer);
     card?.remove();
     card = null;
+    current = null;
   };
-  const show = async () => {
+  const show = async (anchor: HTMLAnchorElement) => {
+    const pageId = anchor.dataset.pageLink!;
     const preview = await loadPreview(pageId);
-    if (!anchor.isConnected || card) return;
+    if (current !== anchor || !anchor.isConnected || card) return;
     const r = anchor.getBoundingClientRect();
     card = document.createElement("div");
     card.setAttribute("role", "tooltip");
-    card.className =
-      "page-link-card fixed z-50 w-72 rounded-xl border border-zinc-200 bg-surface p-4 text-left shadow-xl dark:border-zinc-700";
+    card.className = "page-link-card fixed z-50 w-72 rounded-xl border border-zinc-200 bg-surface p-4 text-left shadow-xl dark:border-zinc-700";
     card.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - 296))}px`;
     card.style.top = `${r.bottom + 6}px`;
     const icon = document.createElement("div");
@@ -47,9 +53,9 @@ function attachHoverPreview(anchor: HTMLElement, pageId: string, fallbackTitle: 
     crumb.textContent = preview?.crumb ?? "볼 수 없는 페이지";
     const title = document.createElement("p");
     title.className = "truncate text-sm font-bold";
-    title.textContent = preview?.title ?? fallbackTitle;
+    title.textContent = preview?.title ?? anchor.dataset.pageTitle ?? "페이지";
     card.append(icon, crumb, title);
-    if (preview?.snippet) {
+    if (preview?.snippet && preview.snippet !== preview.title) {
       const snippet = document.createElement("p");
       snippet.className = "mt-3 line-clamp-2 rounded-md bg-zinc-100 px-3 py-2 text-sm font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300";
       snippet.textContent = preview.snippet;
@@ -57,13 +63,29 @@ function attachHoverPreview(anchor: HTMLElement, pageId: string, fallbackTitle: 
     }
     document.body.append(card);
   };
-  anchor.addEventListener("mouseenter", () => {
-    clearTimeout(timer);
-    timer = setTimeout(show, 250);
+  const linkOf = (t: EventTarget | null) => (t instanceof Element ? t.closest<HTMLAnchorElement>("a[data-page-link]") : null);
+  document.addEventListener("mouseover", (e) => {
+    const a = linkOf(e.target);
+    if (a === current) return;
+    hide();
+    if (!a) return;
+    current = a;
+    timer = setTimeout(() => void show(a), 250);
   });
-  anchor.addEventListener("mouseleave", hide);
-  anchor.addEventListener("click", hide);
-  return hide;
+  document.addEventListener("scroll", hide, true);
+  // 편집기 안에서도 누르면 바로 그 페이지로 간다(편집 가능한 영역의 링크는 기본으로는 이동하지 않는다)
+  document.addEventListener(
+    "click",
+    (e) => {
+      const a = linkOf(e.target);
+      if (!a || e.defaultPrevented || e.button !== 0) return;
+      e.preventDefault();
+      hide();
+      if (e.metaKey || e.ctrlKey) window.open(a.href, "_blank", "noopener");
+      else window.location.assign(a.href);
+    },
+    true,
+  );
 }
 
 export const pageLinkSpec = createInlineContentSpec(
@@ -81,18 +103,12 @@ export const pageLinkSpec = createInlineContentSpec(
       a.dataset.pageTitle = title;
       a.contentEditable = "false";
       a.className =
-        "page-link inline-flex items-baseline gap-1 rounded px-0.5 font-semibold text-foreground underline decoration-zinc-400 underline-offset-4 hover:bg-zinc-100 dark:hover:bg-zinc-800";
+        "page-link inline-flex items-baseline gap-1 rounded px-0.5 font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800";
       a.innerHTML = `<span class="self-center">${DOC_ICON}</span>`;
       const label = document.createElement("span");
       label.textContent = title;
       a.append(label);
-      // 편집기 안에서도 누르면 바로 그 페이지로 간다
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.location.assign(a.href);
-      });
-      const hide = attachHoverPreview(a, pageId, title);
-      return { dom: a, destroy: hide };
+      return { dom: a };
     },
     parse: (el) => (el.dataset.pageLink ? { pageId: el.dataset.pageLink, title: el.dataset.pageTitle ?? el.textContent ?? "페이지" } : undefined),
     toExternalHTML: (inline) => {
