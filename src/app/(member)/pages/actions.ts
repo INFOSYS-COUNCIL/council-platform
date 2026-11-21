@@ -88,5 +88,6 @@ export async function deletePage(_prev: ActionState, formData: FormData): Promis
   const supabase = await createClient();
   const { error } = await supabase.rpc("delete_page", { p_page_id: pageId });
   if (error) return actionFailure(rpcErrorMessage(error));
-  redirect("/pages");
+  // 가이드라인 목록에서 지웠으면 그 목록으로 돌아간다(정해진 값만 받는다)
+  redirect(text(formData, "back") === "/guides" ? "/guides" : "/pages");
 }

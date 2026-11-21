@@ -134,7 +134,7 @@ async function PageDetail({ params }: { params: Promise<{ pageId: string }> }) {
       )}
       <Section title="본문">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          &quot;/페이지&quot;로 새 페이지를 만들어 링크를 넣을 수 있습니다. 링크를 누르면 그 페이지로 이동합니다.
+          &quot;/새 페이지&quot;·&quot;/기존 페이지&quot;로 다른 페이지 바로가기를 넣을 수 있습니다. 누르면 그 페이지로 이동합니다.
         </p>
         <MeetingEditor
           meetingId={page.id}
