@@ -31,12 +31,17 @@ export function CardStage({
   useEffect(() => {
     const el = boxRef.current;
     if (!el) return;
-    const fit = () => setScale(Math.min(1, el.clientWidth / frame.width));
+    // 폭과 화면 높이(75%) 둘 다에 맞춰 줄인다. 세로로 긴 카드도 한 화면에 다 보이게
+    const fit = () => setScale(Math.min(1, el.clientWidth / frame.width, (window.innerHeight * 0.75) / frame.height));
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, [frame.width]);
+    window.addEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [frame.width, frame.height]);
 
   const start = (e: ReactPointerEvent, el: CardElement, mode: "move" | "resize") => {
     e.stopPropagation();

@@ -56,7 +56,9 @@ export async function uploadAsset(termId: string, file: File): Promise<string> {
   const ext = (file.name.split(".").pop() ?? "").toLowerCase();
   const contentType = FONT_TYPES[ext] ?? file.type;
   const path = `${termId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await createClient().storage.from("card-assets").upload(path, file, { contentType });
+  // 브라우저는 OTF·TTF 파일의 형식을 비워 두는 경우가 많아(→ 저장소가 octet-stream으로 거절) 확장자로 정한 형식을 붙여 보낸다
+  const typed = new File([file], file.name, { type: contentType });
+  const { error } = await createClient().storage.from("card-assets").upload(path, typed, { contentType });
   if (error) throw new Error(error.message.includes("mime") ? "PNG·JPG·WEBP 그림 또는 OTF·TTF·WOFF 글꼴만 올릴 수 있습니다." : "파일을 올리지 못했습니다. 10MB 이하인지 확인해 주세요.");
   return path;
 }
