@@ -75,6 +75,64 @@ isOneToOne: false
       referencedColumns: ["term_id","id"]
     }
                   ]
+                },"card_news": {
+                  Row: {
+                    "created_at": string,"created_by": string,"id": string,"slides": NonNullable<Json>,"template_id": string,"term_id": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"id"?: string,"slides"?: NonNullable<Json>,"template_id": string,"term_id": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"id"?: string,"slides"?: NonNullable<Json>,"template_id"?: string,"term_id"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "card_news_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "card_news_template_id_fkey"
+      columns: ["template_id"]
+isOneToOne: false
+      referencedRelation: "card_templates"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "card_news_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"card_templates": {
+                  Row: {
+                    "background_color": string,"background_path": string | null,"created_at": string,"created_by": string,"font_path": string | null,"height": number,"id": string,"layouts": NonNullable<Json>,"name": string,"term_id": string,"updated_at": string,"width": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "background_color"?: string,"background_path"?: string | null,"created_at"?: string,"created_by": string,"font_path"?: string | null,"height"?: number,"id"?: string,"layouts"?: NonNullable<Json>,"name": string,"term_id": string,"updated_at"?: string,"width"?: number
+                  }
+                  Update: {
+                    "background_color"?: string,"background_path"?: string | null,"created_at"?: string,"created_by"?: string,"font_path"?: string | null,"height"?: number,"id"?: string,"layouts"?: NonNullable<Json>,"name"?: string,"term_id"?: string,"updated_at"?: string,"width"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "card_templates_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "card_templates_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"dashboard_links": {
                   Row: {
                     "created_at": string,"description": string,"icon_key": string | null,"id": string,"is_active": boolean,"name": string,"sort_order": number,"url": string
@@ -1317,6 +1375,12 @@ isOneToOne: false
 "delete_approved_account":
 { Args: { "p_account_id": string }; Returns: undefined
                            },
+"delete_card_news":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"delete_card_template":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
 "delete_dashboard_link":
 { Args: { "p_link_id": string }; Returns: undefined
                            },
@@ -1461,6 +1525,12 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"save_card_news":
+{ Args: { "p_id": string,"p_slides": Json,"p_template_id": string,"p_title": string }; Returns: string
+                           },
+"save_card_template":
+{ Args: { "p_background_color": string,"p_background_path": string,"p_font_path": string,"p_height": number,"p_id": string,"p_layouts": Json,"p_name": string,"p_term_id": string,"p_width": number }; Returns: string
+                           },
 "save_meeting_update":
 { Args: { "p_client_update_id": string,"p_meeting_id": string,"p_update": string }; Returns: number
                            },
