@@ -20,6 +20,7 @@ export type NavIcon =
   | "org"
   | "pages"
   | "book"
+  | "image"
   | "inbox"
   | "chat"
   | "globe"
@@ -268,6 +269,13 @@ const ICON_PATHS: Record<NavIcon | "menu" | "close", ReactNode> = {
     </>
   ),
   book: <path d="M8 4.5C6.5 3.3 4.5 3 2.5 3.3v9.2c2-.3 4 0 5.5 1.2 1.5-1.2 3.5-1.5 5.5-1.2V3.3c-2-.3-4 0-5.5 1.2ZM8 4.5v9.2" />,
+  image: (
+    <>
+      <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" />
+      <circle cx="6" cy="6" r="1.2" />
+      <path d="m3 12 3.5-3.5 2.5 2.5 1.5-1.5 2.5 2.5" />
+    </>
+  ),
   chart: <path d="M2.5 13.5h11M4.5 11V7.5M8 11V4M11.5 11V9" />,
   org: (
     <>
