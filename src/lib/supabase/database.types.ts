@@ -149,14 +149,14 @@ isOneToOne: false
                   ]
                 },"departments": {
                   Row: {
-                    "created_at": string,"id": string,"is_active": boolean,"name": string,"sort_order": number,"term_id": string
+                    "created_at": string,"id": string,"is_active": boolean,"is_finance": boolean,"name": string,"sort_order": number,"term_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_active"?: boolean,"name": string,"sort_order"?: number,"term_id": string
+                    "created_at"?: string,"id"?: string,"is_active"?: boolean,"is_finance"?: boolean,"name": string,"sort_order"?: number,"term_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_active"?: boolean,"name"?: string,"sort_order"?: number,"term_id"?: string
+                    "created_at"?: string,"id"?: string,"is_active"?: boolean,"is_finance"?: boolean,"name"?: string,"sort_order"?: number,"term_id"?: string
                   }
                   Relationships: [
                     {
@@ -263,6 +263,128 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "events_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"finance_doc_versions": {
+                  Row: {
+                    "created_at": string,"doc_id": string,"file_name": string,"file_path": string,"id": string,"note": string,"uploaded_by": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"doc_id": string,"file_name": string,"file_path": string,"id"?: string,"note"?: string,"uploaded_by": string,"version": number
+                  }
+                  Update: {
+                    "created_at"?: string,"doc_id"?: string,"file_name"?: string,"file_path"?: string,"id"?: string,"note"?: string,"uploaded_by"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "finance_doc_versions_doc_id_fkey"
+      columns: ["doc_id"]
+isOneToOne: false
+      referencedRelation: "finance_docs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_doc_versions_uploaded_by_fkey"
+      columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"finance_docs": {
+                  Row: {
+                    "base_date": string,"created_at": string,"created_by": string,"form_id": string | null,"form_version_id": string | null,"id": string,"request_id": string | null,"semester": string,"sensitive": boolean,"task_id": string | null,"term_id": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "base_date"?: string,"created_at"?: string,"created_by": string,"form_id"?: string | null,"form_version_id"?: string | null,"id"?: string,"request_id"?: string | null,"semester": string,"sensitive"?: boolean,"task_id"?: string | null,"term_id": string,"title": string
+                  }
+                  Update: {
+                    "base_date"?: string,"created_at"?: string,"created_by"?: string,"form_id"?: string | null,"form_version_id"?: string | null,"id"?: string,"request_id"?: string | null,"semester"?: string,"sensitive"?: boolean,"task_id"?: string | null,"term_id"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "finance_docs_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_docs_form_id_fkey"
+      columns: ["form_id"]
+isOneToOne: false
+      referencedRelation: "finance_forms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_docs_form_version_id_fkey"
+      columns: ["form_version_id"]
+isOneToOne: false
+      referencedRelation: "finance_form_versions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_docs_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: true
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_docs_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"finance_form_versions": {
+                  Row: {
+                    "created_at": string,"file_name": string,"file_path": string,"form_id": string,"id": string,"uploaded_by": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"file_name": string,"file_path": string,"form_id": string,"id"?: string,"uploaded_by": string,"version": number
+                  }
+                  Update: {
+                    "created_at"?: string,"file_name"?: string,"file_path"?: string,"form_id"?: string,"id"?: string,"uploaded_by"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "finance_form_versions_form_id_fkey"
+      columns: ["form_id"]
+isOneToOne: false
+      referencedRelation: "finance_forms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_form_versions_uploaded_by_fkey"
+      columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"finance_forms": {
+                  Row: {
+                    "created_at": string,"created_by": string,"id": string,"name": string,"sensitive": boolean,"term_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"id"?: string,"name": string,"sensitive"?: boolean,"term_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"id"?: string,"name"?: string,"sensitive"?: boolean,"term_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "finance_forms_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_forms_term_id_fkey"
       columns: ["term_id"]
 isOneToOne: false
       referencedRelation: "terms"
@@ -910,6 +1032,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"add_finance_doc_version":
+{ Args: { "p_doc_id": string,"p_file_name": string,"p_file_path": string,"p_note": string }; Returns: number
+                           },
 "add_meeting_editor":
 { Args: { "p_meeting_id": string,"p_user_id": string }; Returns: undefined
                            },
@@ -995,6 +1120,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"assign_finance_doc":
+{ Args: { "p_assignee_id": string,"p_doc_id": string }; Returns: undefined
+                           },
 "assign_suggestion":
 { Args: { "p_department_id": string,"p_suggestion_id": string,"p_user_id": string }; Returns: undefined
                            },
@@ -1170,6 +1298,7 @@ isOneToOne: false
               "created_at": string,
 "id": string,
 "is_active": boolean,
+"is_finance": boolean,
 "name": string,
 "sort_order": number,
 "term_id": string
@@ -1202,6 +1331,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"create_finance_doc":
+{ Args: { "p_assignee_id": string,"p_base_date": string,"p_form_id": string,"p_request_id": string,"p_semester": string,"p_title": string }; Returns: string
+                           },
 "create_guide":
 { Args: { "p_department_id": string,"p_state": string,"p_state_vector": string,"p_tags": (string)[],"p_title": string }; Returns: string
                            },
@@ -1436,6 +1568,9 @@ isOneToOne: false
 "hook_before_user_created":
 { Args: { "event": Json }; Returns: Json
                            },
+"import_finance_doc":
+{ Args: { "p_base_date": string,"p_file_name": string,"p_file_path": string,"p_semester": string,"p_sensitive": boolean,"p_term_id": string,"p_title": string }; Returns: string
+                           },
 "mark_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -1531,6 +1666,9 @@ isOneToOne: false
 "save_card_template":
 { Args: { "p_background_color": string,"p_background_path": string,"p_font_path": string,"p_height": number,"p_id": string,"p_layouts": Json,"p_name": string,"p_term_id": string,"p_width": number }; Returns: string
                            },
+"save_finance_form":
+{ Args: { "p_file_name": string,"p_file_path": string,"p_id": string,"p_name": string,"p_sensitive": boolean,"p_term_id": string }; Returns: string
+                           },
 "save_meeting_update":
 { Args: { "p_client_update_id": string,"p_meeting_id": string,"p_update": string }; Returns: number
                            },
@@ -1591,6 +1729,7 @@ isOneToOne: false
               "created_at": string,
 "id": string,
 "is_active": boolean,
+"is_finance": boolean,
 "name": string,
 "sort_order": number,
 "term_id": string
@@ -1623,6 +1762,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"set_finance_department":
+{ Args: { "p_department_id": string }; Returns: undefined
+                           },
 "set_meeting_author":
 { Args: { "p_author_id": string,"p_meeting_id": string }; Returns: {
               "author_id": string,
@@ -1833,6 +1975,7 @@ isOneToOne: false
               "created_at": string,
 "id": string,
 "is_active": boolean,
+"is_finance": boolean,
 "name": string,
 "sort_order": number,
 "term_id": string
