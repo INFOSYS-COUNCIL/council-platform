@@ -18,7 +18,7 @@ export async function setFinanceDepartment(_prev: ActionState, formData: FormDat
   const { error } = await supabase.rpc("set_finance_department", { p_department_id: text(formData, "department_id") });
   if (error) return actionFailure(rpcErrorMessage(error));
   refresh();
-  return actionSuccess("재무 담당 부서를 정했습니다.");
+  return actionSuccess("재무 담당 부서를 저장했습니다.");
 }
 
 export async function saveFinanceForm(input: { id?: string; name: string; sensitive: boolean; filePath?: string; fileName?: string }): Promise<Result> {
