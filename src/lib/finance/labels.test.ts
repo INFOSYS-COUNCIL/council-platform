@@ -23,5 +23,6 @@ describe("financeStatus", () => {
 describe("downloadName", () => {
   it("제목_YYYYMMDD_작성자.xlsx, 파일 이름에 못 쓰는 글자는 뺀다", () => {
     expect(downloadName("11월/회계장부", "2026-11-20", "국원 A")).toBe("11월회계장부_20261120_국원 A.xlsx");
+    expect(downloadName("장부", "2026-11-20", "­국원")).toBe("장부_20261120_국원.xlsx");
   });
 });

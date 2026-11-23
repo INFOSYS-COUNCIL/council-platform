@@ -28,6 +28,7 @@ export const SEMESTER_PATTERN = /^\d{4}-[12]$/;
 
 // 내려받기 이름(기획서): 제목_YYYYMMDD_작성자.xlsx. 파일 이름에 못 쓰는 글자는 뺀다
 export function downloadName(title: string, baseDate: string, editor: string): string {
-  const safe = (s: string) => s.replace(/[\\/:*?"<>|]/g, "").trim() || "문서";
+  // 눈에 안 보이는 제어·서식 문자(소프트 하이픈 등)도 뺀다
+  const safe = (s: string) => s.replace(/[\\/:*?"<>|\p{Cc}\p{Cf}]/gu, "").trim() || "문서";
   return `${safe(title)}_${baseDate.replaceAll("-", "")}_${safe(editor)}.xlsx`;
 }
