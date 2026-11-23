@@ -9,6 +9,7 @@ import { SelectField } from "@/components/ui/form-field";
 import { FOCUS_RING } from "@/components/ui/link-button";
 import { ManageMenu } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
+import { SortMenu } from "@/components/ui/sort-menu";
 import { PillLink } from "@/components/ui/pagination";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { todayInSeoul } from "@/lib/dates";
@@ -31,6 +32,13 @@ export default function FinancePage(props: PageProps<"/finance">) {
     </Suspense>
   );
 }
+
+const SORTS = [
+  { value: "date", label: "기준일 최신순" },
+  { value: "old", label: "기준일 오래된순" },
+  { value: "title", label: "제목순" },
+  { value: "status", label: "상태순" },
+];
 
 const BADGE: Record<FinanceStatus, string> = {
   DRAFT: "bg-coral-50 text-coral-800 dark:bg-coral-900/30 dark:text-coral-300",
@@ -76,12 +84,12 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
   const raw = await searchParams;
   const tab = FINANCE_STATUS_ORDER.find((s) => s === raw.status) ?? null;
   const q = typeof raw.q === "string" ? raw.q.trim().slice(0, 50) : "";
-  const sort = raw.sort === "title" ? "title" : "date";
-  const href = (s: FinanceStatus | null, o = sort) => {
+  const sort = SORTS.find((o) => o.value === raw.sort)?.value ?? "date";
+  const href = (s: FinanceStatus | null, o: string = sort) => {
     const p = new URLSearchParams();
     if (s) p.set("status", s);
     if (q) p.set("q", q);
-    if (o === "title") p.set("sort", "title");
+    if (o !== "date") p.set("sort", o);
     return p.size ? `/finance?${p}` : "/finance";
   };
 
@@ -98,6 +106,25 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
   if (forms.error || docs.error) return <Alert>불러오지 못했습니다. 새로고침해 주세요.</Alert>;
 
   const canManage = finance.role !== "MEMBER";
+  // 잘못 지정했을 때 회장단이 바꿀 수 있게(RPC가 기존 지정을 풀고 옮긴다)
+  const deptMenu =
+    membership.role === "EXECUTIVE" ? (
+      <ManageMenu
+        title="재무 담당 부서"
+        subtitle={finance.department.name}
+        items={[
+          {
+            key: "dept",
+            label: "재무 담당 부서 바꾸기",
+            content: (
+              <ActionForm action={setFinanceDepartment} submitLabel="바꾸기">
+                <SelectField label="부서" name="department_id" required options={departmentSelectOptions((await getTermOrgOptions(membership.termId)).departments)} defaultValue={finance.department.id} />
+              </ActionForm>
+            ),
+          },
+        ]}
+      />
+    ) : null;
   const nameOf = (id: string | null | undefined) => (id ? (finance.members.find((m) => m.userId === id)?.name ?? "(지난 구성원)") : null);
   const memberOptions = memberSelectOptions(finance.members);
   const formRows = forms.data
@@ -115,14 +142,27 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
       return { ...d, task, status, owner, form: [d.form].flat()[0]?.name ?? "—" };
     })
     .filter((d) => (!tab || d.status === tab) && (!q || d.title.includes(q) || (d.owner ?? "").includes(q)))
-    .sort((a, b) => (sort === "title" ? a.title.localeCompare(b.title, "ko") : b.base_date.localeCompare(a.base_date)));
+    .sort((a, b) =>
+      sort === "title"
+        ? a.title.localeCompare(b.title, "ko")
+        : sort === "old"
+          ? a.base_date.localeCompare(b.base_date)
+          : sort === "status"
+            ? FINANCE_STATUS_ORDER.indexOf(a.status) - FINANCE_STATUS_ORDER.indexOf(b.status) || b.base_date.localeCompare(a.base_date)
+            : b.base_date.localeCompare(a.base_date),
+    );
 
   return (
     <div className="space-y-8">
       <PageHeader
         title="재무국 업무"
         description={`${finance.department.name} · ${semesterOf(today)}학기`}
-        actions={canManage && <RegisterFormButton termId={membership.termId} label="+ 양식 등록" />}
+        actions={
+          <span className="flex items-center gap-1">
+            {canManage && <RegisterFormButton termId={membership.termId} label="+ 양식 등록" />}
+            {deptMenu}
+          </span>
+        }
       />
 
       <Section title={`양식 ${formRows.length}`}>
@@ -160,17 +200,10 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
               </PillLink>
             ))}
           </nav>
-          <nav aria-label="정렬" className="flex gap-2">
-            <PillLink variant="chip" href={href(tab, "date")} current={sort === "date"}>
-              최신 기준일순
-            </PillLink>
-            <PillLink variant="chip" href={href(tab, "title")} current={sort === "title"}>
-              제목순
-            </PillLink>
-          </nav>
+          <SortMenu current={sort} options={SORTS.map((o) => ({ ...o, href: href(tab, o.value) }))} />
           <form action="/finance" role="search" className="flex items-center gap-2">
             {tab && <input type="hidden" name="status" value={tab} />}
-            {sort === "title" && <input type="hidden" name="sort" value="title" />}
+            {sort !== "date" && <input type="hidden" name="sort" value={sort} />}
             <label htmlFor="finance-q" className="sr-only">
               제목·담당자 검색
             </label>
