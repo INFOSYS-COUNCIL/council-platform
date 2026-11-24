@@ -665,6 +665,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"photo_images": {
+                  Row: {
+                    "object_path": string,"position": number,"post_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "object_path": string,"position": number,"post_id": string
+                  }
+                  Update: {
+                    "object_path"?: string,"position"?: number,"post_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "photo_images_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "photo_posts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"photo_posts": {
+                  Row: {
+                    "body": NonNullable<Json>,"created_at": string,"created_by": string,"deleted_at": string | null,"description": string,"id": string,"revision": number,"term_id": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": NonNullable<Json>,"created_at"?: string,"created_by": string,"deleted_at"?: string | null,"description"?: string,"id": string,"revision"?: number,"term_id": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "body"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"description"?: string,"id"?: string,"revision"?: number,"term_id"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "photo_posts_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "photo_posts_term_id_fkey"
+      columns: ["term_id"]
+isOneToOne: false
+      referencedRelation: "terms"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"positions": {
                   Row: {
                     "created_at": string,"id": string,"is_active": boolean,"name": string,"sort_order": number,"term_id": string
@@ -1531,6 +1577,9 @@ isOneToOne: false
 "delete_page":
 { Args: { "p_page_id": string }; Returns: undefined
                            },
+"delete_photo_post":
+{ Args: { "p_post_id": string }; Returns: undefined
+                           },
 "delete_position":
 { Args: { "p_position_id": string }; Returns: undefined
                            },
@@ -1671,6 +1720,9 @@ isOneToOne: false
                            },
 "save_meeting_update":
 { Args: { "p_client_update_id": string,"p_meeting_id": string,"p_update": string }; Returns: number
+                           },
+"save_photo_post":
+{ Args: { "p_body": Json,"p_cover_url"?: string,"p_description": string,"p_expected_revision"?: number,"p_post_id": string,"p_title": string }; Returns: string
                            },
 "set_approved_student_no":
 { Args: { "p_account_id": string,"p_student_no": string }; Returns: {

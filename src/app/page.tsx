@@ -80,7 +80,10 @@ export default function Home() {
               건의하기
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </a>
-            <Link href="/suggestions/public" className={`${HERO_PILL} min-h-14 border-[1.5px] border-[#2a1a15] bg-[#fff8f0]/60 px-[26px]`}>모두의 건의 보기</Link>
+            <Link href="/photos" className={`${HERO_PILL} min-h-14 gap-2.5 bg-[#fff8f0] px-[30px] shadow-[0_10px_30px_rgba(122,36,27,0.22)]`}>
+              과 활동
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
           </div>
         </div>
       </section>
