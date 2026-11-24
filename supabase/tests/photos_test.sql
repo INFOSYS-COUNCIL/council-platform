@@ -1,6 +1,9 @@
 begin;
 select no_plan();
 
+select is((select file_size_limit from storage.buckets where id='activity-photos'),20971520::bigint,
+ '활동 사진 버킷은 / 장당 20MB까지 / 허용한다');
+
 insert into auth.users(id,aud,role,email,email_confirmed_at,raw_app_meta_data,raw_user_meta_data)
 select ('f7300000-0000-0000-0000-' || lpad(n::text,12,'0'))::uuid,
   'authenticated','authenticated','test.photos.' || n || '@hanyang.ac.kr',now(),
