@@ -119,7 +119,16 @@ $$,'현재 관리자는 / 편집기에서 복제한 사진 블록도 20장까지
 select is((select count(*) from public.photo_images where post_id='a7300000-0000-0000-0000-000000000001'),20::bigint,'사진 20장은 / 각각의 순서대로 / 저장된다');
 select lives_ok($$select public.delete_photo_post('a7300000-0000-0000-0000-000000000001')$$,'현재 회장단은 / 지난 기수 글도 / 삭제할 수 있다');
 select is((select count(*) from public.photo_posts),0::bigint,'삭제 글은 / 목록에서 / 사라진다');
-select is((select count(*) from storage.objects where bucket_id='activity-photos'),0::bigint,'삭제 글은 / 사진 열람도 / 차단된다');
+set local request.jwt.claims='{"sub":"f7300000-0000-0000-0000-000000000004","role":"authenticated"}';
+select is((select count(*) from storage.objects where bucket_id='activity-photos'),0::bigint,'삭제 글은 / 학생에게 사진 열람도 / 차단된다');
+set local request.jwt.claims='{"sub":"f7300000-0000-0000-0000-000000000002","role":"authenticated"}';
+-- Storage API 삭제(remove)는 SELECT와 DELETE 정책을 모두 통과해야 지워진다
+set local storage.allow_delete_query = 'true';
+delete from storage.objects where bucket_id='activity-photos';
+reset role;
+select is((select count(*) from storage.objects where bucket_id='activity-photos'),0::bigint,
+ '현재 관리자는 / 삭제 글의 사진 파일을 / 저장소에서 정리할 수 있다');
+set local role authenticated;
 select throws_ok($$
  insert into storage.objects(bucket_id,name) values ('activity-photos',
  'a7300000-0000-0000-0000-000000000001/f7300000-0000-0000-0000-000000000002/c7300000-0000-0000-0000-000000000002.png')

@@ -1,5 +1,5 @@
 -- #73 활동 사진. 학생 전체 열람, 현재 ACTIVE 기수 국장·회장단만 모든 기수 글 관리.
--- 본문은 기존 페이지와 같은 BlockNote JSON. 첫 이미지가 대표사진이다.
+-- 본문은 기존 페이지와 같은 BlockNote JSON. 대표사진은 고를 수 있고, 고르지 않으면 첫 사진이다.
 create table public.photo_posts (
   id uuid primary key,
   term_id uuid not null references public.terms(id),
@@ -83,6 +83,14 @@ as $$
         select 1 from public.photo_images i join public.photo_posts p on p.id = i.post_id
         where i.object_path = p_path and p.deleted_at is null
       )
+      -- 삭제 글의 파일: Storage 삭제는 SELECT 권한도 필요해서, 관리자가 정리할 수 있게 연다
+      or (
+        private.can_manage_photos()
+        and exists (
+          select 1 from public.photo_posts p
+          where p.id = private.photo_post_id_from_path(p_path) and p.deleted_at is not null
+        )
+      )
       or (
         private.can_manage_photos()
         and split_part(p_path, '/', 2) = (select auth.uid())::text
@@ -136,7 +144,8 @@ create function public.save_photo_post(
   p_title text,
   p_description text,
   p_body jsonb,
-  p_expected_revision integer default 0
+  p_expected_revision integer default 0,
+  p_cover_url text default null
 )
 returns uuid language plpgsql volatile security definer set search_path = ''
 as $$
@@ -146,6 +155,7 @@ declare
   v_image record;
   v_path text;
   v_count integer;
+  v_cover_index integer;
   v_seen text[] := '{}';
 begin
   if not private.can_manage_photos() then
@@ -191,6 +201,17 @@ begin
     v_seen := array_append(v_seen, v_path);
   end loop;
 
+  if p_cover_url is not null then
+    select ordinal::integer into v_cover_index
+      from private.photo_block_images(p_body) where url = p_cover_url order by ordinal limit 1;
+    if v_cover_index is null then
+      raise exception '본문에 포함된 사진을 썸네일로 선택해 주세요.' using errcode = '22023';
+    end if;
+    -- 본문 순서는 유지하고, 목록용 참조의 첫 항목만 선택한 사진으로 바꾼다.
+    v_seen := array_prepend(v_seen[v_cover_index],
+      v_seen[1:v_cover_index - 1] || v_seen[v_cover_index + 1:cardinality(v_seen)]);
+  end if;
+
   if v_existing.id is null then
     select id into v_term from public.terms where status = 'ACTIVE';
     insert into public.photo_posts(id, term_id, title, description, body, created_by)
@@ -221,5 +242,5 @@ begin
   end if;
 end;
 $$;
-revoke all on function public.save_photo_post(uuid,text,text,jsonb,integer), public.delete_photo_post(uuid) from public;
-grant execute on function public.save_photo_post(uuid,text,text,jsonb,integer), public.delete_photo_post(uuid) to authenticated;
+revoke all on function public.save_photo_post(uuid,text,text,jsonb,integer,text), public.delete_photo_post(uuid) from public;
+grant execute on function public.save_photo_post(uuid,text,text,jsonb,integer,text), public.delete_photo_post(uuid) to authenticated;
