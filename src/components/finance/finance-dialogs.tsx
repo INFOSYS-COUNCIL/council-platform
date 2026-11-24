@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { FINANCE_EVENTS } from "@/lib/finance/labels";
 import { XlsxPreview } from "@/components/finance/xlsx-preview";
 import { downloadFinanceFile, uploadFinanceFile } from "@/lib/finance/files";
 import { addFinanceDocVersion, createFinanceDoc, importFinanceDoc, saveFinanceForm } from "@/app/(member)/finance/actions";
@@ -106,6 +107,7 @@ export function FormPreviewButton({
                 baseDate: String(f.get("base_date") ?? ""),
                 assigneeId: String(f.get("assignee_id") ?? ""),
                 requestId,
+                eventCategory: String(f.get("event_category") ?? ""),
               });
               if (result.error) {
                 setError(result.error);
@@ -126,6 +128,13 @@ export function FormPreviewButton({
               <label className={LABEL}>
                 <span>기준일</span>
                 <input name="base_date" type="date" defaultValue={today} className={INPUT} />
+              </label>
+              <label className={LABEL}>
+                <span>행사</span>
+                <select name="event_category" className={INPUT}>
+                  <option value="">행사 없음</option>
+                  {FINANCE_EVENTS.map((name) => <option key={name}>{name}</option>)}
+                </select>
               </label>
               {canAssign ? (
                 <label className={LABEL}>
@@ -237,7 +246,7 @@ export function RegisterFormButton({ termId, formId, label }: { termId: string; 
   );
 }
 
-// 이관본 등록(지난 자료, 업무 없이). 재무국장·회장단
+// 참고 자료 등록(지난 자료, 업무 없이). 재무국장·회장단
 export function ImportDocButton({ termId, defaultSemester, today }: { termId: string; defaultSemester: string; today: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -246,10 +255,10 @@ export function ImportDocButton({ termId, defaultSemester, today }: { termId: st
   return (
     <>
       <button type="button" className={SECONDARY} onClick={() => setOpen(true)}>
-        + 이관본 등록
+        + 참고 자료 등록
       </button>
       {open && (
-        <Modal title="이관본 등록" subtitle="지난 기수·학기 자료를 업무 없이 보관합니다." onClose={() => setOpen(false)}>
+        <Modal title="참고 자료 등록" subtitle="업무 작성에 참고할 실제 사례를 등록합니다." onClose={() => setOpen(false)}>
           <form
             className="space-y-3"
             onSubmit={async (e) => {
