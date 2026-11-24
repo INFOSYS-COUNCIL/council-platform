@@ -55,7 +55,7 @@ export function PhotoEditorSurface({
     },
     pasteHandler: ({ event, defaultPasteHandler }) => {
       if ([...(event.clipboardData?.files ?? [])].some((file) => validatePhotoFile(file))) {
-        setNotice("PNG·JPG·WEBP 사진(한 장 5MB 이하)만 붙여넣을 수 있습니다.");
+        setNotice("PNG·JPG·WEBP 사진(한 장 20MB 이하)만 붙여넣을 수 있습니다.");
         return true;
       }
       return defaultPasteHandler(MARKDOWN_PASTE);
@@ -97,7 +97,7 @@ export function PhotoEditorSurface({
               void addFiles(files);
             }}
             className="max-w-full rounded-lg border border-border-input bg-surface p-2 text-sm focus-visible:outline-2 focus-visible:outline-accent" />
-          <p className="text-xs text-muted">PNG·JPG·WEBP, 한 장 5MB 이하, 최대 20장. 아래에서 목록에 표시할 썸네일을 고를 수 있습니다.</p>
+          <p className="text-xs text-muted">PNG·JPG·WEBP, 한 장 20MB 이하, 최대 20장. 아래에서 목록에 표시할 썸네일을 고를 수 있습니다.</p>
           {adding && <p role="status" className="text-sm">사진을 올리는 중…</p>}
         </div>
       )}
