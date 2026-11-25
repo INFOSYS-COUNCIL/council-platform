@@ -13,7 +13,7 @@ import { deletePhotoPost } from "../actions";
 import { PhotoDetail } from "../photo-detail";
 import { PhotoEditor } from "../photo-editor";
 
-export const metadata: Metadata = { title: "활동 사진" };
+export const metadata: Metadata = { title: "과 활동" };
 
 export default function PhotoPage(props: PageProps<"/photos/[photoId]">) {
   return <Suspense fallback={<Skeleton />}><PhotoContent params={props.params} /></Suspense>;
@@ -32,11 +32,11 @@ async function PhotoContent({ params }: { params: Promise<{ photoId: string }> }
   if (!post) notFound();
   const canManage = membership && PHOTO_MANAGER_ROLES.some((role) => role === membership.role);
   return (
-    <PhotoDetail title={post.title} description={post.description}
+    <PhotoDetail title={post.title} description={post.description} tags={post.tags}
       actions={canManage ? (
         <div className="flex items-center gap-2">
         <SecondaryLinkButton href={`/photos/${post.id}/edit`}>수정</SecondaryLinkButton>
-        <ManageMenu title="활동 사진 관리" items={[
+        <ManageMenu title="과 활동 관리" items={[
           { key: "delete", label: "삭제", danger: true, content: (
             <ActionForm action={deletePhotoPost} submitLabel="삭제하기">
               <input type="hidden" name="postId" value={post.id} />

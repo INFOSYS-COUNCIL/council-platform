@@ -102,7 +102,7 @@ export function PhotoEditorSurface({
         </div>
       )}
       {notice && <Alert>{notice}</Alert>}
-      <div className={readOnly ? "bg-surface py-4 [&_.bn-visual-media-wrapper]:w-full" : "min-h-48 rounded-xl border border-border-input bg-surface py-4"}>
+      <div className={readOnly ? "py-2 [&_.bn-container]:bg-transparent! [&_.bn-editor]:bg-transparent! [&_.bn-editor]:text-[#2a1a15]! [&_.bn-editor]:px-0! [&_.bn-visual-media-wrapper]:max-w-full [&_.bn-visual-media-wrapper]:w-full sm:[&_.bn-editor]:px-2!" : "min-h-48 rounded-xl border border-border-input bg-surface py-4"}>
         <BlockNoteView editor={editor} theme={theme} editable={!readOnly && !adding} slashMenu={false}
           onChange={() => {
             const serialized = JSON.stringify(editor.document);

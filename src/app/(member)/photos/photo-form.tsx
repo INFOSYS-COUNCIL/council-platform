@@ -14,12 +14,13 @@ import { PhotoEditor } from "./photo-editor";
 export function PhotoForm({ postId, userId, initial }: {
   postId: string;
   userId: string;
-  initial?: { title: string; description: string; body: Json; revision: number; coverUrl?: string | null };
+  initial?: { title: string; description: string; body: Json; revision: number; coverUrl?: string | null; tags?: string[] };
 }) {
   const formId = useId();
   const [state, formAction, pending] = useActionState(savePhotoPost, initialActionState);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [tags, setTags] = useState(initial?.tags?.join(", ") ?? "");
   const [body, setBody] = useState(JSON.stringify(initial?.body ?? []));
   const [selectedCover, setSelectedCover] = useState(initial?.coverUrl ?? "");
   const images = [...new Set(photoImageUrls(JSON.parse(body)))];
@@ -40,6 +41,9 @@ export function PhotoForm({ postId, userId, initial }: {
             onChange={(event) => setTitle(event.target.value)} error={errors?.title} />
           <TextareaField name="description" label="간단한 설명" value={description} maxLength={1000}
             rows={3} onChange={(event) => setDescription(event.target.value)} error={errors?.description} />
+          <TextField name="tags" label="해시태그" value={tags} maxLength={220}
+            hint="쉼표·공백·#으로 구분해 주세요. 최대 10개, 하나당 20자. 영문은 소문자로 저장됩니다."
+            placeholder="예: #체육대회 #MT #가을" onChange={(event) => setTags(event.target.value)} error={errors?.tags} />
         </fieldset>
       </form>
       <PhotoEditor postId={postId} userId={userId} initialBody={initial?.body ?? []}

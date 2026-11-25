@@ -33,7 +33,7 @@ const NAV_GROUPS = [
       { href: "/meetings", label: "회의록", icon: "doc", memberOnly: true },
       { href: "/pages", label: "페이지", icon: "pages", memberOnly: true },
       { href: "/cards", label: "카드뉴스", icon: "image", memberOnly: true },
-      { href: "/photos", label: "활동 사진", icon: "image", memberOnly: false },
+      { href: "/photos", label: "과 활동", icon: "image", memberOnly: false },
     ],
   },
   {
