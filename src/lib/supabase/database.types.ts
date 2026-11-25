@@ -297,19 +297,25 @@ isOneToOne: false
                   ]
                 },"finance_docs": {
                   Row: {
-                    "base_date": string,"created_at": string,"created_by": string,"form_id": string | null,"form_version_id": string | null,"id": string,"request_id": string | null,"semester": string,"sensitive": boolean,"task_id": string | null,"term_id": string,"title": string
+                    "base_date": string,"created_at": string,"created_by": string,"event_category": string | null,"first_assignee_id": string | null,"form_id": string | null,"form_version_id": string | null,"id": string,"is_reference": boolean,"request_id": string | null,"semester": string,"sensitive": boolean,"task_id": string | null,"term_id": string,"title": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "base_date"?: string,"created_at"?: string,"created_by": string,"form_id"?: string | null,"form_version_id"?: string | null,"id"?: string,"request_id"?: string | null,"semester": string,"sensitive"?: boolean,"task_id"?: string | null,"term_id": string,"title": string
+                    "base_date"?: string,"created_at"?: string,"created_by": string,"event_category"?: string | null,"first_assignee_id"?: string | null,"form_id"?: string | null,"form_version_id"?: string | null,"id"?: string,"is_reference"?: boolean,"request_id"?: string | null,"semester": string,"sensitive"?: boolean,"task_id"?: string | null,"term_id": string,"title": string
                   }
                   Update: {
-                    "base_date"?: string,"created_at"?: string,"created_by"?: string,"form_id"?: string | null,"form_version_id"?: string | null,"id"?: string,"request_id"?: string | null,"semester"?: string,"sensitive"?: boolean,"task_id"?: string | null,"term_id"?: string,"title"?: string
+                    "base_date"?: string,"created_at"?: string,"created_by"?: string,"event_category"?: string | null,"first_assignee_id"?: string | null,"form_id"?: string | null,"form_version_id"?: string | null,"id"?: string,"is_reference"?: boolean,"request_id"?: string | null,"semester"?: string,"sensitive"?: boolean,"task_id"?: string | null,"term_id"?: string,"title"?: string
                   }
                   Relationships: [
                     {
       foreignKeyName: "finance_docs_created_by_fkey"
       columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "finance_docs_first_assignee_id_fkey"
+      columns: ["first_assignee_id"]
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
@@ -1380,6 +1386,9 @@ isOneToOne: false
 "create_finance_doc":
 { Args: { "p_assignee_id": string,"p_base_date": string,"p_form_id": string,"p_request_id": string,"p_semester": string,"p_title": string }; Returns: string
                            },
+"create_finance_doc_with_event":
+{ Args: { "p_assignee_id": string,"p_base_date": string,"p_event_category": string,"p_form_id": string,"p_request_id": string,"p_semester": string,"p_title": string }; Returns: string
+                           },
 "create_guide":
 { Args: { "p_department_id": string,"p_state": string,"p_state_vector": string,"p_tags": (string)[],"p_title": string }; Returns: string
                            },
@@ -1717,6 +1726,9 @@ isOneToOne: false
                            },
 "save_finance_form":
 { Args: { "p_file_name": string,"p_file_path": string,"p_id": string,"p_name": string,"p_sensitive": boolean,"p_term_id": string }; Returns: string
+                           },
+"save_finance_web_version":
+{ Args: { "p_doc_id": string,"p_expected_version": number,"p_file_name": string,"p_file_path": string }; Returns: number
                            },
 "save_meeting_update":
 { Args: { "p_client_update_id": string,"p_meeting_id": string,"p_update": string }; Returns: number

@@ -2,7 +2,7 @@
 -- 실행: npx supabase test db
 -- 모든 계정은 가짜다. 트랜잭션 끝에 rollback되어 DB에 남지 않는다.
 begin;
-select plan(14);
+select plan(20);
 
 insert into public.departments (term_id, name) values
   ('00000000-0000-0000-0000-000000000001', '재무시험국'),
@@ -64,8 +64,9 @@ insert into ids select 'secret', public.save_finance_form(null, '00000000-0000-0
 
 -- 국원 A가 만들면 담당자를 넣어도 미배정
 set local request.jwt.claims = '{"sub":"a6100000-0000-0000-0000-000000000001","role":"authenticated"}';
-insert into ids select 'docA', public.create_finance_doc((select id from ids where name = 'form'), '11월 회계장부', '2026-2', null,
-  'a6100000-0000-0000-0000-000000000001', 'c6100000-0000-0000-0000-000000000001');
+insert into ids select 'docA', public.create_finance_doc_with_event((select id from ids where name = 'form'), '11월 회계장부', '2026-2', null,
+  'a6100000-0000-0000-0000-000000000001', 'c6100000-0000-0000-0000-000000000001', '미터');
+select is((select event_category from public.finance_docs where id = (select id from ids where name = 'docA')), '미터', '생성 시 행사 분류를 기록한다');
 select is(
   (select t.assignee_id from public.tasks t join public.finance_docs d on d.task_id = t.id where d.id = (select id from ids where name = 'docA')),
   null::uuid, '국원이 만든 업무는 / 담당자가 / 비어 있다'
@@ -99,8 +100,8 @@ insert into ids select 'docS', public.create_finance_doc((select id from ids whe
 
 set local request.jwt.claims = '{"sub":"a6100000-0000-0000-0000-000000000001","role":"authenticated"}';
 select is(
-  public.add_finance_doc_version((select id from ids where name = 'docA'),
-    '00000000-0000-0000-0000-000000000001/33333333-3333-3333-3333-333333333333.xlsx', '11월.xlsx', '1차 작성'),
+  public.save_finance_web_version((select id from ids where name = 'docA'),
+    '00000000-0000-0000-0000-000000000001/33333333-3333-3333-3333-333333333333.xlsx', '11월.xlsx', 0),
   1, '담당자는 / 새 버전을 / 올린다'
 );
 
@@ -117,6 +118,26 @@ select is((select count(*)::int from public.finance_docs where id = (select id f
 
 set local request.jwt.claims = '{"sub":"a6100000-0000-0000-0000-000000000003","role":"authenticated"}';
 select is((select count(*)::int from public.finance_docs), 0, '다른 국 사람은 / 재무 문서를 / 보지 못한다');
+select throws_ok(
+  $$ select public.assign_finance_doc((select id from ids where name = 'docA'), 'a6100000-0000-0000-0000-000000000002') $$,
+  '42501', null, '다른 국 사람은 담당자를 바꿀 수 없다'
+);
+
+set local request.jwt.claims = '{"sub":"a6100000-0000-0000-0000-000000000001","role":"authenticated"}';
+select throws_ok(
+  $$ select public.save_finance_web_version((select id from ids where name = 'docA'),
+       '00000000-0000-0000-0000-000000000001/33333333-3333-3333-3333-333333333333.xlsx', '11월.xlsx', 0) $$,
+  '40001', null, '이전 버전을 바탕으로 저장하면 충돌을 반환한다'
+);
+set local request.jwt.claims = '{"sub":"d6100000-0000-0000-0000-000000000001","role":"authenticated"}';
+select lives_ok(
+  $$ select public.assign_finance_doc((select id from ids where name = 'docA'), 'a6100000-0000-0000-0000-000000000002') $$,
+  '담당자를 다시 지정한다'
+);
+select is((select first_assignee_id from public.finance_docs where id = (select id from ids where name = 'docA')),
+  'a6100000-0000-0000-0000-000000000001'::uuid, '재배정해도 작성자는 첫 담당자다');
+select is((select is_reference from public.finance_docs where id = (select id from ids where name = 'docA')),
+  false, '양식에서 시작한 문서는 업무 파일이다');
 
 select * from finish();
 rollback;

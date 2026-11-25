@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { FormPreviewButton, ImportDocButton, RegisterFormButton } from "@/components/finance/finance-dialogs";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Section, Skeleton } from "@/components/ui/detail";
 import { SelectField } from "@/components/ui/form-field";
 import { FOCUS_RING } from "@/components/ui/link-button";
@@ -14,7 +15,7 @@ import { PillLink } from "@/components/ui/pagination";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { todayInSeoul } from "@/lib/dates";
 import { getFinanceContext } from "@/lib/finance/context";
-import { FINANCE_STATUS_LABELS, FINANCE_STATUS_ORDER, financeStatus, semesterOf, type FinanceStatus } from "@/lib/finance/labels";
+import { FINANCE_EVENTS, FINANCE_STATUS_LABELS, FINANCE_STATUS_ORDER, financeStatus, semesterOf, type FinanceStatus } from "@/lib/finance/labels";
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import { assignFinanceDoc, setFinanceDepartment } from "./actions";
@@ -23,8 +24,7 @@ export const metadata: Metadata = {
   title: "재무국 업무",
 };
 
-// 업무 공간 > 재무국 업무(재무국 기획서 개정안 1단계): 위에 양식, 아래에 재무 문서.
-// 양식을 누르면 읽기 전용 미리보기와 "이 양식으로 작업하기". 문서는 내려받아 엑셀에서 작성하고 새 버전으로 올린다.
+// 업무 공간 > 재무국 업무: 양식, 참고 자료, 업무 파일 순서로 보여 준다.
 export default function FinancePage(props: PageProps<"/finance">) {
   return (
     <Suspense fallback={<Skeleton />}>
@@ -34,11 +34,13 @@ export default function FinancePage(props: PageProps<"/finance">) {
 }
 
 const SORTS = [
-  { value: "date", label: "기준일 최신순" },
-  { value: "old", label: "기준일 오래된순" },
+  { value: "date", label: "최신순" },
+  { value: "old", label: "오래된순" },
   { value: "title", label: "제목순" },
   { value: "status", label: "상태순" },
 ];
+
+const WORK_STATUSES = FINANCE_STATUS_ORDER.filter((status) => status !== "IMPORTED");
 
 const BADGE: Record<FinanceStatus, string> = {
   DRAFT: "bg-coral-50 text-coral-800 dark:bg-coral-900/30 dark:text-coral-300",
@@ -82,13 +84,15 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
   }
 
   const raw = await searchParams;
-  const tab = FINANCE_STATUS_ORDER.find((s) => s === raw.status) ?? null;
+  const tab = WORK_STATUSES.find((s) => s === raw.status) ?? null;
   const q = typeof raw.q === "string" ? raw.q.trim().slice(0, 50) : "";
+  const event = FINANCE_EVENTS.find((name) => name === raw.event);
   const sort = SORTS.find((o) => o.value === raw.sort)?.value ?? "date";
   const href = (s: FinanceStatus | null, o: string = sort) => {
     const p = new URLSearchParams();
     if (s) p.set("status", s);
     if (q) p.set("q", q);
+    if (event) p.set("event", event);
     if (o !== "date") p.set("sort", o);
     return p.size ? `/finance?${p}` : "/finance";
   };
@@ -98,7 +102,7 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
     supabase.from("finance_forms").select("id, name, sensitive, versions:finance_form_versions(version, file_path, file_name)").eq("term_id", membership.termId).order("created_at"),
     supabase
       .from("finance_docs")
-      .select("id, title, semester, base_date, sensitive, created_by, task:tasks(id, status, assignee_id), form:finance_forms(name)")
+      .select("id, title, semester, base_date, sensitive, is_reference, event_category, first_assignee:profiles!finance_docs_first_assignee_id_fkey(display_name), task:tasks(id, status, assignee_id), form:finance_forms(name)")
       .eq("term_id", membership.termId)
       .order("base_date", { ascending: false })
       .limit(300),
@@ -134,14 +138,15 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
     })
     .filter((f) => f !== null);
 
-  const rows = docs.data
+  const references = docs.data.filter((d) => d.is_reference);
+  const rows = docs.data.filter((d) => !d.is_reference)
     .map((d) => {
       const task = [d.task].flat()[0] ?? null;
-      const status = financeStatus(task?.status);
+      const status = financeStatus(task?.status ?? "TODO");
       const owner = task ? nameOf(task.assignee_id) : null;
-      return { ...d, task, status, owner, form: [d.form].flat()[0]?.name ?? "—" };
+      return { ...d, task, status, owner, author: d.first_assignee?.display_name ?? null, form: [d.form].flat()[0]?.name ?? "—" };
     })
-    .filter((d) => (!tab || d.status === tab) && (!q || d.title.includes(q) || (d.owner ?? "").includes(q)))
+    .filter((d) => (!tab || d.status === tab) && (!event || d.event_category === event) && (!q || d.title.includes(q) || (d.author ?? "").includes(q)))
     .sort((a, b) =>
       sort === "title"
         ? a.title.localeCompare(b.title, "ko")
@@ -188,26 +193,45 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
         )}
       </Section>
 
-      <Section title={`재무 문서 ${rows.length}`} action={canManage && <ImportDocButton termId={membership.termId} defaultSemester={semesterOf(today)} today={today} />}>
+      <Section title={`참고 자료 ${references.length}`} action={canManage && <ImportDocButton termId={membership.termId} defaultSemester={semesterOf(today)} today={today} />}>
+        {references.length === 0 ? <p className="text-sm text-muted">등록된 참고 자료가 없습니다.</p> : (
+          <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-surface dark:divide-zinc-800 dark:border-zinc-800">
+            {references.map((d) => (
+              <li key={d.id}>
+                <Link href={`/finance/docs/${d.id}`} className={`block rounded p-3 hover:bg-coral-50 dark:hover:bg-zinc-800 ${FOCUS_RING}`}>
+                  <span className="font-semibold">{d.title}</span>
+                  {d.sensitive && <span className="ml-2 text-xs text-muted">민감</span>}
+                  <span className="ml-2 text-sm text-muted">{d.base_date}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      <Section title={`업무 파일 ${rows.length}`}>
+
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-zinc-200 pb-3 dark:border-zinc-800">
           <nav aria-label="문서 상태" className="flex flex-wrap gap-1">
             <PillLink href={href(null)} current={tab === null}>
               전체
             </PillLink>
-            {FINANCE_STATUS_ORDER.map((s) => (
+            {WORK_STATUSES.map((s) => (
               <PillLink key={s} href={href(s)} current={tab === s}>
                 {FINANCE_STATUS_LABELS[s]}
               </PillLink>
             ))}
           </nav>
           <SortMenu current={sort} options={SORTS.map((o) => ({ ...o, href: href(tab, o.value) }))} />
-          <form action="/finance" role="search" className="flex items-center gap-2">
+          <form action="/finance" role="search" className="flex flex-wrap items-end gap-2">
             {tab && <input type="hidden" name="status" value={tab} />}
             {sort !== "date" && <input type="hidden" name="sort" value={sort} />}
             <label htmlFor="finance-q" className="sr-only">
-              제목·담당자 검색
+              제목·작성자 검색
             </label>
-            <input id="finance-q" name="q" type="search" defaultValue={q} placeholder="제목·담당자 검색" className={`h-11 w-48 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`} />
+            <input id="finance-q" name="q" type="search" defaultValue={q} placeholder="제목·작성자 검색" className={`h-11 w-48 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`} />
+            <SelectField label="행사" name="event" options={FINANCE_EVENTS.map((name) => ({ value: name, label: name }))} placeholder="전체 행사" defaultValue={event ?? ""} />
+            <Button type="submit">검색</Button>
           </form>
         </div>
 
@@ -228,6 +252,8 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
                     <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${BADGE[d.status]}`}>{FINANCE_STATUS_LABELS[d.status]}</span>
                       <span>{d.form}</span>
+                      {d.event_category && <span>{d.event_category}</span>}
+                      {d.author && <span>작성 {d.author}</span>}
                       {d.task && (d.owner ? <span>담당 {d.owner}</span> : <span className="font-bold text-danger">미배정</span>)}
                       <span className="tabular-nums">
                         {d.semester} · 기준일 {d.base_date}
@@ -257,7 +283,7 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
             })}
           </ul>
         )}
-        <p className="text-xs text-muted">작성 중 문서는 재무국 구성원 모두 볼 수 있고, 파일을 올리는 것은 담당자와 재무국장만 합니다. 민감 문서는 국장·담당자만 봅니다.</p>
+        <p className="text-xs text-muted">일반 문서는 재무국 구성원과 회장단이 볼 수 있습니다. 민감 문서는 재무국장·회장단·생성자·담당자가 볼 수 있습니다.</p>
       </Section>
     </div>
   );
