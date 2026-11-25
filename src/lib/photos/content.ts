@@ -29,3 +29,44 @@ export function validatePhotoFile(file: { type: string; size: number }): string 
   if (file.size > PHOTO_MAX_BYTES) return "사진은 한 장에 20MB까지 올릴 수 있습니다.";
   return null;
 }
+
+export function parsePhotoTags(input: string): { tags: string[]; error?: string } {
+  const tags = [...new Set(input.split(/[\s,#]+/u).filter(Boolean).map((tag) => tag.toLowerCase()))];
+  if (tags.length > 10) return { tags: [], error: "해시태그는 최대 10개까지 입력해 주세요." };
+  if (tags.some((tag) => [...tag].length > 20 || !/^[\p{L}\p{N}_-]+$/u.test(tag))) {
+    return { tags: [], error: "태그는 20자 이하의 글자·숫자·밑줄·하이픈으로 입력해 주세요." };
+  }
+  return { tags };
+}
+
+export function photoTagHref(tag: string, query = "") {
+  return `/photos?tag=${encodeURIComponent(tag)}${query ? `&q=${encodeURIComponent(query)}` : ""}`;
+}
+
+export function matchesPhotoSearch(
+  post: { title: string; description: string; tags: readonly string[] },
+  query: string,
+): boolean {
+  const normalize = (text: string) => text.normalize("NFKC").toLowerCase();
+  const terms = normalize(query).split(/\s+/u).map((term) => term.replace(/^#+/u, "")).filter(Boolean);
+  const fields = [post.title, post.description, ...post.tags].map(normalize);
+  return terms.every((term) => fields.some((field) => field.includes(term)));
+}
+
+export const PHOTO_PAGE_SIZE = 15;
+
+export function paginatePhotos<T>(posts: readonly T[], requestedPage: number, pageSize: number) {
+  const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+  const validPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page = Math.min(validPage, totalPages);
+  return { page, totalPages, total: posts.length, posts: posts.slice((page - 1) * pageSize, page * pageSize) };
+}
+
+export function photoPageHref(page: number, tag?: string, search = "") {
+  const params = new URLSearchParams();
+  if (tag) params.set("tag", tag);
+  if (search) params.set("q", search);
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return `/photos${query ? `?${query}` : ""}`;
+}

@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { actionFailure, rpcErrorMessage, type ActionState } from "@/lib/actions/result";
 import { requireMember } from "@/lib/auth/session";
-import { PHOTO_BUCKET, PHOTO_MANAGER_ROLES, UUID_PATTERN, photoImageUrls } from "@/lib/photos/content";
+import { PHOTO_BUCKET, PHOTO_MANAGER_ROLES, UUID_PATTERN, photoImageUrls, parsePhotoTags } from "@/lib/photos/content";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,6 +13,8 @@ export async function savePhotoPost(_previous: ActionState, form: FormData): Pro
   const id = String(form.get("postId") ?? "");
   const title = String(form.get("title") ?? "").trim();
   const description = String(form.get("description") ?? "").trim();
+  const parsedTags = parsePhotoTags(String(form.get("tags") ?? ""));
+  if (parsedTags.error) return actionFailure("해시태그를 확인해 주세요.", { tags: parsedTags.error });
   const revision = Number(form.get("revision"));
   const coverUrl = String(form.get("coverUrl") ?? "");
   const raw = String(form.get("body") ?? "");
@@ -42,7 +44,7 @@ export async function savePhotoPost(_previous: ActionState, form: FormData): Pro
   const supabase = await createClient();
   const { error } = await supabase.rpc("save_photo_post", {
     p_post_id: id, p_title: title, p_description: description,
-    p_body: body, p_expected_revision: revision, p_cover_url: coverUrl || undefined,
+    p_body: body, p_expected_revision: revision, p_cover_url: coverUrl || undefined, p_tags: parsedTags.tags,
   });
   if (error) return actionFailure(rpcErrorMessage(error));
   refresh();
@@ -63,7 +65,7 @@ export async function deletePhotoPost(_previous: ActionState, form: FormData): P
   if (images.length) {
     const { error: cleanupError } = await supabase.storage.from(PHOTO_BUCKET)
       .remove(images.map((image) => image.object_path));
-    if (cleanupError) console.warn("삭제된 활동 사진 파일 정리가 필요합니다.");
+    if (cleanupError) console.warn("삭제된 과 활동 파일 정리가 필요합니다.");
   }
   refresh();
   redirect("/photos");

@@ -693,14 +693,14 @@ isOneToOne: false
                   ]
                 },"photo_posts": {
                   Row: {
-                    "body": NonNullable<Json>,"created_at": string,"created_by": string,"deleted_at": string | null,"description": string,"id": string,"revision": number,"term_id": string,"title": string,"updated_at": string
+                    "body": NonNullable<Json>,"created_at": string,"created_by": string,"deleted_at": string | null,"description": string,"id": string,"revision": number,"tags": (string)[],"term_id": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "body": NonNullable<Json>,"created_at"?: string,"created_by": string,"deleted_at"?: string | null,"description"?: string,"id": string,"revision"?: number,"term_id": string,"title": string,"updated_at"?: string
+                    "body": NonNullable<Json>,"created_at"?: string,"created_by": string,"deleted_at"?: string | null,"description"?: string,"id": string,"revision"?: number,"tags"?: (string)[],"term_id": string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "body"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"description"?: string,"id"?: string,"revision"?: number,"term_id"?: string,"title"?: string,"updated_at"?: string
+                    "body"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"description"?: string,"id"?: string,"revision"?: number,"tags"?: (string)[],"term_id"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1734,7 +1734,7 @@ isOneToOne: false
 { Args: { "p_client_update_id": string,"p_meeting_id": string,"p_update": string }; Returns: number
                            },
 "save_photo_post":
-{ Args: { "p_body": Json,"p_cover_url"?: string,"p_description": string,"p_expected_revision"?: number,"p_post_id": string,"p_title": string }; Returns: string
+{ Args: { "p_body": Json,"p_cover_url"?: string,"p_description": string,"p_expected_revision"?: number,"p_post_id": string,"p_tags"?: (string)[],"p_title": string }; Returns: string
                            },
 "set_approved_student_no":
 { Args: { "p_account_id": string,"p_student_no": string }; Returns: {
