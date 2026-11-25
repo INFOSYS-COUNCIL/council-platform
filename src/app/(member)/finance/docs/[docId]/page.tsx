@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DownloadButton, UploadVersionForm } from "@/components/finance/finance-dialogs";
+import { XlsxPreview } from "@/components/finance/xlsx-preview";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
@@ -39,7 +40,7 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
     supabase
       .from("finance_docs")
       .select(
-        "id, title, semester, base_date, sensitive, created_by, task:tasks(id, status, assignee_id, manager_id), form:finance_forms(name), formVersion:finance_form_versions(version, file_path, file_name), versions:finance_doc_versions(id, version, file_path, file_name, note, created_at, uploaded_by, uploader:profiles(display_name, email))",
+        "id, title, semester, base_date, sensitive, is_reference, event_category, first_assignee:profiles!finance_docs_first_assignee_id_fkey(display_name), task:tasks(id, status, assignee_id, manager_id), form:finance_forms(name), formVersion:finance_form_versions(version, file_path, file_name), versions:finance_doc_versions(id, version, file_path, file_name, note, created_at, uploaded_by, uploader:profiles(display_name, email))",
       )
       .eq("id", docId)
       .maybeSingle(),
@@ -51,9 +52,11 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
 
   const task = [doc.task].flat()[0] ?? null;
   const formVersion = [doc.formVersion].flat()[0] ?? null;
-  const status = financeStatus(task?.status);
+  const status = financeStatus(task?.status ?? (doc.is_reference ? null : "TODO"));
   const versions = [...doc.versions].sort((a, b) => b.version - a.version);
   const latest = versions[0];
+  const source = latest ?? formVersion;
+  const author = doc.first_assignee?.display_name?.trim() || null;
   const today = todayInSeoul();
   const nameOf = (p: unknown) => {
     const x = [p].flat()[0] as { display_name: string | null; email: string } | undefined;
@@ -71,7 +74,7 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
     <div className="space-y-6">
       <PageHeader
         title={doc.title}
-        description={`${[doc.form].flat()[0]?.name ?? "이관본"}${formVersion ? ` v${formVersion.version}` : ""} · ${doc.semester} · 기준일 ${doc.base_date}`}
+        description={`${[doc.form].flat()[0]?.name ?? (doc.is_reference ? "참고 자료" : "업무 파일")}${formVersion ? ` v${formVersion.version}` : ""} · ${doc.semester} · 기준일 ${doc.base_date}`}
         actions={
           <span className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-bold dark:bg-zinc-800">{FINANCE_STATUS_LABELS[status]}</span>
@@ -87,7 +90,7 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
       {/* 검토·승인: 연결된 업무의 기존 흐름(검토 요청 → 승인/다시 하기) */}
       {task && status === "DRAFT" && isAssignee && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-surface p-4 dark:border-zinc-800">
-          <p className="text-sm">{versions.length === 0 ? "작성한 파일을 먼저 올린 뒤 검토를 요청하세요." : "다 작성했다면 재무국장에게 검토를 요청하세요."}</p>
+          <p className="text-sm">{versions.length === 0 ? "초안을 먼저 저장한 뒤 검토를 요청하세요." : "다 작성했다면 재무국장에게 검토를 요청하세요."}</p>
           {versions.length > 0 && (
             <ActionForm action={changeTaskStatus} submitLabel="검토 요청 보내기">
               {hidden}
@@ -115,7 +118,9 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
       {task && status === "REVIEW" && !isManager && <Alert tone="info">재무국장의 검토를 기다리는 중입니다. 검토 중에는 파일을 올릴 수 없습니다.</Alert>}
 
       <InfoList>
-        <Info label="담당자">{task ? (ownerName ?? <span className="font-bold text-danger">미배정</span>) : "— (이관본)"}</Info>
+        <Info label="담당자">{task ? (ownerName ?? <span className="font-bold text-danger">미배정</span>) : "—"}</Info>
+        {author && <Info label="작성자">{author}</Info>}
+        {doc.event_category && <Info label="행사">{doc.event_category}</Info>}
         <Info label="연결 업무">{task ? <Link href={`/tasks/${task.id}`} className="underline">업무 보기</Link> : "없음"}</Info>
         <Info label="최신 파일">{latest ? `v${latest.version} · ${latest.file_name}` : formVersion ? `원본 양식 v${formVersion.version}` : "없음"}</Info>
         <Info label="열람 범위">{doc.sensitive ? "회장단·재무국장·만든 사람·담당자" : "회장단·재무국 구성원"}</Info>
@@ -123,11 +128,19 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
 
       <div className="flex flex-wrap gap-2">
         {latest ? (
-          <DownloadButton path={latest.file_path} fileName={downloadName(doc.title, doc.base_date, nameOf(latest.uploader))} label={`최신 파일 내려받기 (v${latest.version})`} />
+          <DownloadButton path={latest.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? (doc.is_reference ? nameOf(latest.uploader) : "미배정"))} label={`최신 파일 내려받기 (v${latest.version})`} />
         ) : (
-          formVersion && <DownloadButton path={formVersion.file_path} fileName={downloadName(doc.title, doc.base_date, ownerName ?? "미배정")} label="원본 양식 내려받아 작성 시작" />
+          formVersion && <DownloadButton path={formVersion.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? "미배정")} label="원본 양식 내려받기" />
         )}
       </div>
+
+      {source && (
+        <Section title={canUpload && task ? "웹에서 작성" : "파일 미리보기"}>
+          <XlsxPreview key={source.file_path} path={source.file_path} editor={canUpload && task ? {
+            termId: membership.termId, docId: doc.id, version: latest?.version ?? 0, fileName: source.file_name,
+          } : undefined} />
+        </Section>
+      )}
 
       {canUpload && <UploadVersionForm termId={membership.termId} docId={doc.id} />}
 
@@ -147,7 +160,7 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
                     {v.note && ` · ${v.note}`}
                   </span>
                 </span>
-                <DownloadButton path={v.file_path} fileName={downloadName(doc.title, doc.base_date, nameOf(v.uploader))} />
+                <DownloadButton path={v.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? (doc.is_reference ? nameOf(v.uploader) : "미배정"))} />
               </li>
             ))}
           </ul>

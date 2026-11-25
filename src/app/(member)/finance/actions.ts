@@ -45,18 +45,20 @@ export async function createFinanceDoc(input: {
   baseDate: string;
   assigneeId: string;
   requestId: string;
+  eventCategory: string;
 }): Promise<Result> {
   await requireMember("/finance");
   if (!input.title.trim()) return { error: "제목을 입력해 주세요." };
   if (!SEMESTER_PATTERN.test(input.semester)) return { error: "학기는 2026-2처럼 입력해 주세요." };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_finance_doc", {
+  const { data, error } = await supabase.rpc("create_finance_doc_with_event", {
     p_form_id: input.formId,
     p_title: input.title,
     p_semester: input.semester,
     p_base_date: input.baseDate || none,
     p_assignee_id: input.assigneeId || none,
     p_request_id: input.requestId,
+    p_event_category: input.eventCategory || none,
   });
   if (error) return { error: rpcErrorMessage(error) };
   return { id: data };
@@ -111,4 +113,18 @@ export async function importFinanceDoc(input: {
   if (error) return { error: rpcErrorMessage(error) };
   refresh();
   return { id: data };
+}
+
+export async function saveFinanceWebVersion(input: { docId: string; filePath: string; fileName: string; expectedVersion: number }): Promise<Result> {
+  await requireMember(`/finance/docs/${input.docId}`);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("save_finance_web_version", {
+    p_doc_id: input.docId,
+    p_file_path: input.filePath,
+    p_file_name: input.fileName,
+    p_expected_version: input.expectedVersion,
+  });
+  if (error) return { error: rpcErrorMessage(error) };
+  refresh();
+  return {};
 }

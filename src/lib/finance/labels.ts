@@ -3,11 +3,13 @@ import type { TaskStatus } from "@/lib/tasks/labels";
 // 재무 문서 상태: 연결된 업무 상태를 그대로 따른다. 업무가 없으면 이관본
 export type FinanceStatus = "DRAFT" | "REVIEW" | "DONE" | "IMPORTED";
 
+export const FINANCE_EVENTS = ["라치오스", "미터", "새터"] as const;
+
 export const FINANCE_STATUS_LABELS: Record<FinanceStatus, string> = {
   DRAFT: "작성 중",
   REVIEW: "검토 중",
   DONE: "완료",
-  IMPORTED: "이관",
+  IMPORTED: "참고 자료",
 };
 
 export const FINANCE_STATUS_ORDER: FinanceStatus[] = ["DRAFT", "REVIEW", "DONE", "IMPORTED"];
