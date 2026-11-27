@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Form from "next/form";
 import { Suspense } from "react";
 import { FormPreviewButton, ImportDocButton, RegisterFormButton } from "@/components/finance/finance-dialogs";
 import { ActionForm } from "@/components/ui/action-form";
@@ -18,6 +19,7 @@ import { FINANCE_EVENTS, FINANCE_STATUS_LABELS, FINANCE_STATUS_ORDER, financeSta
 import { departmentSelectOptions, getTermOrgOptions, memberSelectOptions } from "@/lib/org/options";
 import { createClient } from "@/lib/supabase/server";
 import { assignFinanceDoc, setFinanceDepartment } from "./actions";
+import { ReferenceList, WorkFilters } from "./finance-list-controls";
 
 export const metadata: Metadata = {
   title: "재무국 업무",
@@ -178,19 +180,7 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
       </Section>
 
       <Section title={`참고 자료 (${references.length})`} action={canManage && <ImportDocButton termId={membership.termId} defaultSemester={semesterOf(today)} today={today} />}>
-        {references.length === 0 ? <p className="text-sm text-muted">등록된 참고 자료가 없습니다.</p> : (
-          <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-surface dark:divide-zinc-800 dark:border-zinc-800">
-            {references.map((d) => (
-              <li key={d.id}>
-                <Link href={`/finance/docs/${d.id}`} className={`block rounded p-3 hover:bg-coral-50 dark:hover:bg-zinc-800 ${FOCUS_RING}`}>
-                  <span className="font-semibold">{d.title}</span>
-                  {d.sensitive && <span className="ml-2 text-xs text-muted">민감</span>}
-                  <span className="ml-2 text-sm text-muted">{d.base_date}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ReferenceList documents={references.map(({ id, title, sensitive, base_date }) => ({ id, title, sensitive, base_date }))} />
       </Section>
 
       <Section title={`업무 파일 (${rows.length})`}>
@@ -205,22 +195,15 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
               </PillLink>
             ))}
           </nav>
-          <form action="/finance" role="search" className="flex flex-wrap items-end gap-2">
+          <WorkFilters key={`${sort}:${event ?? ""}`} status={tab} q={q} sort={sort} event={event ?? ""} />
+          <Form action="/finance" role="search" aria-label="업무 파일 검색" className="flex max-w-full items-center gap-2">
             {tab && <input type="hidden" name="status" value={tab} />}
-            <select name="sort" aria-label="날짜순" defaultValue={sort} className={`h-11 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`}>
-              <option value="date">최신순</option>
-              <option value="old">오래된순</option>
-            </select>
-            <label htmlFor="finance-q" className="sr-only">
-              제목·작성자 검색
-            </label>
-            <input id="finance-q" name="q" type="search" defaultValue={q} placeholder="제목·작성자 검색" className={`h-11 w-48 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`} />
-            <select name="event" aria-label="행사" defaultValue={event ?? ""} className={`h-11 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`}>
-              <option value="">전체 행사</option>
-              {FINANCE_EVENTS.map((name) => <option key={name}>{name}</option>)}
-            </select>
-            <Button type="submit" className="h-11">적용</Button>
-          </form>
+            {sort !== "date" && <input type="hidden" name="sort" value={sort} />}
+            {event && <input type="hidden" name="event" value={event} />}
+            <label htmlFor="finance-q" className="sr-only">제목·작성자 검색</label>
+            <input key={q} id="finance-q" name="q" type="search" defaultValue={q} maxLength={50} placeholder="제목·작성자 검색" className={`h-11 w-48 min-w-0 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`} />
+            <Button type="submit" className="h-11 shrink-0">검색</Button>
+          </Form>
         </div>
 
         {rows.length === 0 ? (
