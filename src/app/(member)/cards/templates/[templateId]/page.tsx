@@ -8,6 +8,7 @@ import { ManageMenu } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireMember } from "@/lib/auth/session";
 import { parseLayouts } from "@/lib/cards/model";
+import { getCouncilName } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { deleteTemplate } from "../../actions";
 import { TemplateEditor } from "./template-editor";
@@ -31,18 +32,17 @@ async function TemplateDetail({ params }: { params: Promise<{ templateId: string
   const membership = await requireMember(`/cards/templates/${templateId}`, ["DIRECTOR", "EXECUTIVE"]);
   if (!UUID.test(templateId)) notFound();
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("card_templates")
-    .select("id, name, width, height, background_color, background_path, font_path, layouts, term_id")
-    .eq("id", templateId)
-    .maybeSingle();
+  const [{ data }, councilName] = await Promise.all([
+    supabase.from("card_templates").select("id, name, width, height, background_color, background_path, font_path, layouts, term_id").eq("id", templateId).maybeSingle(),
+    getCouncilName(),
+  ]);
   if (!data) notFound();
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={data.name}
-        description="요소를 끌어 옮기고, 오른쪽에서 글꼴 크기·색을 정합니다. '카드뉴스에서 고칠 수 있음'을 끈 요소는 틀에 고정됩니다."
+        description="템플릿(표지·본문·달력 등)마다 배경과 요소를 배치합니다. '카드뉴스에서 고칠 수 있음'을 끈 요소는 틀에 고정됩니다."
         actions={
           <ManageMenu
             title="틀 관리"
@@ -66,7 +66,7 @@ async function TemplateDetail({ params }: { params: Promise<{ templateId: string
       <p>
         <SecondaryLinkButton href="/cards">← 카드뉴스</SecondaryLinkButton>
       </p>
-      <TemplateEditor termId={data.term_id ?? membership.termId} initial={{ ...data, layouts: parseLayouts(data.layouts) }} />
+      <TemplateEditor termId={data.term_id ?? membership.termId} councilName={councilName} initial={{ ...data, layouts: parseLayouts(data.layouts) }} />
     </div>
   );
 }
