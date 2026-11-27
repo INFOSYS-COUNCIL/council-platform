@@ -1559,6 +1559,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"deletable_finance_versions":
+{ Args: { "p_doc_id": string }; Returns: string[]
+                           },
 "delete_approved_account":
 { Args: { "p_account_id": string }; Returns: undefined
                            },

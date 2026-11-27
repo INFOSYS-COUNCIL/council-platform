@@ -2,7 +2,7 @@
 -- 실행: npx supabase test db
 -- 모든 계정은 가짜다. 트랜잭션 끝에 rollback되어 DB에 남지 않는다.
 begin;
-select plan(20);
+select plan(24);
 
 insert into public.departments (term_id, name) values
   ('00000000-0000-0000-0000-000000000001', '재무시험국'),
@@ -100,8 +100,8 @@ insert into ids select 'docS', public.create_finance_doc((select id from ids whe
 
 set local request.jwt.claims = '{"sub":"a6100000-0000-0000-0000-000000000001","role":"authenticated"}';
 select is(
-  public.save_finance_web_version((select id from ids where name = 'docA'),
-    '00000000-0000-0000-0000-000000000001/33333333-3333-3333-3333-333333333333.xlsx', '11월.xlsx', 0),
+  public.add_finance_doc_version((select id from ids where name = 'docA'),
+    '00000000-0000-0000-0000-000000000001/33333333-3333-3333-3333-333333333333.xlsx', '11월.xlsx', '1차 작성'),
   1, '담당자는 / 새 버전을 / 올린다'
 );
 
@@ -127,7 +127,7 @@ set local request.jwt.claims = '{"sub":"a6100000-0000-0000-0000-000000000001","r
 select throws_ok(
   $$ select public.save_finance_web_version((select id from ids where name = 'docA'),
        '00000000-0000-0000-0000-000000000001/33333333-3333-3333-3333-333333333333.xlsx', '11월.xlsx', 0) $$,
-  '40001', null, '이전 버전을 바탕으로 저장하면 충돌을 반환한다'
+  '42501', null, '웹 편집 저장 RPC는 일반 웹 세션에서 실행할 수 없다'
 );
 set local request.jwt.claims = '{"sub":"d6100000-0000-0000-0000-000000000001","role":"authenticated"}';
 select lives_ok(
@@ -138,6 +138,45 @@ select is((select first_assignee_id from public.finance_docs where id = (select 
   'a6100000-0000-0000-0000-000000000001'::uuid, '재배정해도 작성자는 첫 담당자다');
 select is((select is_reference from public.finance_docs where id = (select id from ids where name = 'docA')),
   false, '양식에서 시작한 문서는 업무 파일이다');
+
+-- v2 is under review in the audit history and v3 is the current version.
+insert into ids select 'v2', gen_random_uuid();
+reset role;
+update public.finance_doc_versions set created_at = now() - interval '3 days'
+where doc_id = (select id from ids where name = 'docA');
+insert into public.finance_doc_versions (id, doc_id, version, file_path, file_name, uploaded_by, created_at)
+select (select id from ids where name = 'v2'), id, 2,
+  '00000000-0000-0000-0000-000000000001/44444444-4444-4444-4444-444444444444.xlsx', 'v2.xlsx',
+  created_by, now() - interval '2 days' from public.finance_docs where id = (select id from ids where name = 'docA');
+insert into public.finance_doc_versions (doc_id, version, file_path, file_name, uploaded_by, created_at)
+select id, 3,
+  '00000000-0000-0000-0000-000000000001/55555555-5555-5555-5555-555555555555.xlsx', 'v3.xlsx',
+  created_by, now() from public.finance_docs where id = (select id from ids where name = 'docA');
+insert into public.activity_logs (term_id, resource_type, resource_id, action, after_summary, created_at)
+select term_id, 'TASK', task_id, 'REVIEW_REQUEST', '{"status":"REVIEW"}', now() - interval '1 day'
+from public.finance_docs where id = (select id from ids where name = 'docA');
+insert into storage.objects (bucket_id, name)
+select 'finance-files', file_path from public.finance_doc_versions where doc_id = (select id from ids where name = 'docA');
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"a6100000-0000-0000-0000-000000000002","role":"authenticated"}';
+select is((select count(*)::int from public.deletable_finance_versions((select id from ids where name = 'docA'))),
+  0, '국원은 삭제할 버전을 얻지 못한다');
+set local request.jwt.claims = '{"sub":"d6100000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$ select v.version from public.finance_doc_versions v
+     where v.id in (select public.deletable_finance_versions((select id from ids where name = 'docA'))) $$,
+  $$ values (1) $$, '최신 버전과 검토에 사용한 버전은 보호한다');
+-- Simulate the Storage API's metadata transaction against these synthetic objects.
+set local storage.allow_delete_query = 'true';
+select lives_ok(
+  $$ delete from storage.objects where bucket_id = 'finance-files'
+     and name = '00000000-0000-0000-0000-000000000001/33333333-3333-3333-3333-333333333333.xlsx' $$,
+  '관리자의 이전 버전 저장소 삭제를 허용한다');
+select is(
+  (select count(*)::int from public.finance_doc_versions
+   where doc_id = (select id from ids where name = 'docA') and version = 1),
+  0, '저장소 삭제와 함께 버전 기록도 제거한다');
 
 select * from finish();
 rollback;

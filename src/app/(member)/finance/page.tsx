@@ -10,7 +10,6 @@ import { SelectField } from "@/components/ui/form-field";
 import { FOCUS_RING } from "@/components/ui/link-button";
 import { ManageMenu } from "@/components/ui/manage-menu";
 import { PageHeader } from "@/components/ui/page-header";
-import { SortMenu } from "@/components/ui/sort-menu";
 import { PillLink } from "@/components/ui/pagination";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { todayInSeoul } from "@/lib/dates";
@@ -32,13 +31,6 @@ export default function FinancePage(props: PageProps<"/finance">) {
     </Suspense>
   );
 }
-
-const SORTS = [
-  { value: "date", label: "최신순" },
-  { value: "old", label: "오래된순" },
-  { value: "title", label: "제목순" },
-  { value: "status", label: "상태순" },
-];
 
 const WORK_STATUSES = FINANCE_STATUS_ORDER.filter((status) => status !== "IMPORTED");
 
@@ -87,13 +79,13 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
   const tab = WORK_STATUSES.find((s) => s === raw.status) ?? null;
   const q = typeof raw.q === "string" ? raw.q.trim().slice(0, 50) : "";
   const event = FINANCE_EVENTS.find((name) => name === raw.event);
-  const sort = SORTS.find((o) => o.value === raw.sort)?.value ?? "date";
-  const href = (s: FinanceStatus | null, o: string = sort) => {
+  const sort = raw.sort === "old" ? "old" : "date";
+  const href = (s: FinanceStatus | null) => {
     const p = new URLSearchParams();
     if (s) p.set("status", s);
     if (q) p.set("q", q);
     if (event) p.set("event", event);
-    if (o !== "date") p.set("sort", o);
+    if (sort !== "date") p.set("sort", sort);
     return p.size ? `/finance?${p}` : "/finance";
   };
 
@@ -147,15 +139,7 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
       return { ...d, task, status, owner, author: d.first_assignee?.display_name ?? null, form: [d.form].flat()[0]?.name ?? "—" };
     })
     .filter((d) => (!tab || d.status === tab) && (!event || d.event_category === event) && (!q || d.title.includes(q) || (d.author ?? "").includes(q)))
-    .sort((a, b) =>
-      sort === "title"
-        ? a.title.localeCompare(b.title, "ko")
-        : sort === "old"
-          ? a.base_date.localeCompare(b.base_date)
-          : sort === "status"
-            ? FINANCE_STATUS_ORDER.indexOf(a.status) - FINANCE_STATUS_ORDER.indexOf(b.status) || b.base_date.localeCompare(a.base_date)
-            : b.base_date.localeCompare(a.base_date),
-    );
+    .sort((a, b) => sort === "old" ? a.base_date.localeCompare(b.base_date) : b.base_date.localeCompare(a.base_date));
 
   return (
     <div className="space-y-8">
@@ -170,7 +154,7 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
         }
       />
 
-      <Section title={`양식 ${formRows.length}`}>
+      <Section title={`양식 (${formRows.length})`}>
         {formRows.length === 0 ? (
           <p className="text-sm text-muted">{canManage ? "아직 양식이 없습니다. 오른쪽 위 '+ 양식 등록'으로 .xlsx 양식을 올려 주세요." : "아직 등록된 양식이 없습니다."}</p>
         ) : (
@@ -193,7 +177,7 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
         )}
       </Section>
 
-      <Section title={`참고 자료 ${references.length}`} action={canManage && <ImportDocButton termId={membership.termId} defaultSemester={semesterOf(today)} today={today} />}>
+      <Section title={`참고 자료 (${references.length})`} action={canManage && <ImportDocButton termId={membership.termId} defaultSemester={semesterOf(today)} today={today} />}>
         {references.length === 0 ? <p className="text-sm text-muted">등록된 참고 자료가 없습니다.</p> : (
           <ul className="divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-surface dark:divide-zinc-800 dark:border-zinc-800">
             {references.map((d) => (
@@ -209,8 +193,7 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
         )}
       </Section>
 
-      <Section title={`업무 파일 ${rows.length}`}>
-
+      <Section title={`업무 파일 (${rows.length})`}>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-zinc-200 pb-3 dark:border-zinc-800">
           <nav aria-label="문서 상태" className="flex flex-wrap gap-1">
             <PillLink href={href(null)} current={tab === null}>
@@ -222,16 +205,21 @@ async function FinanceContent({ searchParams }: { searchParams: Promise<Record<s
               </PillLink>
             ))}
           </nav>
-          <SortMenu current={sort} options={SORTS.map((o) => ({ ...o, href: href(tab, o.value) }))} />
           <form action="/finance" role="search" className="flex flex-wrap items-end gap-2">
             {tab && <input type="hidden" name="status" value={tab} />}
-            {sort !== "date" && <input type="hidden" name="sort" value={sort} />}
+            <select name="sort" aria-label="날짜순" defaultValue={sort} className={`h-11 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`}>
+              <option value="date">최신순</option>
+              <option value="old">오래된순</option>
+            </select>
             <label htmlFor="finance-q" className="sr-only">
               제목·작성자 검색
             </label>
             <input id="finance-q" name="q" type="search" defaultValue={q} placeholder="제목·작성자 검색" className={`h-11 w-48 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`} />
-            <SelectField label="행사" name="event" options={FINANCE_EVENTS.map((name) => ({ value: name, label: name }))} placeholder="전체 행사" defaultValue={event ?? ""} />
-            <Button type="submit">검색</Button>
+            <select name="event" aria-label="행사" defaultValue={event ?? ""} className={`h-11 rounded-lg border border-border-input bg-surface px-3 text-sm ${FOCUS_RING}`}>
+              <option value="">전체 행사</option>
+              {FINANCE_EVENTS.map((name) => <option key={name}>{name}</option>)}
+            </select>
+            <Button type="submit" className="h-11">적용</Button>
           </form>
         </div>
 

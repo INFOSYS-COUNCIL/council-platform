@@ -8,6 +8,10 @@ import { ActionForm } from "@/components/ui/action-form";
 import { Alert } from "@/components/ui/alert";
 import { Info, InfoList, Section, Skeleton } from "@/components/ui/detail";
 import { SecondaryLinkButton } from "@/components/ui/link-button";
+import { SelectField } from "@/components/ui/form-field";
+import { ManageMenu } from "@/components/ui/manage-menu";
+import { memberSelectOptions } from "@/lib/org/options";
+import { assignFinanceDoc, deleteFinanceVersion } from "../../actions";
 import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUserId, requireMember } from "@/lib/auth/session";
 import { formatDateTime, todayInSeoul } from "@/lib/dates";
@@ -67,7 +71,12 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
   // 표시용 판정. 실제 검사는 DB(add_finance_doc_version·change_task_status)가 한다
   const isAssignee = !!task && task.assignee_id === me;
   const isManager = finance.role === "EXECUTIVE" || finance.role === "DIRECTOR" || task?.manager_id === me;
-  const canUpload = (isAssignee || finance.role === "EXECUTIVE" || finance.role === "DIRECTOR") && (status === "DRAFT" || (status === "IMPORTED" && finance.role !== "MEMBER"));
+  const canManage = finance.role === "EXECUTIVE" || finance.role === "DIRECTOR";
+  const canUpload = !!task && status === "DRAFT" && (isAssignee || canManage);
+  const { data: removable, error: removableError } = canManage && versions.length > 1 && !doc.is_reference
+    ? await supabase.rpc("deletable_finance_versions", { p_doc_id: doc.id })
+    : { data: [], error: null };
+  const removableIds = new Set<string>(removable ?? []);
   const hidden = task && <input type="hidden" name="task_id" value={task.id} />;
 
   return (
@@ -78,6 +87,16 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
         actions={
           <span className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-bold dark:bg-zinc-800">{FINANCE_STATUS_LABELS[status]}</span>
+            {canManage && task && status === "DRAFT" && (
+              <ManageMenu title="문서 관리" subtitle={doc.title} items={[{
+                key: "assign", label: ownerName ? "담당자 바꾸기" : "담당자 지정", content: (
+                  <ActionForm action={assignFinanceDoc} submitLabel="저장">
+                    <input type="hidden" name="doc_id" value={doc.id} />
+                    <SelectField label="담당자" name="assignee_id" options={memberSelectOptions(finance.members)} placeholder="미배정" defaultValue={task.assignee_id ?? ""} />
+                  </ActionForm>
+                ),
+              }]} />
+            )}
             {isAssignee && <span className="rounded-full bg-danger-bg px-2 py-0.5 text-xs font-bold text-danger">나에게 배정된</span>}
             {doc.sensitive && <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold dark:bg-zinc-800">민감</span>}
           </span>
@@ -90,7 +109,7 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
       {/* 검토·승인: 연결된 업무의 기존 흐름(검토 요청 → 승인/다시 하기) */}
       {task && status === "DRAFT" && isAssignee && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-surface p-4 dark:border-zinc-800">
-          <p className="text-sm">{versions.length === 0 ? "초안을 먼저 저장한 뒤 검토를 요청하세요." : "다 작성했다면 재무국장에게 검토를 요청하세요."}</p>
+          <p className="text-sm">{versions.length === 0 ? "Excel에서 작성한 파일을 먼저 올린 뒤 검토를 요청하세요." : "다 작성했다면 재무국장에게 검토를 요청하세요."}</p>
           {versions.length > 0 && (
             <ActionForm action={changeTaskStatus} submitLabel="검토 요청 보내기">
               {hidden}
@@ -128,23 +147,22 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
 
       <div className="flex flex-wrap gap-2">
         {latest ? (
-          <DownloadButton path={latest.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? (doc.is_reference ? nameOf(latest.uploader) : "미배정"))} label={`최신 파일 내려받기 (v${latest.version})`} />
+          <DownloadButton path={latest.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? (doc.is_reference ? nameOf(latest.uploader) : "미배정"))} label={doc.is_reference ? "참고 자료 내려받기" : `최신 파일 내려받기 (v${latest.version})`} />
         ) : (
           formVersion && <DownloadButton path={formVersion.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? "미배정")} label="원본 양식 내려받기" />
         )}
       </div>
 
       {source && (
-        <Section title={canUpload && task ? "웹에서 작성" : "파일 미리보기"}>
-          <XlsxPreview key={source.file_path} path={source.file_path} editor={canUpload && task ? {
-            termId: membership.termId, docId: doc.id, version: latest?.version ?? 0, fileName: source.file_name,
-          } : undefined} />
+        <Section title="파일 미리보기">
+          <XlsxPreview key={source.file_path} path={source.file_path} />
         </Section>
       )}
 
       {canUpload && <UploadVersionForm termId={membership.termId} docId={doc.id} />}
 
-      <Section title={`버전 ${versions.length}`}>
+      {!doc.is_reference && <Section title={`버전 (${versions.length})`}>
+        {removableError && <Alert>삭제할 수 있는 버전을 확인하지 못했습니다.</Alert>}
         {versions.length === 0 ? (
           <p className="text-sm text-muted">아직 올린 파일이 없습니다.</p>
         ) : (
@@ -160,12 +178,19 @@ async function FinanceDoc({ params }: { params: Promise<{ docId: string }> }) {
                     {v.note && ` · ${v.note}`}
                   </span>
                 </span>
-                <DownloadButton path={v.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? (doc.is_reference ? nameOf(v.uploader) : "미배정"))} />
+                <div className="flex flex-wrap gap-2">
+                  <DownloadButton path={v.file_path} fileName={downloadName(doc.title, doc.base_date, author ?? "미배정")} />
+                  {removableIds.has(v.id) && (
+                    <ActionForm action={deleteFinanceVersion} submitLabel="삭제" variant="secondary" confirmMessage={`v${v.version} 파일을 삭제할까요?`}>
+                      <input type="hidden" name="version_id" value={v.id} />
+                    </ActionForm>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
         )}
-      </Section>
+      </Section>}
     </div>
   );
 }

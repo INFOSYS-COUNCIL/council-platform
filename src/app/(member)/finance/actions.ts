@@ -115,16 +115,19 @@ export async function importFinanceDoc(input: {
   return { id: data };
 }
 
-export async function saveFinanceWebVersion(input: { docId: string; filePath: string; fileName: string; expectedVersion: number }): Promise<Result> {
-  await requireMember(`/finance/docs/${input.docId}`);
+
+export async function deleteFinanceVersion(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireMember("/finance", ["DIRECTOR", "EXECUTIVE"]);
+  const id = text(formData, "version_id");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("save_finance_web_version", {
-    p_doc_id: input.docId,
-    p_file_path: input.filePath,
-    p_file_name: input.fileName,
-    p_expected_version: input.expectedVersion,
-  });
-  if (error) return { error: rpcErrorMessage(error) };
+  const { data: version, error: readError } = await supabase.from("finance_doc_versions")
+    .select("file_path").eq("id", id).maybeSingle();
+  if (readError || !version) return actionFailure("삭제할 버전을 찾을 수 없습니다.");
+  const { error } = await supabase.storage.from("finance-files").remove([version.file_path]);
+  if (error) return actionFailure("이 버전을 삭제하지 못했습니다.");
+  const { data: remaining, error: verifyError } = await supabase.from("finance_doc_versions")
+    .select("id").eq("id", id).maybeSingle();
+  if (verifyError || remaining) return actionFailure("버전 삭제를 확인하지 못했습니다.");
   refresh();
-  return {};
+  return actionSuccess("이전 버전을 삭제했습니다.");
 }
