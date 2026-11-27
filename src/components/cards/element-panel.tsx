@@ -87,14 +87,17 @@ export function ColorField({ label, value, onChange }: { label: string; value: s
   );
 }
 
+// 불투명도: 밀대로 끌거나 %를 숫자로 바로 넣는다
 function Percent({ label, value, onChange, min = 0 }: { label: string; value: number; onChange: (n: number) => void; min?: number }) {
   return (
-    <label className={LABEL}>
-      <span>
-        {label} <span className="tabular-nums text-muted">{Math.round(value * 100)}%</span>
+    <div className="space-y-1">
+      <span className="block text-sm font-medium">{label}</span>
+      <span className="flex items-center gap-2">
+        <input type="range" aria-label={`${label} 끌어서 바꾸기`} min={min} max={1} step={0.01} value={value} onChange={(e) => onChange(Number(e.target.value))} className="min-w-0 flex-1 accent-coral-700" />
+        <NumberField label={`${label}(%)`} value={Math.round(value * 100)} min={Math.round(min * 100)} max={100} onChange={(n) => onChange(n / 100)} className="w-20 [&>span]:sr-only" />
+        <span aria-hidden="true" className="text-sm text-muted">%</span>
       </span>
-      <input type="range" min={min} max={1} step={0.05} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-coral-700" />
-    </label>
+    </div>
   );
 }
 
@@ -113,7 +116,7 @@ export function ElementPanel({
   template: boolean;
 }) {
   if (!element) {
-    return <p className="text-sm text-muted">카드에서 요소를 누르면 여기서 글·크기·색·위치를 바꿀 수 있습니다. 끌어서 옮기고, 오른쪽 아래 파란 점으로 가로·세로 크기를 바꿉니다.</p>;
+    return <p className="text-sm text-muted">카드에서 요소를 누르면 여기서 글·크기·색·위치를 바꿀 수 있습니다. 끌어서 옮기고(빨간 기준선에 붙음, Alt를 누르면 안 붙음), 오른쪽 아래 파란 점으로 가로·세로 크기를 바꿉니다. Ctrl+C·V로 복사·붙여 넣기.</p>;
   }
   const isText = element.kind === "text";
   const set = (field: keyof CardElement) => (v: CardElement[typeof field]) => onChange({ [field]: v } as Partial<CardElement>, `${field}:${element.id}`);
@@ -121,7 +124,7 @@ export function ElementPanel({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <p className="font-semibold">{element.label}</p>
-        {template && onDelete && (
+        {onDelete && (
           <button type="button" onClick={onDelete} className="rounded-lg px-2 py-1 text-sm font-medium text-danger hover:bg-danger-bg">
             요소 지우기
           </button>
@@ -170,7 +173,7 @@ export function ElementPanel({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-3">
         <ColorField label={isText ? "글자색" : "채우기 색"} value={element.color} onChange={set("color")} />
         <Percent label="불투명도" value={element.opacity} min={0.05} onChange={set("opacity")} />
       </div>
@@ -227,7 +230,7 @@ export function ElementPanel({
         </legend>
         {element.shadow && (
           <>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               <ColorField label="그림자 색" value={element.shadowColor} onChange={set("shadowColor")} />
               <Percent label="그림자 불투명도" value={element.shadowOpacity} onChange={set("shadowOpacity")} />
             </div>

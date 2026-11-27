@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CardStage } from "@/components/cards/card-stage";
 import { ElementPanel } from "@/components/cards/element-panel";
 import { SlideThumb } from "@/components/cards/slide-thumb";
 import { Alert } from "@/components/ui/alert";
 import { useUndoable, useUndoKeys } from "@/lib/cards/history";
-import { GRID_SIZES, moveLayer, newSlide, slideElements, type CardElement, type CardSlide, type CardTemplate, type LayerMove } from "@/lib/cards/model";
+import { GRID_SIZES, moveLayer, newId, newSlide, slideElements, type CardElement, type CardSlide, type CardTemplate, type LayerMove } from "@/lib/cards/model";
 import { exportPages, layoutFrame, type ExportFormat } from "@/lib/cards/render";
 import { useTemplateAssets } from "@/lib/cards/use-assets";
 import { saveCard } from "../actions";
@@ -43,6 +43,10 @@ export function CardEditor({
   const [grid, setGrid] = useState(0);
   const [picking, setPicking] = useState(false);
   const assetsFor = useTemplateAssets(template);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  // 복사해 둔 요소나 페이지(Ctrl+C → Ctrl+V)
+  const clipboard = useRef<{ kind: "element"; element: CardElement } | { kind: "page"; slide: CardSlide } | null>(null);
 
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
@@ -100,6 +104,62 @@ export function CardEditor({
     setSelectedId(null);
     setPicking(false);
   };
+  const reorderSlide = (from: number, to: number) => {
+    if (from === to) return;
+    edit((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
+    setIndex(to);
+  };
+  const duplicateSlide = (source: CardSlide) => {
+    // 고칠 수 있는 칸·붙여 넣은 요소의 id는 장 모양과 이어져 있어 그대로 두고, 페이지 id만 새로 만든다
+    edit((prev) => {
+      const next = [...prev];
+      next.splice(at + 1, 0, { ...structuredClone(source), id: newId() });
+      return next;
+    });
+    setIndex(at + 1);
+    setSelectedId(null);
+  };
+  const isPasted = (id: string) => !!slide && !layoutOf(slide)?.elements.some((e) => e.id === id);
+  const removeElement = (id: string) => {
+    if (!slide) return;
+    edit((prev) => prev.map((s) => (s.id === slide.id ? { ...s, elements: s.elements.filter((e) => e.id !== id) } : s)));
+    setSelectedId(null);
+  };
+
+  // Ctrl(⌘)+C·V: 요소를 고른 채면 요소, 아니면 지금 페이지를 복사·붙여 넣기. 글 입력 칸 안에서는 브라우저 복사를 그대로 쓴다
+  useEffect(() => {
+    if (!canEdit) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
+      const k = e.key.toLowerCase();
+      if (k === "c") {
+        const el = elements.find((x) => x.id === selectedId);
+        if (el) clipboard.current = { kind: "element", element: structuredClone(el) };
+        else if (slide) clipboard.current = { kind: "page", slide: structuredClone(slide) };
+        else return;
+        setStatus({ tone: "info", text: el ? `'${el.label}' 요소를 복사했습니다. Ctrl+V로 붙여 넣으세요.` : `${at + 1}페이지를 복사했습니다. Ctrl+V로 붙여 넣으세요.` });
+      } else if (k === "v" && clipboard.current) {
+        const c = clipboard.current;
+        if (c.kind === "page") duplicateSlide(c.slide);
+        else if (slide) {
+          const el: CardElement = { ...structuredClone(c.element), id: newId(), x: c.element.x + 20, y: c.element.y + 20, editable: true, label: `${c.element.label} 복사` };
+          edit((prev) => prev.map((s) => (s.id === slide.id ? { ...s, elements: [...s.elements, el] } : s)));
+          setSelectedId(el.id);
+        }
+      } else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   const moveSlide = (step: -1 | 1) => {
     const to = at + step;
     if (to < 0 || to >= slides.length) return;
@@ -227,13 +287,34 @@ export function CardEditor({
               <button
                 key={s.id}
                 type="button"
+                draggable={canEdit}
+                onDragStart={(e) => {
+                  setDragFrom(i);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  if (dragFrom === null) return;
+                  e.preventDefault();
+                  setDragOver(i);
+                }}
+                onDragLeave={() => setDragOver((v) => (v === i ? null : v))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragFrom !== null) reorderSlide(dragFrom, i);
+                  setDragFrom(null);
+                  setDragOver(null);
+                }}
+                onDragEnd={() => {
+                  setDragFrom(null);
+                  setDragOver(null);
+                }}
                 aria-current={i === at ? "page" : undefined}
                 aria-label={`${i + 1}페이지 (${layout?.name ?? "장"})`}
                 onClick={() => {
                   setIndex(i);
                   setSelectedId(null);
                 }}
-                className={`w-24 shrink-0 rounded-lg border-2 p-1 text-left lg:w-full ${i === at ? "border-accent" : "border-transparent hover:border-border-input"}`}
+                className={`w-24 shrink-0 rounded-lg border-2 p-1 text-left lg:w-full ${dragOver === i && dragFrom !== i ? "border-dashed border-blue-500" : i === at ? "border-accent" : "border-transparent hover:border-border-input"} ${dragFrom === i ? "opacity-40" : ""}`}
               >
                 <SlideThumb frame={layoutFrame(template, layout)} elements={slideElements(s, template.layouts)} assets={assetsFor(layout)} width={128} />
                 <span className="mt-1 block truncate text-xs tabular-nums">
@@ -284,6 +365,9 @@ export function CardEditor({
                   <button type="button" className={BTN} disabled={at === slides.length - 1} onClick={() => moveSlide(1)} aria-label="이 페이지를 뒤로">
                     ↓ 뒤로
                   </button>
+                  <button type="button" className={BTN} onClick={() => slide && duplicateSlide(slide)} title="Ctrl+C → Ctrl+V로도 복제할 수 있습니다">
+                    페이지 복제
+                  </button>
                   <button type="button" className={`${BTN} text-danger`} onClick={removeSlide}>
                     이 페이지 지우기
                   </button>
@@ -307,7 +391,13 @@ export function CardEditor({
 
         <div className="rounded-xl border border-zinc-200 bg-surface p-4 lg:sticky lg:top-4 lg:max-h-[90vh] lg:self-start lg:overflow-y-auto dark:border-zinc-800">
           {canEdit ? (
-            <ElementPanel template={false} element={selected} onChange={(patch, key) => selected && changeElement(selected.id, patch, key)} onLayer={layer} />
+            <ElementPanel
+              template={false}
+              element={selected}
+              onChange={(patch, key) => selected && changeElement(selected.id, patch, key)}
+              onLayer={layer}
+              onDelete={selected && isPasted(selected.id) ? () => removeElement(selected.id) : undefined}
+            />
           ) : (
             <p className="text-sm text-muted">만든 사람이나 국장 이상만 고칠 수 있습니다. 내려받기는 누구나 할 수 있습니다.</p>
           )}
