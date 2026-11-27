@@ -273,10 +273,13 @@ export function parseSlides(value: unknown): CardSlide[] {
 }
 
 // 장에 그릴 요소: 틀에 고정된 요소는 지금 틀에서(틀을 고치면 이미 만든 카드뉴스에도 반영), 고칠 수 있는 칸은 장에 저장된 값으로.
-// 순서는 장에서 바꾼 레이어 순서(order)가 있으면 그것, 없으면 틀의 장 모양을 따른다. 틀에서 장 모양이 지워졌으면 장에 저장된 요소를 그대로 쓴다.
+// 페이지에서 붙여 넣은 요소도 함께 그린다. 순서는 장에서 바꾼 레이어 순서(order)가 있으면 그것, 없으면 틀의 장 모양을 따른다. 틀에서 장 모양이 지워졌으면 장에 저장된 요소를 그대로 쓴다.
 export function slideElements(slide: CardSlide, layouts: CardLayout[]): CardElement[] {
   const layout = layouts.find((l) => l.id === slide.layoutId);
-  const els = layout ? layout.elements.map((e) => (e.editable ? (slide.elements.find((s) => s.id === e.id) ?? e) : e)) : slide.elements;
+  // 페이지에서 붙여 넣어 더한 요소(장 모양에 없는 것)는 뒤에 붙인다
+  const els = layout
+    ? [...layout.elements.map((e) => (e.editable ? (slide.elements.find((s) => s.id === e.id) ?? e) : e)), ...slide.elements.filter((s) => !layout.elements.some((e) => e.id === s.id))]
+    : slide.elements;
   if (!slide.order?.length) return els;
   const rank = new Map(slide.order.map((id, i) => [id, i]));
   return [...els].sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
@@ -306,3 +309,29 @@ export const GRID_SIZES = [0, 10, 20, 40, 60];
 
 // 격자에 맞추기(size가 0이면 그대로)
 export const snap = (v: number, size: number) => (size > 0 ? Math.round(v / size) * size : Math.round(v));
+
+// 피그마처럼 빨간 기준선: 움직이는 요소의 왼쪽·가운데·오른쪽(위·가운데·아래)이 카드 가장자리·가운데나 다른 요소에 가까우면 붙이고 그 선을 알려 준다.
+// resize: 크기 바꾸기는 오른쪽·아래 모서리만 맞춘다. threshold는 이미지 px
+export type Rect = { x: number; y: number; w: number; h: number };
+export function smartSnap(r: Rect, others: Rect[], frame: { width: number; height: number }, threshold: number, resize = false) {
+  const axis = (pos: number, size: number, targets: number[]) => {
+    const edges = resize ? [size] : [0, size / 2, size];
+    let best: { diff: number; line: number } | null = null;
+    for (const e of edges)
+      for (const t of targets) {
+        const diff = t - (pos + e);
+        if (Math.abs(diff) <= threshold && (!best || Math.abs(diff) < Math.abs(best.diff))) best = { diff, line: t };
+      }
+    return best;
+  };
+  const xs = [0, frame.width / 2, frame.width, ...others.flatMap((o) => [o.x, o.x + o.w / 2, o.x + o.w])];
+  const ys = [0, frame.height / 2, frame.height, ...others.flatMap((o) => [o.y, o.y + o.h / 2, o.y + o.h])];
+  const bx = axis(r.x, r.w, xs);
+  const by = axis(r.y, r.h, ys);
+  return {
+    dx: bx ? Math.round(bx.diff) : 0,
+    dy: by ? Math.round(by.diff) : 0,
+    guideX: bx ? bx.line : null,
+    guideY: by ? by.line : null,
+  };
+}

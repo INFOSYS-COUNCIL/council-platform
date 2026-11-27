@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CardStage } from "@/components/cards/card-stage";
 import { ColorField, ElementPanel } from "@/components/cards/element-panel";
 import { Alert } from "@/components/ui/alert";
@@ -39,6 +39,7 @@ export function TemplateEditor({ termId, initial, councilName }: { termId: strin
   const [busy, setBusy] = useState(false);
   const [grid, setGrid] = useState(0);
   const assetsFor = useTemplateAssets(t);
+  const clipboard = useRef<CardElement | null>(null);
 
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => dirty && e.preventDefault();
@@ -99,6 +100,29 @@ export function TemplateEditor({ termId, initial, councilName }: { termId: strin
 
   const sizeIndex = CARD_SIZES.findIndex((s) => s.width === t.width && s.height === t.height);
   const selected = layout?.elements.find((e) => e.id === selectedId);
+
+  // Ctrl(⌘)+C·V: 고른 요소를 복사해 지금 템플릿에 붙여 넣는다(다른 템플릿으로 옮겨 붙여도 된다)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const tg = e.target as HTMLElement | null;
+      if (tg && (tg.isContentEditable || tg.tagName === "INPUT" || tg.tagName === "TEXTAREA" || tg.tagName === "SELECT")) return;
+      const k = e.key.toLowerCase();
+      if (k === "c" && selected) {
+        clipboard.current = structuredClone(selected);
+        setStatus({ tone: "info", text: `'${selected.label}' 요소를 복사했습니다. Ctrl+V로 붙여 넣으세요.` });
+      } else if (k === "v" && clipboard.current && layout) {
+        const c = clipboard.current;
+        const el: CardElement = { ...structuredClone(c), id: newId(), x: c.x + 20, y: c.y + 20, label: `${c.label} 복사` };
+        setLayout((l) => ({ ...l, elements: [...l.elements, el] }));
+        setSelectedId(el.id);
+      } else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
 
   return (
     <div className="space-y-5">

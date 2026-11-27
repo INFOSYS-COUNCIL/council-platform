@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultLayouts, LAYOUT_PRESETS, moveLayer, newSlide, normalizeElement, presetLayout, slideElements, snap, textTop, wrapText } from "./model";
+import { defaultLayouts, LAYOUT_PRESETS, moveLayer, newSlide, normalizeElement, presetLayout, slideElements, smartSnap, snap, textTop, wrapText } from "./model";
 
 // 글자 하나 폭 10으로 잰다
 const measure = (s: string) => s.length * 10;
@@ -81,5 +81,35 @@ describe("예전 데이터와 기본 템플릿", () => {
     const ids = cover.elements.map((e) => e.id);
     const order = [...ids].reverse();
     expect(slideElements({ ...slide, order }, [cover]).map((e) => e.id)).toEqual(order);
+  });
+});
+
+describe("smartSnap", () => {
+  const frame = { width: 1000, height: 1000 };
+  it("가운데에 가까우면 붙이고 기준선을 알려 준다", () => {
+    const r = smartSnap({ x: 397, y: 10, w: 200, h: 100 }, [], frame, 6);
+    expect(r.dx).toBe(3); // 가운데 497 → 500
+    expect(r.guideX).toBe(500);
+  });
+  it("다른 요소의 가장자리에 맞추고, 멀면 그대로 둔다", () => {
+    const r = smartSnap({ x: 120, y: 294, w: 50, h: 50 }, [{ x: 0, y: 300, w: 118, h: 10 }], frame, 6);
+    expect(r.dx).toBe(-2); // 왼쪽 120 → 다른 요소 오른쪽 118
+    expect(r.dy).toBe(6); // 위 294 → 다른 요소 위 300
+    expect(smartSnap({ x: 200, y: 200, w: 10, h: 10 }, [], frame, 6)).toEqual({ dx: 0, dy: 0, guideX: null, guideY: null });
+  });
+  it("크기 바꾸기는 오른쪽·아래 모서리만 맞춘다", () => {
+    const r = smartSnap({ x: 0, y: 0, w: 497, h: 10 }, [], frame, 6, true);
+    expect(r.dx).toBe(3);
+  });
+});
+
+describe("붙여 넣은 요소", () => {
+  it("장 모양에 없는 페이지 요소도 그린다", () => {
+    const [cover] = defaultLayouts();
+    const slide = newSlide(cover);
+    const pasted = { ...slide.elements[0], id: "pasted", label: "제목 복사" };
+    const els = slideElements({ ...slide, elements: [...slide.elements, pasted] }, [cover]);
+    expect(els.at(-1)!.id).toBe("pasted");
+    expect(els).toHaveLength(cover.elements.length + 1);
   });
 });
