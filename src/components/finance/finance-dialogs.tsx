@@ -271,7 +271,7 @@ export function ImportDocButton({ termId, defaultSemester, today }: { termId: st
                 const result = await importFinanceDoc({
                   title: String(f.get("title") ?? ""),
                   semester: String(f.get("semester") ?? ""),
-                  baseDate: String(f.get("base_date") ?? ""),
+                  baseDate: today,
                   sensitive: f.get("sensitive") === "on",
                   filePath: file.path,
                   fileName: file.name,
@@ -288,16 +288,17 @@ export function ImportDocButton({ termId, defaultSemester, today }: { termId: st
               <span>제목</span>
               <input name="title" required maxLength={120} className={INPUT} />
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <label className={LABEL}>
-                <span>학기</span>
-                <input name="semester" required defaultValue={defaultSemester} pattern="\d{4}-[12]" className={INPUT} />
-              </label>
-              <label className={LABEL}>
-                <span>기준일</span>
-                <input name="base_date" type="date" defaultValue={today} className={INPUT} />
-              </label>
-            </div>
+            <label className={LABEL}>
+              <span>학기</span>
+              <select name="semester" required defaultValue={defaultSemester} className={INPUT}>
+                {Array.from({ length: 8 }, (_, index) => {
+                  const current = Number(defaultSemester.slice(0, 4)) * 2 + Number(defaultSemester.slice(-1)) - 1;
+                  const value = current + 2 - index;
+                  const semester = `${Math.floor(value / 2)}-${value % 2 + 1}`;
+                  return <option key={semester} value={semester}>{semester.slice(2)}</option>;
+                })}
+              </select>
+            </label>
             <FileField />
             <label className="flex items-center gap-2 text-sm">
               <input name="sensitive" type="checkbox" className="size-4 accent-coral-700" /> 민감 자료(국장·담당자만)

@@ -1,24 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { saveFinanceWebVersion } from "@/app/(member)/finance/actions";
-import { Button } from "@/components/ui/button";
-import { fetchFinanceFile, uploadFinanceFile } from "@/lib/finance/files";
+import { fetchFinanceFile } from "@/lib/finance/files";
 
 // .xlsx 읽기 전용 미리보기: 시트 탭 + 격자. 수식 칸은 업로드 당시 계산값을 회색으로 보여 준다(웹에서 다시 계산하지 않음).
 // shortcut: 한 시트에 200행 × 26열까지만 그린다. 큰 장부가 생기면 가상 스크롤을 붙인다.
-type Cell = { text: string; formula: boolean; bold: boolean; editable: boolean };
-type Editor = { termId: string; docId: string; version: number; fileName: string };
+type Cell = { text: string; formula: boolean; bold: boolean };
 type Sheet = { name: string; rows: Cell[][]; cols: number; truncated: boolean };
 const MAX_ROWS = 200;
 const MAX_COLS = 26;
 
-export function XlsxPreview({ path, editor }: { path: string; editor?: Editor }) {
-  const [originalFile, setOriginalFile] = useState<ArrayBuffer | null>(null);
-  const [changes, setChanges] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [saved, setSaved] = useState(false);
+export function XlsxPreview({ path }: { path: string }) {
   const [sheets, setSheets] = useState<Sheet[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState(0);
@@ -40,17 +32,25 @@ export function XlsxPreview({ path, editor }: { path: string; editor?: Editor })
             for (let c = 1; c <= cols; c++) {
               const cell = row.getCell(c);
               const formula = cell.type === ExcelJS.ValueType.Formula;
-              const editable = !cell.isMerged && !formula &&
-                (cell.value === null || typeof cell.value === "string" || typeof cell.value === "number");
-              cells.push({ text: cell.text ?? "", formula, bold: !!cell.font?.bold, editable });
+              const value = cell.value;
+              // 빈 캐시 결과나 빈 리치 텍스트가 들어 있어도 나머지 시트를 표시한다.
+              const text = value == null ? "" : typeof value === "object" && "richText" in value
+                ? value.richText.map((part) => part?.text ?? "").join("")
+                : typeof value === "object" && ("formula" in value || "sharedFormula" in value)
+                  ? String(typeof value.result === "object" && value.result && "error" in value.result
+                    ? value.result.error ?? "" : value.result ?? "")
+                  : typeof value === "object" && "error" in value
+                    ? String(value.error ?? "")
+                    : cell.text;
+              cells.push({ text, formula, bold: !!cell.font?.bold });
             }
             rows.push(cells);
           }
           return { name: ws.name, rows, cols, truncated: ws.rowCount > MAX_ROWS || ws.columnCount > MAX_COLS };
         });
-        if (live) { setOriginalFile(buf); setSheets(out); }
-      } catch (e) {
-        if (live) setError((e as Error).message || "파일을 읽지 못했습니다.");
+        if (live) setSheets(out);
+      } catch {
+        if (live) setError("미리보기를 표시할 수 없습니다. 파일을 내려받아 Excel에서 열어 주세요.");
       }
     })();
     return () => {
@@ -58,44 +58,10 @@ export function XlsxPreview({ path, editor }: { path: string; editor?: Editor })
     };
   }, [path]);
 
-  if (error) return <p className="text-sm text-danger">{error}</p>;
+  if (error) return <p role="alert" className="text-sm text-danger">{error}</p>;
   if (!sheets) return <p role="status" className="text-sm text-muted">양식을 불러오는 중…</p>;
   const sheet = sheets[active];
   const colName = (i: number) => String.fromCharCode(65 + i);
-
-  async function saveDraft() {
-    if (!editor || !originalFile) return;
-    setSaving(true);
-    setMessage("");
-    try {
-      const { default: ExcelJS } = await import("exceljs");
-      const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(originalFile);
-      for (const [key, value] of Object.entries(changes)) {
-        const [sheetIndex, row, col] = key.split(":").map(Number);
-        const cell = workbook.worksheets[sheetIndex].getRow(row).getCell(col);
-        const original = sheets?.[sheetIndex].rows[row - 1][col - 1].text;
-        if (value === original) continue;
-        const number = Number(value);
-        cell.value = value === "" ? null
-          : /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value) && Number.isFinite(number) && value.replace(/[-.]/g, "").length <= 15
-            ? number : value;
-      }
-      workbook.calcProperties.fullCalcOnLoad = true;
-      const bytes = await workbook.xlsx.writeBuffer();
-      const file = await uploadFinanceFile(editor.termId, new File([new Uint8Array(bytes)], editor.fileName));
-      const result = await saveFinanceWebVersion({
-        docId: editor.docId, filePath: file.path, fileName: file.name, expectedVersion: editor.version,
-      });
-      if (result.error) throw new Error(result.error);
-      setSaved(true);
-      setChanges({});
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "초안을 저장하지 못했습니다.");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <div className="space-y-2">
@@ -138,18 +104,7 @@ export function XlsxPreview({ path, editor }: { path: string; editor?: Editor })
                       title={c.formula ? "수식 칸(업로드 당시 값)" : undefined}
                       className={`max-w-56 truncate border border-zinc-200 px-2 py-1 dark:border-zinc-800 ${c.formula ? "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300" : ""} ${c.bold ? "font-semibold" : ""}`}
                     >
-                      {editor && c.editable ? (
-                        <input
-                          aria-label={`${sheet.name} ${colName(i)}${r + 1}`}
-                          className="w-24 min-w-0 bg-transparent px-1 py-1 focus-visible:outline-2 focus-visible:outline-accent"
-                          value={changes[`${active}:${r + 1}:${i + 1}`] ?? c.text}
-                          disabled={saving || saved}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setChanges((current) => ({ ...current, [`${active}:${r + 1}:${i + 1}`]: value }));
-                          }}
-                        />
-                      ) : c.text}
+                      {c.text}
                     </td>
                   ))}
                 </tr>
@@ -159,18 +114,9 @@ export function XlsxPreview({ path, editor }: { path: string; editor?: Editor })
         </div>
       )}
       <p className="text-xs text-muted">
-        {editor ? "텍스트와 숫자 셀을 편집할 수 있습니다." : "읽기 전용 미리보기입니다."} 회색 수식 셀은 파일에 저장된 계산값을 보여 줍니다.
+        읽기 전용 미리보기입니다. 회색 수식 셀은 파일에 저장된 계산값을 보여 줍니다.
         {sheet?.truncated && ` 앞의 ${MAX_ROWS}행 × ${MAX_COLS}열까지만 보입니다.`}
       </p>
-      {editor && (
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" disabled={saving || saved || !Object.keys(changes).length} onClick={saveDraft}>
-            {saving ? "저장 중…" : "초안 저장"}
-          </Button>
-          {message && <p role="alert" className="text-sm text-danger">{message}</p>}
-          {saved && <p role="status" className="text-sm text-muted">새 버전을 저장했습니다.</p>}
-        </div>
-      )}
     </div>
   );
 }
