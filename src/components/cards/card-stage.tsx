@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { fontCss, LINE_HEIGHT, type CardElement } from "@/lib/cards/model";
+import { fontCss, LINE_HEIGHT, shadowRgba, snap, textTop, type CardElement } from "@/lib/cards/model";
 import { textLines, type CardAssets, type CardFrame } from "@/lib/cards/render";
 
 // 카드 한 장의 편집 화면. 실제 크기(px) 좌표를 화면 폭에 맞춰 줄여 보여 주고,
-// 요소를 마우스로 끌어 옮기고 오른쪽 아래 손잡이로 폭(상자는 높이도)을 바꾼다. 방향키로 1px(Shift: 10px)씩 옮긴다.
+// 요소를 마우스로 끌어 옮기고 오른쪽 아래 손잡이로 가로·세로 크기를 바꾼다. 방향키로 1px(Shift: 10px)씩 옮긴다.
+// grid: 격자 칸 크기(px). 0이 아니면 끌기·크기 바꾸기·방향키가 격자 선에 맞춰진다.
 // locked: 카드뉴스 화면에서 틀에 고정된 요소(editable=false)는 고르지 못한다.
 export function CardStage({
   frame,
@@ -15,18 +16,20 @@ export function CardStage({
   onSelect,
   onChange,
   lockFixed,
+  grid = 0,
 }: {
   frame: CardFrame;
   assets: CardAssets;
   elements: CardElement[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
-  onChange: (id: string, patch: Partial<CardElement>) => void;
+  onChange: (id: string, patch: Partial<CardElement>, key?: string) => void;
   lockFixed: boolean;
+  grid?: number;
 }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
-  const drag = useRef<{ id: string; mode: "move" | "resize"; sx: number; sy: number; ox: number; oy: number; ow: number; oh: number } | null>(null);
+  const drag = useRef<{ id: string; mode: "move" | "resize"; sx: number; sy: number; ox: number; oy: number; ow: number; oh: number; text: boolean } | null>(null);
 
   useEffect(() => {
     const el = boxRef.current;
@@ -43,20 +46,23 @@ export function CardStage({
     };
   }, [frame.width, frame.height]);
 
+  // 글 요소의 높이가 0(자동)이면 줄 수로 잰 높이
+  const heightOf = (el: CardElement) => (el.kind === "text" && el.h <= 0 ? textLines(el, assets.fontFamily).length * el.fontSize * LINE_HEIGHT : el.h);
+
   const start = (e: ReactPointerEvent, el: CardElement, mode: "move" | "resize") => {
     e.stopPropagation();
     e.preventDefault();
     onSelect(el.id);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    drag.current = { id: el.id, mode, sx: e.clientX, sy: e.clientY, ox: el.x, oy: el.y, ow: el.w, oh: el.h };
+    drag.current = { id: el.id, mode, sx: e.clientX, sy: e.clientY, ox: el.x, oy: el.y, ow: el.w, oh: Math.round(heightOf(el)), text: el.kind === "text" };
   };
   const move = (e: ReactPointerEvent) => {
     const d = drag.current;
     if (!d) return;
-    const dx = Math.round((e.clientX - d.sx) / scale);
-    const dy = Math.round((e.clientY - d.sy) / scale);
-    if (d.mode === "move") onChange(d.id, { x: d.ox + dx, y: d.oy + dy });
-    else onChange(d.id, { w: Math.max(40, d.ow + dx), h: Math.max(20, d.oh + dy) });
+    const dx = (e.clientX - d.sx) / scale;
+    const dy = (e.clientY - d.sy) / scale;
+    if (d.mode === "move") onChange(d.id, { x: snap(d.ox + dx, grid), y: snap(d.oy + dy, grid) }, `move:${d.id}`);
+    else onChange(d.id, { w: Math.max(40, snap(d.ow + dx, grid)), h: Math.max(20, snap(d.oh + dy, grid)) }, `resize:${d.id}`);
   };
   const end = () => (drag.current = null);
 
@@ -64,10 +70,10 @@ export function CardStage({
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (!selected || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
     e.preventDefault();
-    const step = e.shiftKey ? 10 : 1;
+    const step = grid > 0 ? grid : e.shiftKey ? 10 : 1;
     const dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
     const dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0;
-    onChange(selected.id, { x: selected.x + dx, y: selected.y + dy });
+    onChange(selected.id, { x: snap(selected.x + dx, grid), y: snap(selected.y + dy, grid) }, `key:${selected.id}`);
   };
 
   return (
@@ -93,6 +99,8 @@ export function CardStage({
             const locked = lockFixed && !el.editable;
             const isSel = el.id === selectedId;
             const lh = el.fontSize * LINE_HEIGHT;
+            const lines = el.kind === "text" ? textLines(el, assets.fontFamily) : [];
+            const shadow = el.shadow ? `${el.shadowX}px ${el.shadowY}px ${el.shadowBlur}px ${shadowRgba(el)}` : undefined;
             return (
               <div
                 key={el.id}
@@ -104,21 +112,27 @@ export function CardStage({
                   left: el.x,
                   top: el.y,
                   width: el.w,
-                  height: el.kind === "box" ? el.h : undefined,
+                  height: heightOf(el),
                   opacity: el.opacity,
                   ...(el.kind === "box"
-                    ? { backgroundColor: el.color, borderRadius: el.radius }
+                    ? { backgroundColor: el.color, borderRadius: el.radius, boxShadow: shadow }
                     : {
                         font: fontCss(el, assets.fontFamily),
                         lineHeight: `${lh}px`,
                         color: el.color,
                         textAlign: el.align,
                         whiteSpace: "pre",
-                        textShadow: el.shadow ? `0 0 ${el.fontSize * 0.25}px rgba(20,30,60,0.25)` : undefined,
+                        textShadow: shadow,
                       }),
                 }}
               >
-                {el.kind === "text" && textLines(el, assets.fontFamily).map((line, i) => <div key={i}>{line || " "}</div>)}
+                {el.kind === "text" && (
+                  <div style={{ transform: `translateY(${textTop(el, lines.length) - el.y}px)` }}>
+                    {lines.map((line, i) => (
+                      <div key={i}>{line || " "}</div>
+                    ))}
+                  </div>
+                )}
                 {isSel && !locked && (
                   <span
                     aria-hidden="true"
@@ -132,6 +146,17 @@ export function CardStage({
               </div>
             );
           })}
+          {grid > 0 && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                // 줄인 화면에서도 선이 1px 이상 보이게
+                backgroundImage: `linear-gradient(to right, rgba(59,130,246,.35) ${1 / scale}px, transparent ${1 / scale}px), linear-gradient(to bottom, rgba(59,130,246,.35) ${1 / scale}px, transparent ${1 / scale}px)`,
+                backgroundSize: `${grid}px ${grid}px`,
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
